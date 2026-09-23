@@ -1,0 +1,419 @@
+.pyg-container {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 4px rgba(0,0,0,0.08);
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+    color: #16325c;
+}
+
+/* ===== HEADER ===== */
+.pyg-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem; border-bottom: 1px solid #e5e5e5;
+}
+.pyg-header-left { display: flex; align-items: center; gap: 0.75rem; }
+.pyg-icon { background: #eef4fd; border-radius: 0.4rem; padding: 0.5rem; }
+.pyg-title { font-size: 1.1rem; font-weight: 700; color: #0b1f3a; margin: 0; }
+.pyg-subtitle { font-size: 0.8rem; color: #5f6b7c; margin: 0; }
+.pyg-header-right { display: flex; align-items: center; gap: 0.4rem; }
+
+/* ===== FILTROS ===== */
+.pyg-filtros {
+    padding: 1rem 1.25rem; background: #fbfcfe; border-bottom: 1px solid #e5e5e5;
+}
+.pyg-filtros-titulo {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.75rem; font-size: 0.75rem; letter-spacing: 0.1em;
+    color: #5f6b7c; font-weight: 700;
+}
+.pyg-toggles {
+    display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap;
+}
+.pyg-toggle-label {
+    font-size: 0.75rem; color: #16325c; font-weight: 700;
+    margin-left: 0.6rem; margin-right: 0.15rem; letter-spacing: normal;
+}
+.pyg-toggle {
+    background: #ffffff; border: 1px solid #c9d4e5; color: #16325c;
+    padding: 0.15rem 0.6rem; border-radius: 0.25rem;
+    font-size: 0.78rem; cursor: pointer; transition: background 0.1s ease;
+}
+.pyg-toggle:hover { background: #eef4fd; }
+.pyg-toggle-active { background: #0070d2; border-color: #005fb2; color: #ffffff; }
+.pyg-toggle:focus { outline: 2px solid #1589ee; outline-offset: 1px; }
+
+/* Interruptor "Balance oficial" */
+.pyg-switch {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    background: transparent; border: 0; padding: 0; cursor: pointer;
+    margin-right: 0.7rem;
+}
+.pyg-switch-track {
+    width: 36px; height: 18px; border-radius: 9px; background: #c9d4e5;
+    position: relative; transition: background 0.15s ease; flex-shrink: 0;
+}
+.pyg-switch-thumb {
+    position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+    border-radius: 50%; background: #ffffff; transition: left 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.pyg-switch-label { font-size: 0.78rem; font-weight: 700; color: #16325c; white-space: nowrap; }
+.pyg-switch-on .pyg-switch-track { background: #2e844a; }
+.pyg-switch-on .pyg-switch-thumb { left: 20px; }
+.pyg-switch-on .pyg-switch-label { color: #1f6638; }
+
+/* Toggles bloqueados por el interruptor */
+.pyg-toggle:disabled { opacity: 0.4; cursor: not-allowed; }
+.pyg-label-dim { opacity: 0.4; }
+
+.pyg-vista-badge {
+    display: inline-flex; align-items: center; height: 1.4rem;
+    padding: 0 0.7rem; border-radius: 1rem;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em;
+    color: #ffffff; margin-right: 0.4rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    cursor: default; user-select: none;
+}
+.pyg-vista-fiscal     { background: #2e844a; border: 1px solid #1f6638; }
+.pyg-vista-analitico  { background: #ba0517; border: 1px solid #8e0413; }
+
+.pyg-filtros-grid {
+    display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr));
+    gap: 0.75rem; align-items: end;
+}
+.pyg-fechas-grid {
+    display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 0.75rem; margin-top: 0.75rem;
+}
+.pyg-req { color: #ba0517; font-weight: 700; margin-left: 0.15rem; }
+.pyg-required-empty :is(.slds-form-element__label, .pyg-ms-trigger) { color: #ba0517; }
+.pyg-required-empty .pyg-ms-trigger { border-color: #ba0517; }
+
+/* Multi-select (empresa titular) */
+.pyg-ms-wrap { position: relative; }
+.pyg-ms-trigger {
+    width: 100%; height: 1.875rem; background: #ffffff;
+    border: 1px solid #c9d4e5; border-radius: 0.25rem;
+    padding: 0 0.6rem; font-size: 0.85rem; color: #16325c;
+    cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    text-align: left;
+}
+.pyg-ms-trigger:hover { border-color: #1589ee; }
+.pyg-ms-trigger:focus { outline: none; border-color: #1589ee; box-shadow: 0 0 3px #0070d2; }
+.pyg-ms-trigger-filled .pyg-ms-trigger-text { color: #0b1f3a; font-weight: 500; }
+.pyg-ms-trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #80869b; }
+.pyg-ms-caret { color: #5f6b7c; font-size: 0.65rem; margin-left: 0.5rem; }
+
+.pyg-ms-backdrop { position: fixed; inset: 0; background: transparent; z-index: 8000; }
+.pyg-ms-panel {
+    position: absolute; top: calc(100% + 4px); left: 0;
+    width: min(420px, calc(100% + 100px));
+    background: #ffffff; border: 1px solid #c9d4e5;
+    border-radius: 0.4rem; box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    z-index: 8100; display: flex; flex-direction: column; overflow: hidden;
+}
+.pyg-ms-panel-head {
+    padding: 0.5rem 0.6rem; border-bottom: 1px solid #eef0f4;
+    display: flex; flex-direction: column; gap: 0.35rem;
+}
+.pyg-ms-search {
+    width: 100%; height: 1.875rem; border: 1px solid #c9d4e5;
+    border-radius: 0.25rem; padding: 0 0.5rem; font-size: 0.85rem;
+}
+.pyg-ms-actions { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #5f6b7c; }
+.pyg-ms-link {
+    background: transparent; border: 0; color: #0070d2;
+    cursor: pointer; padding: 0; font-size: 0.78rem;
+}
+.pyg-ms-link:hover { text-decoration: underline; }
+.pyg-ms-list { max-height: 260px; overflow-y: auto; }
+.pyg-ms-option {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.45rem 0.7rem; cursor: pointer; font-size: 0.85rem; color: #16325c;
+}
+.pyg-ms-option:hover { background: #eef4fd; }
+.pyg-ms-option-selected { background: #f1f9f3; }
+.pyg-ms-check {
+    width: 1rem; height: 1rem; border: 1px solid #c9d4e5;
+    border-radius: 0.18rem; background: #ffffff; flex-shrink: 0;
+}
+.pyg-ms-option-selected .pyg-ms-check { border-color: #04844b; background: #04844b; }
+.pyg-ms-label { flex: 1; }
+.pyg-ms-panel-foot {
+    border-top: 1px solid #eef0f4; padding: 0.5rem 0.6rem;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.pyg-ms-count { font-size: 0.78rem; color: #5f6b7c; }
+.pyg-ms-apply { height: 1.875rem; padding: 0 0.9rem; }
+
+/* ===== CONTEXT BAR ===== */
+.pyg-contextbar {
+    background: #eef4fd; padding: 0.5rem 1.25rem;
+    font-size: 0.85rem; color: #16325c;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+}
+.pyg-divider { color: #c9d4e5; }
+
+/* ===== LOADING / ERROR / EMPTY ===== */
+.pyg-loading { position: relative; min-height: 5rem; padding: 2rem; }
+.pyg-error {
+    background: #fef1f1; border: 1px solid #ea001e; color: #ba0517;
+    padding: 0.75rem 1rem; display: flex; gap: 0.5rem; align-items: center;
+    margin: 1rem; border-radius: 0.25rem;
+}
+.pyg-empty {
+    padding: 2rem; text-align: center; color: #5f6b7c;
+    display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+}
+
+/* ===== TABLA ===== */
+.pyg-tabla-wrap { overflow-x: auto; }
+.pyg-tabla { width: 100%; border-collapse: collapse; font-size: 0.8rem; table-layout: fixed; }
+.pyg-tabla thead th {
+    background: #ffffff; color: #5f6b7c; font-weight: 700;
+    font-size: 0.75rem; letter-spacing: 0.05em; text-align: right;
+    padding: 0.6rem 0.65rem; border-bottom: 2px solid #c9d4e5;
+    position: sticky; top: 0; z-index: 1;
+}
+.pyg-th-main { font-size: 0.75rem; }
+.pyg-th-sub  { font-size: 0.7rem; font-weight: 400; color: #80869b; margin-top: 0.1rem; }
+/* Concepto + las 4 numéricas pegadas; columna spacer al final absorbe el espacio sobrante */
+.pyg-th-concepto { text-align: left !important; width: 30%; min-width: 250px; }
+.pyg-th-actual    { width: 13%; background: #ffffff !important; }
+.pyg-th-comparado { width: 13%; background: #ffffff !important; }
+.pyg-th-delta     { width: 10%; background: #fbfcfe !important; }
+.pyg-th-deltapct  { width: 9%;  background: #fbfcfe !important; }
+.pyg-th-spacer    { width: 25%; background: #ffffff !important; border-bottom: 2px solid #c9d4e5; }
+/* Sin comparativo: los importes conservan su ancho/posición y el hueco queda a la derecha */
+.pyg-tabla-sincomp .pyg-th-concepto { width: 30%; }
+.pyg-tabla-sincomp .pyg-th-actual   { width: 13%; }
+.pyg-tabla-sincomp .pyg-th-spacer   { width: 57%; }
+.pyg-spacer       { background: #ffffff !important; border-bottom: 1px solid #f3f3f3; }
+
+.pyg-row { border-bottom: 1px solid #f3f3f3; }
+.pyg-row td { padding: 0.32rem 0.65rem; line-height: 1.3; text-align: right; white-space: nowrap; }
+.pyg-concepto { text-align: left !important; color: #16325c; }
+
+/* Sección */
+.pyg-seccion td { background: #fbfcfe; font-weight: 700; }
+.pyg-concepto-seccion { color: #0070d2; }
+.pyg-concepto-seccion::before { content: '▾ '; color: #0070d2; font-weight: 700; }
+/* Sección desplegable (modo Desplegado=No): clic para mostrar/ocultar sus cuentas */
+.pyg-seccion-click { cursor: pointer; user-select: none; }
+.pyg-seccion-colapsada::before { content: '▸ '; }
+
+/* Cuenta */
+.pyg-cuenta td { background: #ffffff; }
+.pyg-codigo {
+    color: #c98a00; font-family: 'SF Mono', Consolas, monospace;
+    font-size: 0.78rem; margin-right: 0.55rem; text-decoration: none;
+}
+.pyg-codigo:hover { text-decoration: underline; color: #9a6900; }
+.pyg-concepto-cuenta { padding-left: 1.25rem !important; color: #16325c; }
+
+/* Subtotal */
+.pyg-subtotal td {
+    background: #f1f6fb; font-weight: 700; color: #0b1f3a;
+    border-top: 1px solid #c9d4e5;
+}
+.pyg-subtotal td.pyg-pos { color: #0070d2; }
+.pyg-subtotal td.pyg-neg { color: #ba0517; }
+.pyg-pct-sub {
+    font-size: 0.72rem; font-weight: 400; color: #5f6b7c; margin-top: 0.1rem;
+}
+
+/* Valores */
+.pyg-pos { color: #0070d2; }
+.pyg-neg { color: #ba0517; }
+.pyg-zero { color: #16325c; }
+.pyg-clickable { cursor: pointer; user-select: none; }
+.pyg-clickable:hover { background: #fffbe6; }
+
+/* Delta € */
+.pyg-delta { font-weight: 600; background: #fbfcfe; }
+.pyg-delta-pos { color: #2e844a; }
+.pyg-delta-neg { color: #ba0517; }
+
+/* Delta % como badge */
+.pyg-delta-pct { background: #fbfcfe; text-align: right; }
+.pyg-pct-badge {
+    display: inline-block; padding: 0.18rem 0.55rem;
+    border-radius: 0.85rem; font-size: 0.78rem; font-weight: 700;
+    background: transparent; color: #5f6b7c;
+}
+.pyg-pct-pos .pyg-pct-badge { background: #d4f5dc; color: #1f6638; }
+.pyg-pct-neg .pyg-pct-badge { background: #fdd9dc; color: #8e0413; }
+
+/* ===== MODAL ===== */
+.pyg-modal-container { max-width: 95vw; width: 95vw; }
+.pyg-modal-header {
+    background: linear-gradient(180deg, #0b1f3a, #16325c);
+    color: #ffffff; padding: 1rem 1.25rem;
+}
+.pyg-modal-header .slds-modal__title { color: #ffffff; margin: 0; }
+.pyg-modal-subtitle {
+    margin-top: 0.35rem; font-size: 0.85rem; color: #d9e3f2;
+    display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center;
+}
+.pyg-modal-content { padding: 0; max-height: 70vh; overflow: auto; }
+.pyg-modal-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+.pyg-modal-table thead th {
+    background: #f3f7fc; color: #5f6b7c; text-align: left;
+    font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.55rem 0.65rem; border-bottom: 1px solid #c9d4e5;
+    position: sticky; top: 0; z-index: 1;
+}
+.pyg-modal-table tbody td {
+    padding: 0.45rem 0.65rem; border-bottom: 1px solid #f0f3f7;
+    vertical-align: top; white-space: nowrap;
+}
+.pyg-modal-table tbody tr:hover td { background: #fbfcfe; }
+.pyg-modal-table .pyg-num,
+.pyg-modal-table .pyg-th-num { text-align: right; font-variant-numeric: tabular-nums; }
+.pyg-modal-table tbody td.pyg-desc,
+.pyg-modal-table tbody td.pyg-empresa {
+    white-space: normal;
+    vertical-align: top;
+}
+.pyg-modal-table .pyg-text-wrap {
+    max-width: 220px;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+}
+.pyg-modal-table .pyg-text-wrap-empresa {
+    max-width: 180px;
+    font-size: 0.78rem;
+}
+.pyg-link { color: #0070d2; text-decoration: none; }
+.pyg-link:hover { text-decoration: underline; }
+
+/* Celdas editables del modal */
+.pyg-th-edit { min-width: 140px; }
+.pyg-cell-edit { vertical-align: middle !important; min-width: 140px; padding: 0.3rem 0.4rem !important; }
+.pyg-cell-edit-wide { min-width: 180px; }
+.pyg-cell-edit lightning-combobox,
+.pyg-cell-edit lightning-record-picker { display: block; width: 100%; }
+
+/* ===== EXPORT DIALOG ===== */
+.pyg-export-dialog { max-width: 560px; }
+.pyg-export-header {
+    background: linear-gradient(180deg, #0b1f3a, #1a3a6d);
+    padding: 1.1rem 1.25rem 1rem;
+    color: #ffffff;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    border-bottom: 3px solid #c9a45c;
+}
+.pyg-export-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: #c9a45c;
+    font-weight: 700;
+}
+.pyg-export-title {
+    color: #ffffff;
+    font-size: 1.35rem;
+    font-weight: 300;
+    margin: 0.15rem 0 0.1rem 0;
+    letter-spacing: -0.3px;
+}
+.pyg-export-subtitle {
+    color: #c9d4e5;
+    font-size: 0.8rem;
+}
+.pyg-export-body {
+    padding: 1.25rem;
+    background: #ffffff;
+}
+.pyg-export-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid #eef0f4;
+}
+.pyg-export-row:last-child { border-bottom: 0; }
+.pyg-export-q { flex: 1; }
+.pyg-export-label {
+    font-weight: 700;
+    color: #0b1f3a;
+    font-size: 0.95rem;
+}
+.pyg-export-help {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-top: 0.15rem;
+    line-height: 1.4;
+}
+.pyg-export-pills {
+    display: flex;
+    gap: 0.3rem;
+    background: #f3f5fa;
+    padding: 0.2rem;
+    border-radius: 1rem;
+}
+.pyg-pill {
+    background: transparent;
+    border: 0;
+    padding: 0.3rem 0.95rem;
+    border-radius: 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #5f6b7c;
+    transition: all 0.12s ease;
+}
+.pyg-pill:hover { color: #0b1f3a; }
+.pyg-pill-active {
+    background: #1a3a6d;
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+}
+.pyg-export-footer {
+    border-top: 1px solid #eef0f4;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* ===== BALANCE DE SITUACIÓN ===== */
+/* Banda (ACTIVO / PATRIMONIO NETO Y PASIVO) */
+.bal-banda td { background: #1b2a4a; color: #fff; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.03em; padding: 0.5rem 1rem; font-size: 0.85rem; }
+/* Total (TOTAL ACTIVO / TOTAL PN+PASIVO) */
+.bal-total td { background: #eaf2fd; font-weight: 700; border-top: 2px solid #1b96ff; }
+/* Grupo A)/B)/C) */
+.bal-grupo td { background: #f3f6fb; font-weight: 700; }
+/* Epígrafe / agregado */
+.bal-agg .pyg-concepto { font-weight: 600; }
+/* Chevron de expandir */
+.bal-chevron { display: inline-block; width: 0.9rem; color: #5f6b7c; cursor: pointer;
+    transition: transform 0.12s ease; user-select: none; }
+.bal-chevron-open { transform: rotate(90deg); }
+.bal-concepto-click { cursor: pointer; }
+.bal-concepto-click:hover { color: #1b96ff; }
+
+/* Cantidades más pequeñas */
+.pyg-cell { font-size: 0.7rem; }
+.pyg-pct-badge { font-size: 0.68rem; }
+
+/* Hueco en blanco que separa el ACTIVO del PATRIMONIO NETO Y PASIVO */
+.bal-banda-sep td { border-top: 18px solid #ffffff; }
+
+/* Banner de cuadre Activo = Patrimonio Neto + Pasivo */
+.bal-cuadre { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+    margin: 0.75rem 1rem; padding: 0.6rem 1rem; border-radius: 0.4rem; font-size: 0.85rem; }
+.bal-cuadre-ok  { background: #eaf7ee; border: 1px solid #a3e0b5; color: #1f6638; }
+.bal-cuadre-bad { background: #fdecea; border: 1px solid #ea8a82; color: #8e0413; }
+.bal-cuadre strong { font-weight: 700; }
+.bal-cuadre-sep { color: #c9d4e5; }
+
+/* Estado inicial (antes de Generar) */
+.pyg-placeholder { display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 3.5rem 1.5rem; color: #9aa5b5; font-size: 0.95rem; text-align: center; }
+.pyg-placeholder strong { color: #6b7686; font-weight: 700; }
+.pyg-placeholder-icon { --slds-c-icon-color-foreground-default: #b3bcc9; }

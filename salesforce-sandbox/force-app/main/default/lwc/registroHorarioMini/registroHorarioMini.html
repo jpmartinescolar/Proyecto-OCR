@@ -1,0 +1,16 @@
+<template>
+    <div class="rh-mini">
+        <span class="rh-tiempo">{tiempo}</span>
+        <template if:false={isStarted}>
+            <button class="rh-btn rh-btn-entrada" onclick={handleEntrada} disabled={cargando}
+                    title="Fichar la entrada">Entrada</button>
+        </template>
+        <template if:true={isStarted}>
+            <button class="rh-btn rh-btn-salida" onclick={handleSalida}
+                    title="Fichar la salida">Salida</button>
+        </template>
+    </div>
+    <template if:true={hayMensaje}>
+        <div class="rh-error" onclick={handleCerrarMensaje} title="Cerrar el aviso">{message}</div>
+    </template>
+</template>

@@ -1,0 +1,6 @@
+<apex:page standardController="Imputaci_n_horas__c" recordSetVar="Imputaci_n_horass"
+extensions="E2Ex.ExcelController" readOnly="true" language="en-US"
+contentType="application/vnd.ms-excel#{!etefileName}.xls" >
+ <E2Ex:ExportToExcel ObjCode="{!keyCode}" ViewId="{!listid}"
+StdCtr="{!setCon}"></E2Ex:ExportToExcel>
+</apex:page>

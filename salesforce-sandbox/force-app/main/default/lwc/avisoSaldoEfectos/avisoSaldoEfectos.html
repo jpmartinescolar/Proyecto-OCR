@@ -1,0 +1,20 @@
+<template>
+    <template if:true={hayDatos}>
+        <span class="ase-wrap">
+            <button type="button" class={chipClass} onclick={toggle}>
+                <template if:true={bad}>
+                    <lightning-icon icon-name="utility:preview" size="xx-small" class="ase-eye" alternative-text="Ver detalle"></lightning-icon>
+                </template>Saldo cuentas &amp; Saldo efectos: {chipTxt}
+            </button>
+            <template if:true={show}>
+                <div class="ase-pop">
+                    <button class="ase-x" title="Cerrar" onclick={cerrar}>✕</button>
+                    <div class="ase-pop-title">Cuentas con diferencia entre saldo y efectos</div>
+                    <div class="ase-pop-line"><span class="ase-dot ase-dot-prov"></span> Proveedores y acreedores (400 / 410): <strong>{proveedores}</strong></div>
+                    <div class="ase-pop-line"><span class="ase-dot ase-dot-cli"></span> Clientes (430): <strong>{clientes}</strong></div>
+                    <div class="ase-pop-total">Total cuentas con diferencia: <strong>{total}</strong></div>
+                </div>
+            </template>
+        </span>
+    </template>
+</template>

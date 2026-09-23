@@ -1,0 +1,16 @@
+<apex:page tabStyle="Campaign_Call_Down__tab" controller="CampaignCallDownSettingsController">
+    <apex:sectionHeader title="Campaign Call Down Settings"/>
+    <apex:form >
+        <apex:pageBlock >
+        <apex:pageBlockButtons location="top">
+              <apex:commandButton value="Save" action="{!saveSettings}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockTable value="{!columnSettingsList}" var="c">
+              <apex:column value="{!c.cName}" headerValue="Column Name"/>
+              <apex:column headerValue="Display">
+                <apex:inputCheckbox value="{!c.cValue}"/>
+              </apex:column>
+            </apex:pageBlockTable>
+      </apex:pageBlock>
+    </apex:form>   
+</apex:page>

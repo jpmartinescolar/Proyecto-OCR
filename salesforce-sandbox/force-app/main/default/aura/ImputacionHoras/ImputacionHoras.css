@@ -1,0 +1,23 @@
+.THIS {
+}
+.THIS #container {
+    text-align: justify;
+    -ms-text-justify: distribute-all-lines;
+    text-justify: distribute-all-lines;
+    width:100%;
+}
+.THIS #container>div {
+    width: 100px;
+    height: 100px;
+    vertical-align: top;
+    display: inline-block;
+    *display: inline;
+    zoom: 1;
+    background:red;
+}
+.THIS span {
+    width: 100%;
+    display: inline-block;
+    font-size: 0;
+    line-height: 0
+}

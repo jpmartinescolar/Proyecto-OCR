@@ -1,0 +1,828 @@
+<template>
+    <div class="pyg-container">
+
+        <div class="pyg-header">
+            <div class="pyg-header-left">
+                <div class="pyg-icon">
+                    <lightning-icon icon-name="standard:report" size="medium"></lightning-icon>
+                </div>
+                <div>
+                    <h1 class="pyg-title">Pérdidas y Ganancias Analítico</h1>
+                    <p class="pyg-subtitle">Detalle por mes del ejercicio · Apartado · Subapartado · Cuenta</p>
+                </div>
+            </div>
+            <div class="pyg-header-right">
+                <lightning-button-icon icon-name="utility:refresh"
+                                       alternative-text="Refrescar"
+                                       variant="border-filled"
+                                       onclick={handleRefresh}
+                                       class="slds-m-right_x-small"></lightning-button-icon>
+                <lightning-button label="Limpiar" icon-name="utility:clear" variant="neutral"
+                                  title="Borra filtros y resultados para empezar de cero"
+                                  onclick={handleLimpiar} class="slds-m-right_x-small"></lightning-button>
+                <lightning-button label="Generar"
+                                  icon-name="utility:apex"
+                                  variant="brand"
+                                  onclick={handleGenerar}></lightning-button>
+            </div>
+        </div>
+
+        <div class="pyg-filtros">
+            <div class="pyg-filtros-titulo">
+                <span>FILTROS</span>
+                <div class="pyg-toggles">
+                    <span class={vistaClass}>{vistaLabel}</span>
+
+                    <span class="pyg-toggle-label">Desplegado</span>
+                    <button class={despSiCls} data-value="Si" onclick={setDesplegado}>Sí</button>
+                    <button class={despNoCls} data-value="No" onclick={setDesplegado}>No</button>
+
+                    <span class="pyg-toggle-label">Simulación</span>
+                    <button class={simTodasCls}  data-value="Todas"             onclick={setSimulacion}>Todas</button>
+                    <button class={simNoCls}     data-value="No"                onclick={setSimulacion}>No</button>
+                    <button class={simIvaCls}    data-value="Si"                onclick={setSimulacion}>Sí. IVA</button>
+                    <button class={simTransfCls} data-value="Sí. Transferencia" onclick={setSimulacion}>Sí. Transferencia</button>
+
+                    <span class="pyg-toggle-label">Extraordinarios</span>
+                    <button class={extTodasCls} data-value="Todas" onclick={setExtraordinarios}>Todas</button>
+                    <button class={extSiCls}    data-value="Si"    onclick={setExtraordinarios}>Sí</button>
+                    <button class={extNoCls}    data-value="No"    onclick={setExtraordinarios}>No</button>
+
+                    <span class="pyg-toggle-label">Check</span>
+                    <button class={chkTodosCls} data-value="Todos" onclick={setCheck}>Todos</button>
+                    <button class={chkSiCls}    data-value="Si"    onclick={setCheck}>Sí</button>
+                    <button class={chkNoCls}    data-value="No"    onclick={setCheck}>No</button>
+
+                    <span class="pyg-toggle-label">Incidencia</span>
+                    <button class={incTodosCls} data-value="Todos" onclick={setIncidencia}>Todos</button>
+                    <button class={incSiCls}    data-value="Si"    onclick={setIncidencia}>Sí</button>
+                    <button class={incNoCls}    data-value="No"    onclick={setIncidencia}>No</button>
+                </div>
+            </div>
+
+            <div class="pyg-filtros-grid">
+                <div class={empresaDropdownClass}>
+                    <label class="slds-form-element__label">Empresa titular <span class="pyg-req">*</span></label>
+                    <button class={empresaTriggerClass} type="button" onclick={toggleEmpresaDropdown}>
+                        <span class="pyg-ms-trigger-text">{empresaTriggerLabel}</span>
+                        <span class="pyg-ms-caret">▾</span>
+                    </button>
+                    <template if:true={showEmpresaDropdown}>
+                        <div class="pyg-ms-backdrop" onclick={closeEmpresaDropdown}></div>
+                        <div class="pyg-ms-panel" onclick={stopProp}>
+                            <div class="pyg-ms-panel-head">
+                                <input type="search" class="pyg-ms-search" placeholder="Buscar..."
+                                       value={empresaFiltroBusqueda} oninput={handleEmpresaBusqueda} />
+                                <div class="pyg-ms-actions">
+                                    <button type="button" class="pyg-ms-link" onclick={handleEmpresaSelectAll}>Todas</button>
+                                    <span>·</span>
+                                    <button type="button" class="pyg-ms-link" onclick={handleEmpresaClearAll}>Ninguna</button>
+                                </div>
+                            </div>
+                            <div class="pyg-ms-list">
+                                <template for:each={empresaOptionsFiltradas} for:item="opt">
+                                    <div key={opt.value} class={opt.optionClass} data-value={opt.value} onclick={handleEmpresaToggle}>
+                                        <span class="pyg-ms-check"></span>
+                                        <span class="pyg-ms-label">{opt.label}</span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="pyg-ms-panel-foot">
+                                <span class="pyg-ms-count">{empresaCount}</span>
+                                <button type="button" class="slds-button slds-button_brand pyg-ms-apply" onclick={closeEmpresaDropdown}>Aplicar</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <lightning-combobox label="Área"
+                                    value={area}
+                                    options={areaOptions}
+                                    placeholder="Todas"
+                                    onchange={handleAreaChange}></lightning-combobox>
+
+                <lightning-record-picker label="Director facturación"
+                                         placeholder="Buscar persona..."
+                                         object-api-name="User"
+                                         onchange={handleDirectorChange}></lightning-record-picker>
+
+                <div class={ejercicioErrorClass}>
+                    <lightning-combobox label="Ejercicio *"
+                                        value={ejercicio}
+                                        options={ejercicioOptions}
+                                        placeholder="Selecciona ejercicio..."
+                                        required
+                                        onchange={handleEjercicioChange}></lightning-combobox>
+                </div>
+
+                <lightning-combobox label="Mes desde"
+                                    value={mesDesde}
+                                    options={mesOptions}
+                                    onchange={handleMesDesdeChange}></lightning-combobox>
+
+                <lightning-combobox label="Mes hasta"
+                                    value={mesHasta}
+                                    options={mesOptions}
+                                    onchange={handleMesHastaChange}></lightning-combobox>
+            </div>
+        </div>
+
+        <!-- AVISOS DE CUADRE -->
+        <c-avisos-cuadre params={avisosParams}></c-avisos-cuadre>
+
+        <div class="pyg-contextbar">
+            <span><strong>Empresa:</strong> {empresaLabel}</span>
+            <span class="pyg-divider">·</span>
+            <span><strong>Periodo:</strong> {periodoLabel}</span>
+            <span class="pyg-divider">·</span>
+            <span><strong>Moneda:</strong> {currencySimbolo}</span>
+            <template if:true={mboData}>
+                <span class="pyg-divider">·</span>
+                <span class="ana-ctx-mbo"><strong>Margen bruto Operaciones:</strong>&nbsp;
+                    {mboData.totalLabel} · <span class={mboData.pctActualClass}>{mboData.pctActualLabel}</span>
+                    · ant. {mboData.prevPctLabel}
+                    <span class={mboData.deltaClass}>{mboData.deltaLabel}</span>
+                </span>
+            </template>
+            <template if:true={ventasData}>
+                <span class="pyg-divider">·</span>
+                <span class="ana-ctx-mbo"><strong>Ventas Operaciones:</strong>&nbsp;
+                    {ventasData.totalLabel}
+                    <span class={ventasData.crecClass}>{ventasData.crecLabel}</span>
+                </span>
+            </template>
+        </div>
+
+        <template if:true={loading}>
+            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+        </template>
+
+        <template if:true={hasError}>
+            <div class="pyg-error">
+                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- GRÁFICOS COMPARATIVOS (3 en fila) -->
+        <template if:true={hasChart}>
+            <div class="ana-charts-row">
+
+                <!-- 1) Mensual: Margen bruto Operaciones (anterior izq · actual der) -->
+                <div class="ana-chart-card ana-card-rel">
+                    <button class="ana-expand-btn" title="Ampliar gráfico" onclick={openMensualModal}>
+                        <lightning-icon icon-name="utility:expand_alt" size="xx-small"></lightning-icon>
+                    </button>
+                    <div class="ana-chart-title">Margen bruto Operaciones
+                        <span class="ana-chart-sub">por mes</span>
+                    </div>
+                    <div class={chartClass} data-chart="margen">
+                        <div class="ana-chart-zero"></div>
+                        <template for:each={chartGroups} for:item="g">
+                            <div key={g.key} class={g.groupClass} data-mes={g.mes} onclick={handleMesChartClick} title="Pincha para filtrar por este mes">
+                                <div class="ana-chart-bars">
+                                    <template for:each={g.bars} for:item="b">
+                                        <div key={b.key} class="ana-chart-col" data-serie={b.serie} title={b.titleAttr}>
+                                            <div class="ana-chart-top">
+                                                <div class="ana-chart-bar" style={b.posStyle}></div>
+                                            </div>
+                                            <div class="ana-chart-bot">
+                                                <div class="ana-chart-bar" style={b.negStyle}></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="ana-chart-label">{g.label}</div>
+                            </div>
+                        </template>
+                        <template if:true={chartLinePtsPrev}>
+                            <svg class="ana-chart-line ana-chart-line-prev" preserveAspectRatio="none"><polyline points={chartLinePtsPrev}></polyline></svg>
+                        </template>
+                        <template if:true={chartLinePts}>
+                            <svg class="ana-chart-line" preserveAspectRatio="none"><polyline points={chartLinePts}></polyline></svg>
+                        </template>
+                    </div>
+                    <div class="ana-chart-legend">
+                        <template for:each={chartLegend} for:item="l">
+                            <span key={l.year} class="ana-legend-item">
+                                <span class="ana-legend-swatch" style={l.swatchStyle}></span>{l.year}
+                            </span>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 2) Por director de facturación (pincha una barra para filtrar) -->
+                <div class="ana-chart-card ana-card-rel">
+                    <template if:true={hasDirectores}>
+                        <button class="ana-expand-btn" title="Ampliar gráfico" onclick={openDirectorModal}>
+                            <lightning-icon icon-name="utility:expand_alt" size="xx-small"></lightning-icon>
+                        </button>
+                    </template>
+                    <div class="ana-chart-title">Margen bruto Operaciones por Director</div>
+                    <template if:true={hasDirectores}>
+                        <div class="ana-h-head">
+                            <span>{ejAnteriorLabel}</span><span class="ana-h-head-r">{ejActualLabel}</span>
+                        </div>
+                        <div class="ana-h-list">
+                            <template for:each={directorView} for:item="row">
+                                <div key={row.key} class={row.rowClass} data-nombre={row.nombre} data-id={row.id}
+                                     onclick={handleDirectorClick} title="Pincha para ver sus apuntes en el informe">
+                                    <span class="ana-h-amt"><span class="ana-h-val">{row.prevLabel}</span><span class={row.prevPctClass}>{row.prevPctLabel}</span></span>
+                                    <div class="ana-h-left"><div class="ana-h-bar ana-h-bar-prev" style={row.prevStyle}></div></div>
+                                    <div class="ana-h-name" title={row.nombre}>{row.nombre}</div>
+                                    <div class="ana-h-right"><div class="ana-h-bar ana-h-bar-curr" style={row.currStyle}></div></div>
+                                    <span class="ana-h-amt ana-h-amt-r"><span class="ana-h-val">{row.currLabel}</span><span class={row.currPctClass}>{row.currPctLabel} <span class={row.trendClass}>{row.trendArrow} {row.diffLabel}</span></span></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template if:false={hasDirectores}>
+                        <div class="ana-h-empty">Sin datos de Operaciones.</div>
+                    </template>
+                </div>
+
+                <!-- 3) Por área (pincha una barra para filtrar) -->
+                <div class="ana-chart-card ana-card-rel">
+                    <template if:true={hasAreas}>
+                        <button class="ana-expand-btn" title="Ampliar gráfico" onclick={openAreaModal}>
+                            <lightning-icon icon-name="utility:expand_alt" size="xx-small"></lightning-icon>
+                        </button>
+                    </template>
+                    <div class="ana-chart-title">Margen bruto Operaciones por Área</div>
+                    <template if:true={hasAreas}>
+                        <div class="ana-h-head">
+                            <span>{ejAnteriorLabel}</span><span class="ana-h-head-r">{ejActualLabel}</span>
+                        </div>
+                        <div class="ana-h-list">
+                            <template for:each={areaView} for:item="row">
+                                <div key={row.key} class={row.rowClass} data-nombre={row.nombre}
+                                     onclick={handleAreaClick} title="Pincha para ver sus apuntes en el informe">
+                                    <span class="ana-h-amt"><span class="ana-h-val">{row.prevLabel}</span><span class={row.prevPctClass}>{row.prevPctLabel}</span></span>
+                                    <div class="ana-h-left"><div class="ana-h-bar ana-h-bar-prev" style={row.prevStyle}></div></div>
+                                    <div class="ana-h-name" title={row.nombre}>{row.nombre}</div>
+                                    <div class="ana-h-right"><div class="ana-h-bar ana-h-bar-curr" style={row.currStyle}></div></div>
+                                    <span class="ana-h-amt ana-h-amt-r"><span class="ana-h-val">{row.currLabel}</span><span class={row.currPctClass}>{row.currPctLabel} <span class={row.trendClass}>{row.trendArrow} {row.diffLabel}</span></span></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template if:false={hasAreas}>
+                        <div class="ana-h-empty">Sin datos de Operaciones.</div>
+                    </template>
+                </div>
+
+            </div>
+        </template>
+
+        <!-- GRÁFICOS DE VENTAS OPERACIONES (3 en fila) -->
+        <template if:true={hasVentasChart}>
+            <div class="ana-charts-row">
+
+                <!-- 1) Ventas Operaciones (mensual) -->
+                <div class="ana-chart-card ana-card-rel">
+                    <button class="ana-expand-btn" title="Ampliar gráfico" onclick={openVentasMensualModal}>
+                        <lightning-icon icon-name="utility:expand_alt" size="xx-small"></lightning-icon>
+                    </button>
+                    <div class="ana-chart-title">Ventas Operaciones <span class="ana-chart-sub">por mes</span></div>
+                    <div class={ventasClass} data-chart="ventas">
+                        <div class="ana-chart-zero"></div>
+                        <template for:each={ventasGroups} for:item="g">
+                            <div key={g.key} class={g.groupClass} data-mes={g.mes} onclick={handleMesChartClick} title="Pincha para filtrar por este mes">
+                                <div class="ana-chart-bars">
+                                    <template for:each={g.bars} for:item="b">
+                                        <div key={b.key} class="ana-chart-col" data-serie={b.serie} title={b.titleAttr}>
+                                            <div class="ana-chart-top"><div class="ana-chart-bar" style={b.posStyle}></div></div>
+                                            <div class="ana-chart-bot"><div class="ana-chart-bar" style={b.negStyle}></div></div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="ana-chart-label">{g.label}</div>
+                            </div>
+                        </template>
+                        <template if:true={ventasLinePtsPrev}>
+                            <svg class="ana-chart-line ana-chart-line-prev" preserveAspectRatio="none"><polyline points={ventasLinePtsPrev}></polyline></svg>
+                        </template>
+                        <template if:true={ventasLinePts}>
+                            <svg class="ana-chart-line" preserveAspectRatio="none"><polyline points={ventasLinePts}></polyline></svg>
+                        </template>
+                    </div>
+                    <div class="ana-chart-legend">
+                        <template for:each={ventasLegend} for:item="l">
+                            <span key={l.year} class="ana-legend-item">
+                                <span class="ana-legend-swatch" style={l.swatchStyle}></span>{l.year}
+                            </span>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 2) Ventas Operaciones por Director -->
+                <div class="ana-chart-card ana-card-rel">
+                    <template if:true={hasVentasDirectores}>
+                        <button class="ana-expand-btn" title="Ampliar gráfico" onclick={openVentasDirectorModal}>
+                            <lightning-icon icon-name="utility:expand_alt" size="xx-small"></lightning-icon>
+                        </button>
+                    </template>
+                    <div class="ana-chart-title">Ventas Operaciones por Director</div>
+                    <template if:true={hasVentasDirectores}>
+                        <div class="ana-h-head"><span>{ejAnteriorLabel}</span><span class="ana-h-head-r">{ejActualLabel}</span></div>
+                        <div class="ana-h-list">
+                            <template for:each={ventasDirectorView} for:item="row">
+                                <div key={row.key} class={row.rowClass} data-nombre={row.nombre} data-id={row.id}
+                                     onclick={handleDirectorClick} title="Pincha para ver sus apuntes en el informe">
+                                    <span class="ana-h-amt"><span class="ana-h-val">{row.prevLabel}</span><span class={row.prevPctClass}>{row.prevPctLabel}</span></span>
+                                    <div class="ana-h-left"><div class="ana-h-bar ana-h-bar-prev" style={row.prevStyle}></div></div>
+                                    <div class="ana-h-name" title={row.nombre}>{row.nombre}</div>
+                                    <div class="ana-h-right"><div class="ana-h-bar ana-h-bar-curr" style={row.currStyle}></div></div>
+                                    <span class="ana-h-amt ana-h-amt-r"><span class="ana-h-val">{row.currLabel}</span><span class={row.currPctClass}>{row.currPctLabel} <span class={row.trendClass}>{row.trendArrow} {row.diffLabel}</span></span></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template if:false={hasVentasDirectores}>
+                        <div class="ana-h-empty">Sin datos de Operaciones.</div>
+                    </template>
+                </div>
+
+                <!-- 3) Ventas Operaciones por Área -->
+                <div class="ana-chart-card ana-card-rel">
+                    <template if:true={hasVentasAreas}>
+                        <button class="ana-expand-btn" title="Ampliar gráfico" onclick={openVentasAreaModal}>
+                            <lightning-icon icon-name="utility:expand_alt" size="xx-small"></lightning-icon>
+                        </button>
+                    </template>
+                    <div class="ana-chart-title">Ventas Operaciones por Área</div>
+                    <template if:true={hasVentasAreas}>
+                        <div class="ana-h-head"><span>{ejAnteriorLabel}</span><span class="ana-h-head-r">{ejActualLabel}</span></div>
+                        <div class="ana-h-list">
+                            <template for:each={ventasAreaView} for:item="row">
+                                <div key={row.key} class={row.rowClass} data-nombre={row.nombre}
+                                     onclick={handleAreaClick} title="Pincha para ver sus apuntes en el informe">
+                                    <span class="ana-h-amt"><span class="ana-h-val">{row.prevLabel}</span><span class={row.prevPctClass}>{row.prevPctLabel}</span></span>
+                                    <div class="ana-h-left"><div class="ana-h-bar ana-h-bar-prev" style={row.prevStyle}></div></div>
+                                    <div class="ana-h-name" title={row.nombre}>{row.nombre}</div>
+                                    <div class="ana-h-right"><div class="ana-h-bar ana-h-bar-curr" style={row.currStyle}></div></div>
+                                    <span class="ana-h-amt ana-h-amt-r"><span class="ana-h-val">{row.currLabel}</span><span class={row.currPctClass}>{row.currPctLabel} <span class={row.trendClass}>{row.trendArrow} {row.diffLabel}</span></span></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template if:false={hasVentasAreas}>
+                        <div class="ana-h-empty">Sin datos de Operaciones.</div>
+                    </template>
+                </div>
+
+            </div>
+        </template>
+
+        <!-- Barra de filtros activos (debajo de las dos filas de gráficos) -->
+        <template if:true={filtroActivo}>
+            <div class="ana-drill-bar">
+                Filtrado por <strong>{filtroLabel}</strong>.
+                <button class="ana-drill-reset" onclick={resetFiltros}>Quitar filtros</button>
+            </div>
+        </template>
+
+        <!-- ESTADO INICIAL -->
+        <template if:true={showInicial}>
+            <div class="pyg-placeholder">
+                <lightning-icon icon-name="utility:filterList" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                <span>{textoInicial} <strong>Generar</strong>.</span>
+            </div>
+        </template>
+
+        <template if:true={hasRows}>
+            <div class="pyg-tabla-wrap">
+                <table class="pyg-tabla">
+                    <thead>
+                        <tr>
+                            <th class="pyg-th-concepto">CONCEPTO</th>
+                            <template for:each={headerColumnas} for:item="col">
+                                <th key={col.key} class="pyg-th-mes">{col.label}</th>
+                            </template>
+                            <th class="pyg-th-total">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={filasView} for:item="row">
+                            <tr key={row.key} class={row.rowClass}>
+                                <td class={row.conceptoClass}>
+                                    <template if:true={row.showCodigo}>
+                                        <a href="javascript:void(0);"
+                                           class="pyg-codigo"
+                                           data-recordid={row.cuentaId}
+                                           data-objectname="Plan_general_contable__c"
+                                           onclick={navigateToRecordNewTab}
+                                           title="Abrir cuenta contable en una pestaña nueva">{row.codigo}</a>
+                                    </template>
+                                    <span>{row.concepto}</span>
+                                </td>
+                                <template for:each={row.meses} for:item="m">
+                                    <td key={m.key}
+                                        class={m.cssClass}
+                                        data-rowkey={m.rowKey}
+                                        data-mes={m.mesIdx}
+                                        data-value={m.value}
+                                        data-concepto={row.concepto}
+                                        onclick={handleAmountClick}>
+                                        <div class="pyg-amount-main">{m.value}</div>
+                                        <template if:true={m.showPct}>
+                                            <template if:true={m.esMBO}>
+                                                <div class="pyg-amount-pct">{m.pctBoth}</div>
+                                                <div class="pyg-amount-pct"><span class={m.deltaClass}>{m.deltaLabel}</span></div>
+                                            </template>
+                                            <template if:false={m.esMBO}>
+                                                <div class="pyg-amount-pct">{m.pct}</div>
+                                            </template>
+                                        </template>
+                                    </td>
+                                </template>
+                                <td class={row.total.cssClass}
+                                    data-rowkey={row.total.rowKey}
+                                    data-mes={row.total.mesIdx}
+                                    data-value={row.total.value}
+                                    data-concepto={row.concepto}
+                                    onclick={handleAmountClick}>
+                                    <div class="pyg-amount-main">{row.total.value}</div>
+                                    <template if:true={row.total.showPct}>
+                                        <template if:true={row.total.esMBO}>
+                                            <div class="pyg-amount-pct">{row.total.pctBoth}</div>
+                                            <div class="pyg-amount-pct"><span class={row.total.deltaClass}>{row.total.deltaLabel}</span></div>
+                                        </template>
+                                        <template if:false={row.total.esMBO}>
+                                            <div class="pyg-amount-pct">{row.total.pct}</div>
+                                        </template>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+
+        <template if:true={emptyState}>
+            <div class="pyg-empty">
+                <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                <span>No se han encontrado apuntes que cumplan los filtros seleccionados.</span>
+            </div>
+        </template>
+
+        <!-- MODAL AMPLIADO: Margen bruto Operaciones por Director -->
+        <template if:true={showDirectorModal}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container pyg-modal-container ana-modal-box">
+                    <header class="slds-modal__header pyg-modal-header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={closeDirectorModal} title="Cerrar">
+                            <lightning-icon icon-name="utility:close" alternative-text="Cerrar" variant="inverse" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Margen bruto Operaciones por Director</h2>
+                        <div class="pyg-modal-subtitle"><span>{ejAnteriorLabel} (izquierda) · {ejActualLabel} (derecha)</span></div>
+                    </header>
+                    <div class="slds-modal__content pyg-modal-content ana-modal-chart">
+                        <div class="ana-h-head ana-h-head-big">
+                            <span>{ejAnteriorLabel}</span><span class="ana-h-head-r">{ejActualLabel}</span>
+                        </div>
+                        <template for:each={directorView} for:item="row">
+                            <div key={row.key} class="ana-h-row ana-h-row-big" data-nombre={row.nombre} data-id={row.id}
+                                 onclick={handleDirectorClick} title="Pincha para ver sus apuntes en el informe">
+                                <span class="ana-h-amt"><span class="ana-h-val">{row.prevLabel}</span><span class={row.prevPctClass}>{row.prevPctLabel}</span></span>
+                                <div class="ana-h-left"><div class="ana-h-bar ana-h-bar-prev" style={row.prevStyle}></div></div>
+                                <div class="ana-h-name" title={row.nombre}>{row.nombre}</div>
+                                <div class="ana-h-right"><div class="ana-h-bar ana-h-bar-curr" style={row.currStyle}></div></div>
+                                <span class="ana-h-amt ana-h-amt-r"><span class="ana-h-val">{row.currLabel}</span><span class={row.currPctClass}>{row.currPctLabel} <span class={row.trendClass}>{row.trendArrow} {row.diffLabel}</span></span></span>
+                            </div>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeDirectorModal}>Cerrar</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={closeDirectorModal}></div>
+        </template>
+
+        <!-- MODAL AMPLIADO: Margen bruto Operaciones por Área -->
+        <template if:true={showAreaModal}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container pyg-modal-container ana-modal-box">
+                    <header class="slds-modal__header pyg-modal-header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={closeAreaModal} title="Cerrar">
+                            <lightning-icon icon-name="utility:close" alternative-text="Cerrar" variant="inverse" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Margen bruto Operaciones por Área</h2>
+                        <div class="pyg-modal-subtitle"><span>{ejAnteriorLabel} (izquierda) · {ejActualLabel} (derecha)</span></div>
+                    </header>
+                    <div class="slds-modal__content pyg-modal-content ana-modal-chart">
+                        <div class="ana-h-head ana-h-head-big">
+                            <span>{ejAnteriorLabel}</span><span class="ana-h-head-r">{ejActualLabel}</span>
+                        </div>
+                        <template for:each={areaView} for:item="row">
+                            <div key={row.key} class="ana-h-row ana-h-row-big" data-nombre={row.nombre}
+                                 onclick={handleAreaClick} title="Pincha para ver sus apuntes en el informe">
+                                <span class="ana-h-amt"><span class="ana-h-val">{row.prevLabel}</span><span class={row.prevPctClass}>{row.prevPctLabel}</span></span>
+                                <div class="ana-h-left"><div class="ana-h-bar ana-h-bar-prev" style={row.prevStyle}></div></div>
+                                <div class="ana-h-name" title={row.nombre}>{row.nombre}</div>
+                                <div class="ana-h-right"><div class="ana-h-bar ana-h-bar-curr" style={row.currStyle}></div></div>
+                                <span class="ana-h-amt ana-h-amt-r"><span class="ana-h-val">{row.currLabel}</span><span class={row.currPctClass}>{row.currPctLabel} <span class={row.trendClass}>{row.trendArrow} {row.diffLabel}</span></span></span>
+                            </div>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeAreaModal}>Cerrar</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={closeAreaModal}></div>
+        </template>
+
+        <!-- MODAL AMPLIADO: gráfico mensual -->
+        <template if:true={showMensualModal}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_large">
+                <div class="slds-modal__container pyg-modal-container ana-modal-box">
+                    <header class="slds-modal__header pyg-modal-header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={closeMensualModal} title="Cerrar">
+                            <lightning-icon icon-name="utility:close" alternative-text="Cerrar" variant="inverse" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Margen bruto Operaciones por mes</h2>
+                        <div class="pyg-modal-subtitle"><span>{periodoLabel}</span></div>
+                    </header>
+                    <div class="slds-modal__content pyg-modal-content ana-modal-chart">
+                        <div class={chartClassBig} data-chart="margenBig">
+                            <div class="ana-chart-zero"></div>
+                            <template for:each={chartGroupsBig} for:item="g">
+                                <div key={g.key} class={g.groupClass} data-mes={g.mes} onclick={handleMesChartClick} title="Pincha para filtrar por este mes">
+                                    <div class="ana-chart-bars">
+                                        <template for:each={g.bars} for:item="b">
+                                            <div key={b.key} class="ana-chart-col" data-serie={b.serie} title={b.titleAttr}>
+                                                <div class="ana-chart-top"><div class="ana-chart-bar" style={b.posStyle}></div></div>
+                                                <div class="ana-chart-bot"><div class="ana-chart-bar" style={b.negStyle}></div></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="ana-chart-label">{g.label}</div>
+                                </div>
+                            </template>
+                            <template if:true={chartLinePtsPrevBig}>
+                                <svg class="ana-chart-line ana-chart-line-prev" preserveAspectRatio="none"><polyline points={chartLinePtsPrevBig}></polyline></svg>
+                            </template>
+                            <template if:true={chartLinePtsBig}>
+                                <svg class="ana-chart-line" preserveAspectRatio="none"><polyline points={chartLinePtsBig}></polyline></svg>
+                            </template>
+                        </div>
+                        <div class="ana-chart-legend">
+                            <template for:each={chartLegend} for:item="l">
+                                <span key={l.year} class="ana-legend-item">
+                                    <span class="ana-legend-swatch" style={l.swatchStyle}></span>{l.year}
+                                </span>
+                            </template>
+                        </div>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeMensualModal}>Cerrar</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={closeMensualModal}></div>
+        </template>
+
+        <!-- MODAL AMPLIADO: Ventas Operaciones por Director -->
+        <template if:true={showVentasDirectorModal}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container pyg-modal-container ana-modal-box">
+                    <header class="slds-modal__header pyg-modal-header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={closeVentasDirectorModal} title="Cerrar">
+                            <lightning-icon icon-name="utility:close" alternative-text="Cerrar" variant="inverse" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Ventas Operaciones por Director</h2>
+                        <div class="pyg-modal-subtitle"><span>{ejAnteriorLabel} (izquierda) · {ejActualLabel} (derecha)</span></div>
+                    </header>
+                    <div class="slds-modal__content pyg-modal-content ana-modal-chart">
+                        <div class="ana-h-head ana-h-head-big"><span>{ejAnteriorLabel}</span><span class="ana-h-head-r">{ejActualLabel}</span></div>
+                        <template for:each={ventasDirectorView} for:item="row">
+                            <div key={row.key} class="ana-h-row ana-h-row-big" data-nombre={row.nombre} data-id={row.id}
+                                 onclick={handleDirectorClick} title="Pincha para ver sus apuntes en el informe">
+                                <span class="ana-h-amt"><span class="ana-h-val">{row.prevLabel}</span><span class={row.prevPctClass}>{row.prevPctLabel}</span></span>
+                                <div class="ana-h-left"><div class="ana-h-bar ana-h-bar-prev" style={row.prevStyle}></div></div>
+                                <div class="ana-h-name" title={row.nombre}>{row.nombre}</div>
+                                <div class="ana-h-right"><div class="ana-h-bar ana-h-bar-curr" style={row.currStyle}></div></div>
+                                <span class="ana-h-amt ana-h-amt-r"><span class="ana-h-val">{row.currLabel}</span><span class={row.currPctClass}>{row.currPctLabel} <span class={row.trendClass}>{row.trendArrow} {row.diffLabel}</span></span></span>
+                            </div>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeVentasDirectorModal}>Cerrar</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={closeVentasDirectorModal}></div>
+        </template>
+
+        <!-- MODAL AMPLIADO: Ventas Operaciones por Área -->
+        <template if:true={showVentasAreaModal}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container pyg-modal-container ana-modal-box">
+                    <header class="slds-modal__header pyg-modal-header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={closeVentasAreaModal} title="Cerrar">
+                            <lightning-icon icon-name="utility:close" alternative-text="Cerrar" variant="inverse" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Ventas Operaciones por Área</h2>
+                        <div class="pyg-modal-subtitle"><span>{ejAnteriorLabel} (izquierda) · {ejActualLabel} (derecha)</span></div>
+                    </header>
+                    <div class="slds-modal__content pyg-modal-content ana-modal-chart">
+                        <div class="ana-h-head ana-h-head-big"><span>{ejAnteriorLabel}</span><span class="ana-h-head-r">{ejActualLabel}</span></div>
+                        <template for:each={ventasAreaView} for:item="row">
+                            <div key={row.key} class="ana-h-row ana-h-row-big" data-nombre={row.nombre}
+                                 onclick={handleAreaClick} title="Pincha para ver sus apuntes en el informe">
+                                <span class="ana-h-amt"><span class="ana-h-val">{row.prevLabel}</span><span class={row.prevPctClass}>{row.prevPctLabel}</span></span>
+                                <div class="ana-h-left"><div class="ana-h-bar ana-h-bar-prev" style={row.prevStyle}></div></div>
+                                <div class="ana-h-name" title={row.nombre}>{row.nombre}</div>
+                                <div class="ana-h-right"><div class="ana-h-bar ana-h-bar-curr" style={row.currStyle}></div></div>
+                                <span class="ana-h-amt ana-h-amt-r"><span class="ana-h-val">{row.currLabel}</span><span class={row.currPctClass}>{row.currPctLabel} <span class={row.trendClass}>{row.trendArrow} {row.diffLabel}</span></span></span>
+                            </div>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeVentasAreaModal}>Cerrar</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={closeVentasAreaModal}></div>
+        </template>
+
+        <!-- MODAL AMPLIADO: Ventas Operaciones (mensual) -->
+        <template if:true={showVentasMensualModal}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_large">
+                <div class="slds-modal__container pyg-modal-container ana-modal-box">
+                    <header class="slds-modal__header pyg-modal-header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={closeVentasMensualModal} title="Cerrar">
+                            <lightning-icon icon-name="utility:close" alternative-text="Cerrar" variant="inverse" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Ventas Operaciones por mes</h2>
+                        <div class="pyg-modal-subtitle"><span>{periodoLabel}</span></div>
+                    </header>
+                    <div class="slds-modal__content pyg-modal-content ana-modal-chart">
+                        <div class={ventasClassBig} data-chart="ventasBig">
+                            <div class="ana-chart-zero"></div>
+                            <template for:each={ventasGroupsBig} for:item="g">
+                                <div key={g.key} class={g.groupClass} data-mes={g.mes} onclick={handleMesChartClick} title="Pincha para filtrar por este mes">
+                                    <div class="ana-chart-bars">
+                                        <template for:each={g.bars} for:item="b">
+                                            <div key={b.key} class="ana-chart-col" data-serie={b.serie} title={b.titleAttr}>
+                                                <div class="ana-chart-top"><div class="ana-chart-bar" style={b.posStyle}></div></div>
+                                                <div class="ana-chart-bot"><div class="ana-chart-bar" style={b.negStyle}></div></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="ana-chart-label">{g.label}</div>
+                                </div>
+                            </template>
+                            <template if:true={ventasLinePtsPrevBig}>
+                                <svg class="ana-chart-line ana-chart-line-prev" preserveAspectRatio="none"><polyline points={ventasLinePtsPrevBig}></polyline></svg>
+                            </template>
+                            <template if:true={ventasLinePtsBig}>
+                                <svg class="ana-chart-line" preserveAspectRatio="none"><polyline points={ventasLinePtsBig}></polyline></svg>
+                            </template>
+                        </div>
+                        <div class="ana-chart-legend">
+                            <template for:each={ventasLegend} for:item="l">
+                                <span key={l.year} class="ana-legend-item">
+                                    <span class="ana-legend-swatch" style={l.swatchStyle}></span>{l.year}
+                                </span>
+                            </template>
+                        </div>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeVentasMensualModal}>Cerrar</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={closeVentasMensualModal}></div>
+        </template>
+
+        <!-- MODAL -->
+        <template if:true={showModal}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_large">
+                <div class="slds-modal__container pyg-modal-container">
+                    <header class="slds-modal__header pyg-modal-header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={closeModal} title="Cerrar">
+                            <lightning-icon icon-name="utility:close" alternative-text="Cerrar" variant="inverse" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Detalle de apuntes</h2>
+                        <div class="pyg-modal-subtitle">
+                            <span><strong>Concepto:</strong> {modalTitulo}</span>
+                            <span class="pyg-divider">·</span>
+                            <span><strong>{modalSubtitulo}</strong></span>
+                            <span class="pyg-divider">·</span>
+                            <span><strong>Importe:</strong> {modalImporte}</span>
+                        </div>
+                    </header>
+                    <div class="slds-modal__content pyg-modal-content">
+                        <template if:true={modalLoading}>
+                            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+                        </template>
+                        <template if:true={modalError}>
+                            <div class="pyg-error">
+                                <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                                <span>{modalError}</span>
+                            </div>
+                        </template>
+                        <template if:true={modalContentReady}>
+                            <table class="pyg-modal-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th><th>Nº Apunte</th><th>Descripción</th>
+                                        <th class="pyg-th-num">Debe</th><th class="pyg-th-num">Haber</th>
+                                        <th>Tipo de asiento</th><th>Empresa titular</th>
+                                        <th class="pyg-th-edit">Área</th>
+                                        <th class="pyg-th-edit">Director facturación</th>
+                                        <th class="pyg-th-edit">Campaña</th>
+                                        <th class="pyg-th-edit">Simulación</th>
+                                        <th class="pyg-th-edit">Check</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={modalMovimientos} for:item="mv">
+                                        <tr key={mv.key}>
+                                            <td>{mv.fecha}</td>
+                                            <td><a href="javascript:void(0);"
+                                                   class="pyg-link"
+                                                   data-recordid={mv.recordId}
+                                                   data-objectname={mv.objectApiName}
+                                                   onclick={navigateToRecordNewTab}>{mv.numero}</a></td>
+                                            <td class="pyg-desc">
+                                                <template if:true={mv.descLinkId}>
+                                                    <a href="javascript:void(0);" class="pyg-link" data-recordid={mv.descLinkId}
+                                                       data-objectname={mv.descLinkObject} onclick={navigateToRecordNewTab} title={mv.descLinkTitle}>
+                                                        <div class="pyg-text-wrap">{mv.descripcion}</div></a>
+                                                </template>
+                                                <template if:false={mv.descLinkId}>
+                                                    <div class="pyg-text-wrap">{mv.descripcion}</div>
+                                                </template>
+                                            </td>
+                                            <td class="pyg-num">{mv.debe}</td>
+                                            <td class="pyg-num">{mv.haber}</td>
+                                            <td>{mv.tipoAsiento}</td>
+                                            <td class="pyg-empresa"><div class="pyg-text-wrap pyg-text-wrap-empresa">{mv.empresaTitular}</div></td>
+                                            <td class="pyg-cell-edit">
+                                                <lightning-combobox variant="label-hidden" label="Área"
+                                                    value={mv.area} options={areaEditOptions}
+                                                    data-rid={mv.recordId} data-fld="area"
+                                                    onchange={handleModalEdit}></lightning-combobox>
+                                            </td>
+                                            <td class="pyg-cell-edit pyg-cell-edit-wide">
+                                                <lightning-record-picker label="Director"
+                                                    placeholder="Buscar persona..."
+                                                    object-api-name="User" variant="label-hidden"
+                                                    value={mv.directorFacturacionId}
+                                                    data-rid={mv.recordId}
+                                                    onchange={handleModalEditDirector}></lightning-record-picker>
+                                            </td>
+                                            <td class="pyg-cell-edit pyg-cell-edit-wide">
+                                                <lightning-record-picker label="Campaña"
+                                                    placeholder="Buscar campaña..."
+                                                    object-api-name="Campaign" variant="label-hidden"
+                                                    value={mv.campaniaId}
+                                                    data-rid={mv.recordId}
+                                                    onchange={handleModalEditCampania}></lightning-record-picker>
+                                            </td>
+                                            <td class="pyg-cell-edit">
+                                                <lightning-combobox variant="label-hidden" label="Simulación"
+                                                    value={mv.simulacion} options={simulacionEditOptions}
+                                                    data-rid={mv.recordId} data-fld="simulacion"
+                                                    onchange={handleModalEdit}></lightning-combobox>
+                                            </td>
+                                            <td class="pyg-cell-edit">
+                                                <lightning-combobox variant="label-hidden" label="Check"
+                                                    value={mv.checkValue} options={checkEditOptions}
+                                                    data-rid={mv.recordId} data-fld="check"
+                                                    onchange={handleModalEdit}></lightning-combobox>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </template>
+                        <template if:true={noMovimientos}>
+                            <div class="pyg-empty">
+                                <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                                <span>No hay apuntes para esta selección.</span>
+                            </div>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeModal}>Cerrar</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={closeModal}></div>
+        </template>
+
+    </div>
+</template>

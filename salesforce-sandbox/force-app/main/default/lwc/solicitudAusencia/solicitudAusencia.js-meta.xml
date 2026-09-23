@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>59.0</apiVersion>
+    <isExposed>false</isExposed>
+    <masterLabel>Solicitud de ausencia o vacaciones</masterLabel>
+    <description>Ventana para solicitar ausencias y vacaciones: crea registros de Ausencias en estado Solicitado sobre la ficha de empleado del usuario conectado</description>
+</LightningComponentBundle>

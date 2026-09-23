@@ -1,0 +1,10 @@
+.rh-mini { display: flex; align-items: center; gap: 0.6rem; width: 100%; }
+.rh-tiempo { font-size: 1.05rem; font-weight: 800; color: #0b1f3a; font-variant-numeric: tabular-nums; }
+.rh-btn { border: none; border-radius: 1rem; padding: 0.35rem 0.9rem; font-size: 0.78rem;
+    font-weight: 700; cursor: pointer; margin-left: auto; color: #ffffff; }
+.rh-btn:disabled { opacity: 0.6; cursor: default; }
+.rh-btn-entrada { background: #2e844a; }
+.rh-btn-entrada:hover { background: #1d6f42; }
+.rh-btn-salida { background: #ba0517; }
+.rh-btn-salida:hover { background: #8e0410; }
+.rh-error { margin-top: 0.3rem; font-size: 0.7rem; font-weight: 700; color: #ba0517; cursor: pointer; }

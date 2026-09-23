@@ -1,0 +1,295 @@
+<template>
+    <!-- Con el área completa ya descargada, este componente se limita a mostrarla -->
+    <template lwc:if={verCompleto}>
+        <lwc:component lwc:is={completoCtor} navegacion-inicial={navegacion}></lwc:component>
+    </template>
+    <template lwc:else>
+    <div class="pyg-container">
+
+        <!-- SUBMENÚS con la marca del componente a la derecha -->
+        <div class="ts-tabs acf-menubar">
+            <div class="lm-subtabs">
+                <button class={claseMenuOperativa} data-menu="operativa" onclick={handleMenu}>Inicio</button>
+                <button class={claseMenuBalances} data-menu="balances" onclick={handleMenu}>Área Contable y Fiscal</button>
+
+                <!-- Área Marketing: pestaña nueva, de momento en construcción, visible para todos -->
+
+                <button class={claseMenuMarketing} data-menu="marketing" onclick={handleMenu}>Área Marketing</button>
+                <template if:true={rhAcceso}>
+                    <button class={claseMenuRrhh} data-menu="rrhh" onclick={handleMenu}>Área RR.HH</button>
+                </template>
+                <button class={claseMenuImputaciones} data-menu="imputaciones" onclick={handleMenu}>Análisis Imputaciones</button>
+                <!-- Onboarding y Offboarding: pestañas de RR.HH todavía sin contenido, mismo acceso que el Área RR.HH -->
+                <template if:true={rhAcceso}>
+                    <button class={claseMenuOnboarding} data-menu="onboarding" onclick={handleMenu}>Onboarding</button>
+                    <button class={claseMenuOffboarding} data-menu="offboarding" onclick={handleMenu}>Offboarding</button>
+                </template>
+                <div class="acf-brand">
+                    <button class="acf-btn-operativa" onclick={handleAccesoOperativa}
+                            title="Ir al ERP Contable y Fiscal">ERP Contable y Fiscal</button>
+                    <button class="acf-btn-ausencia" onclick={handleSolicitarAusencia}
+                            title="Solicitar una ausencia o vacaciones">Solicitar Ausencia o Vacaciones</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑAS DE MI PANEL -->
+        <template if:true={verTabsInicio}>
+        <div class="ts-tabs acf-optabs acf-optabs-inicio">
+            <div class="lm-subtabs">
+                <template for:each={opTabs} for:item="t">
+                    <button key={t.key} class={t.cls} data-tab={t.key} onclick={handleOpTab}>{t.label}<template if:true={t.aviso}><lightning-icon icon-name="utility:warning" size="xx-small" class="lm-subtab-aviso" alternative-text="Con pendientes"></lightning-icon></template></button>
+                </template>
+            </div>
+        </div>
+        </template>
+
+        <!-- MIENTRAS SE DESCARGA EL ÁREA COMPLETA: la cabecera sigue y la ruleta va en el contenido -->
+        <template if:true={cargandoCompleto}>
+            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+            <template if:true={completoError}>
+                <div class="pyg-error">
+                    <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                    <span>{completoError}</span>
+                </div>
+            </template>
+        </template>
+
+        <!-- MI SITUACIÓN -->
+        <template if:true={esMiSituacion}>
+            <template if:true={misHasError}>
+                <div class="pyg-error">
+                    <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                    <span>{misError}</span>
+                </div>
+            </template>
+            <template if:true={misShow}>
+                <div class="acf-wrap">
+
+                    <!-- ACCESOS RÁPIDOS -->
+                    <div class="acf-accesos">
+                        <template for:each={misAccesos} for:item="a">
+                            <div key={a.key} class={a.cls} data-url={a.url} onclick={handleAcceso} title={a.label}>
+                                <template if:false={a.esTimer}>
+                                    <span class={a.chipCls}>
+                                        <lightning-icon icon-name={a.icono} size="x-small"></lightning-icon>
+                                    </span>
+                                    <span class="acf-acceso-label">{a.label}</span>
+                                    <template if:true={a.badge}>
+                                        <span class="acf-acceso-badge">{a.badge}</span>
+                                    </template>
+                                </template>
+                                <template if:true={a.esTimer}>
+                                    <c-registro-horario-mini></c-registro-horario-mini>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- ESQUELETO DE CARGA: zona gris difuminada con la ruleta encima -->
+                    <template if:true={misLoading}>
+                        <div class="acf-skel-zona">
+                            <div class="acf-skel acf-skel-venc"></div>
+                            <div class="acf-skel-cajas">
+                                <div class="acf-skel acf-skel-caja"></div>
+                                <div class="acf-skel acf-skel-caja"></div>
+                                <div class="acf-skel acf-skel-caja"></div>
+                                <div class="acf-skel acf-skel-caja"></div>
+                                <div class="acf-skel acf-skel-caja"></div>
+                                <div class="acf-skel acf-skel-caja"></div>
+                                <div class="acf-skel acf-skel-caja"></div>
+                                <div class="acf-skel acf-skel-caja"></div>
+                                <div class="acf-skel acf-skel-caja"></div>
+                            </div>
+                            <div class="acf-skel acf-skel-tareas"></div>
+                            <div class="acf-skel-ruleta">
+                                <lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner>
+                            </div>
+                        </div>
+                    </template>
+                    <template if:false={misLoading}>
+
+                    <!-- VENCIMIENTOS LEGALES: SEMANA ACTUAL Y SIGUIENTE -->
+                    <template if:true={hayVencCeldas}>
+                        <div class="acf-card acf-venc-panel">
+                            <div class="acf-venc-head">
+                                <span class="acf-venc-title">Vencimientos legales de expedientes · Semana actual y siguiente</span>
+                                <span class="acf-venc-badges">
+                                    <template if:true={hayVencSinPresentar}>
+                                        <span class="acf-venc-badge acf-venc-badge-naranja acf-venc-badge-click"
+                                              onclick={handleVencSinPresentar}
+                                              title="Ver los vencimientos sin presentar">{vencSinPresentarLabel}</span>
+                                    </template>
+                                    <span class="acf-venc-badge acf-venc-badge-azul acf-venc-badge-click"
+                                          onclick={handleVencPorDelante}
+                                          title="Ver los vencimientos por delante">{vencPorDelanteLabel}</span>
+                                    <span class="acf-venc-badge acf-venc-badge-morado acf-venc-badge-click"
+                                          onclick={handleVencSenalPorDelante}
+                                          title="Ver los señalamientos legales por delante">{vencSenalLabel}</span>
+                                </span>
+                            </div>
+                            <div class="acf-venc-grid">
+                                <template for:each={vencCeldas} for:item="v">
+                                    <div key={v.key} class={v.cls}>
+                                        <div class="acf-venc-dia">
+                                            <template if:true={v.esHoy}>
+                                                <span class="acf-venc-hoy-pill">{v.etiqueta}</span>
+                                            </template>
+                                            <template if:false={v.esHoy}>
+                                                <span>{v.etiqueta}</span>
+                                                <template if:true={v.aviso}><span class="acf-venc-aviso">⚠</span></template>
+                                            </template>
+                                        </div>
+                                        <div class={v.textoCls} data-fecha={v.key} onclick={handleVencDia} title={v.vencTitle}>
+                                            <template if:true={v.num}><span class="acf-venc-num">{v.num}</span></template>
+                                            <span>{v.resto}</span>
+                                        </div>
+                                        <template if:true={v.senal}>
+                                            <div class="acf-venc-senal acf-venc-link" data-fecha={v.key}
+                                                 onclick={handleVencSenalDia}
+                                                 title="Ver los señalamientos de este día">
+                                                <span class="acf-venc-num">{v.senalNum}</span>
+                                                <span>{v.senalTexto}</span>
+                                            </div>
+                                        </template>
+                                        <template if:false={v.senal}>
+                                            <div class="acf-venc-senal-vacio">— señalamientos</div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- MIS TOTALES -->
+                    <!-- Once cajas de la misma altura; la primera es Mis leads -->
+                    <div class="acf-mis-grid">
+                        <template for:each={misCajas} for:item="c">
+                            <div key={c.key} class={c.cls} data-tab={c.tab} onclick={handleMisCaja}
+                                 title="Abrir la pestaña filtrada por mis registros">
+                                <div class="acf-mis-num">{c.n}</div>
+                                <div class="acf-mis-titulo">{c.titulo}</div>
+                                <template if:true={c.venc}><div class="acf-mis-venc">{c.venc}</div></template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- MIS TAREAS -->
+                    <div class="acf-contab">
+                        <!-- Columna izquierda: total + orígenes -->
+                        <div class="acf-contab-izq">
+                            <div class="acf-kpi acf-kpi-click" onclick={handleMisTotal}
+                                 title="Mostrar todas mis tareas abiertas hasta hoy">
+                                <div class="acf-kpi-num">{misKpiTotal}</div>
+                                <div class="acf-kpi-label">Mis tareas vencidas o para hoy</div>
+                            </div>
+                            <div class="acf-card acf-user-list">
+                                <template for:each={misOrigenes} for:item="o">
+                                    <div key={o.key} class={o.cls} data-key={o.key} onclick={handleMisOrigen}>
+                                        <span class="acf-user-nombre">{o.nombre}</span>
+                                        <span class="acf-user-num">{o.n}</span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        <!-- Columna derecha: buscador + listado -->
+                        <div class="acf-contab-der">
+                            <!-- Buscador con Nueva tarea y el refresco a su derecha -->
+                            <div class="acf-kpis-der acf-fila-filtros">
+                                <div class="acf-buscador acf-buscador-linea">
+                                    <lightning-input type="search" variant="label-hidden"
+                                                     placeholder="Buscar por asunto, empresa, origen o relacionado…"
+                                                     value={misBusqueda} onchange={handleMisBusqueda}></lightning-input>
+                                </div>
+                                <lightning-button label="Nueva tarea" onclick={handleMisNuevaTarea}
+                                                  title="Crear una tarea nueva"></lightning-button>
+                                <button class={misProxBtnCls} onclick={handleMisProximas}
+                                        title="Ver mis tareas abiertas con vencimiento posterior a hoy">Mis próximas tareas</button>
+                                <div class="acf-kpis-der-refresh">
+                                    <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar"
+                                                           title="Refrescar" variant="border-filled" size="small"
+                                                           onclick={handleMisRefresh}></lightning-button-icon>
+                                </div>
+                            </div>
+                            <div class="acf-card">
+                                <template if:true={misHayFilas}>
+                                    <div class="acf-scroll">
+                                        <table class="acf-tabla">
+                                            <thead>
+                                                <tr>
+                                                    <th class="acf-th-izq acf-th-idx">#</th>
+                                                    <th class="acf-th-izq">Fecha Vto.</th>
+                                                    <th class="acf-th-izq">Vto. legal</th>
+                                                    <th class="acf-th-izq">Riesgo</th>
+                                                    <th class="acf-th-izq">Origen</th>
+                                                    <th class="acf-th-izq">Asunto</th>
+                                                    <th class="acf-th-izq">Empresa</th>
+                                                    <th class="acf-th-izq">Relacionado con</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template for:each={misRows} for:item="c">
+                                                    <tr key={c.key} class="acf-row">
+                                                        <td class="acf-td-idx">{c.idx}</td>
+                                                        <td class={c.fechaCls}>{c.fechaFmt}</td>
+                                                        <td class="acf-td-izq">{c.vtoLegalFmt}</td>
+                                                        <td class="acf-td-cen"><span class={c.riesgoCls}></span></td>
+                                                        <td class="acf-td-izq acf-td-corta" title={c.origen}>{c.origen}</td>
+                                                        <td class="acf-td-izq acf-td-titulo">
+                                                            <a href="javascript:void(0);" class="acf-link"
+                                                               data-recordid={c.id} data-object="Task"
+                                                               onclick={navigateToRecordNewTab}
+                                                               title={c.asunto}>{c.asunto}</a>
+                                                        </td>
+                                                        <td class="acf-td-izq acf-td-empresa">
+                                                            <template if:true={c.empresaId}>
+                                                                <a href="javascript:void(0);" class="acf-link"
+                                                                   data-recordid={c.empresaId} data-object="Account"
+                                                                   onclick={navigateToRecordNewTab}
+                                                                   title={c.empresa}>{c.empresa}</a>
+                                                            </template>
+                                                        </td>
+                                                        <td class="acf-td-izq acf-td-corta">
+                                                            <template if:true={c.relId}>
+                                                                <a href="javascript:void(0);" class="acf-link"
+                                                                   data-recordid={c.relId} data-object={c.relTipo}
+                                                                   onclick={navigateToRecordNewTab}
+                                                                   title={c.relNombre}>{c.relNombre}</a>
+                                                            </template>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <template if:true={misHayMas}>
+                                        <div class="acf-mis-vertodas">
+                                            <button class="acf-btn-vertodas" onclick={handleMisVerTodas}
+                                                    title="Cargar el listado completo de mis tareas">{misVerTodasLabel}</button>
+                                        </div>
+                                    </template>
+                                </template>
+                                <template if:false={misHayFilas}>
+                                    <div class="pyg-empty">
+                                        <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                                        <span>No hay tareas abiertas hasta hoy para la selección.</span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    </template>
+                </div>
+            </template>
+        </template>
+
+        <!-- CONTABILIDAD Y/O CONSULTORÍA -->
+
+        <!-- VENTANA DE SOLICITUD DE AUSENCIAS Y VACACIONES -->
+        <template if:true={solAbierta}>
+            <c-solicitud-ausencia oncerrar={handleSolCerrar}></c-solicitud-ausencia>
+        </template>
+
+    </div>
+    </template>
+</template>

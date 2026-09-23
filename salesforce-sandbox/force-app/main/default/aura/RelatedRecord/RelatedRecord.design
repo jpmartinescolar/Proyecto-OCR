@@ -1,0 +1,4 @@
+<design:component>
+   <design:attribute name="objectName" datasource="Account,Campaign,Contact,Contract" />
+    <design:attribute name="fieldString" />
+</design:component>

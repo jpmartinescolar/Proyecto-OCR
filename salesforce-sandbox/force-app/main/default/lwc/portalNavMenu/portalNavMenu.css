@@ -1,0 +1,136 @@
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 0;
+}
+
+.nav-menu__group {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 1.25rem;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.nav-item_active {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-left-color: #e2a63c;
+}
+
+.nav-item__icon {
+    --slds-c-icon-color-foreground-default: rgb(156, 192, 224) !important;
+    flex-shrink: 0;
+}
+
+.nav-item__label {
+    flex: 1 1 auto;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: rgb(156, 192, 224) !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-item_active .nav-item__label {
+    font-weight: 600;
+}
+
+.chevron {
+    --slds-c-icon-color-foreground-default: rgb(156, 192, 224) !important;
+    color: rgb(156, 192, 224) !important;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+}
+
+.chevron_expanded {
+    transform: rotate(90deg);
+}
+
+.nav-submenu {
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Opción dentro de un submenú. Sin icono se alinea con la etiqueta del padre (3.1rem);
+   con icono (nav-item_sub_icon) el icono entra a 2.1rem y la etiqueta queda a la misma altura */
+.nav-item_sub {
+    padding-left: 3.1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.nav-item_sub_icon {
+    padding-left: 2.1rem;
+    gap: 0.6rem;
+}
+
+.nav-item__label_sub {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: rgb(156, 192, 224) !important;
+}
+
+.nav-item_sub.nav-item_active {
+    border-left-color: #e2a63c;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item_sub.nav-item_active .nav-item__label_sub {
+    font-weight: 600;
+}
+
+/* ============ CABECERAS DE SECCIÓN (Es_Cabecera__c) ============
+   Título en mayúsculas, pequeño y en cian de acento, sin click; sus opciones van debajo
+   como nav-item_sub. Dentro de un submenú el título se alinea con los iconos
+   de las opciones (2.1rem). */
+.nav-section {
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 2px;
+}
+
+.nav-section__title {
+    padding: 5px 1.25rem 2px 2.1rem;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #5fd8ea; /* cian de acento, el mismo del boton Chat Rosetta IA */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Dentro de una cabecera las opciones van mas juntas que en un submenu normal */
+.nav-section .nav-item_sub {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+}
+
+/* Cabecera en primer nivel (sin padre): título y opciones al mismo margen y tamaño
+   que las opciones de primer nivel */
+.nav-section_root .nav-section__title {
+    padding-left: 1.25rem;
+}
+
+.nav-section_root .nav-item_sub {
+    padding: 0.35rem 1.25rem;
+    gap: 0.75rem;
+}
+
+.nav-section_root .nav-item__label_sub {
+    font-size: 0.8125rem;
+    font-weight: 500;
+}

@@ -1,0 +1,131 @@
+<template>
+    <div class="lms-container">
+
+        <!-- FILTROS -->
+        <div class="lms-filtros">
+            <div class="lms-filtro-empresa lms-dd-wrap">
+                <lightning-input type="search" label="Empresa"
+                                 placeholder="Busca por nombre o número"
+                                 value={textoEmpresa} onchange={handleTextoEmpresa}
+                                 onfocus={handleEmpresaFocus} autocomplete="off"></lightning-input>
+                <template if:true={empresaAbierta}>
+                    <div class="lms-dd-backdrop" onclick={cerrarEmpresas}></div>
+                    <div class="lms-dd-panel">
+                        <template if:true={empresaMuestraBuscador}>
+                            <div class="lms-dd-search-wrap">
+                                <input type="search" class="lms-dd-search"
+                                       placeholder="Buscar otra empresa por nombre o número..."
+                                       value={busquedaEmpresa} oninput={handleBusquedaEmpresa} />
+                            </div>
+                        </template>
+                        <template for:each={empresasFiltradas} for:item="e">
+                            <div key={e.codigo} class="lms-cuenta-item" data-codigo={e.codigo} onclick={handleEmpresaClick}>
+                                <span class="lms-cuenta-codigo">{e.codigo}</span>
+                                <span class="lms-cuenta-nombre">{e.nombre}</span>
+                            </div>
+                        </template>
+                        <template if:true={empresasCargando}>
+                            <div class="lms-dd-cargando">Cargando empresas…</div>
+                        </template>
+                        <template if:true={empresasVacias}>
+                            <div class="lms-dd-cargando">No hay empresas que casen con la búsqueda.</div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+            <lightning-input type="date" label="Desde" value={fechaDesde}
+                             onchange={handleDesde}></lightning-input>
+            <lightning-input type="date" label="Hasta" value={fechaHasta}
+                             onchange={handleHasta}></lightning-input>
+            <div class="lms-filtro-buscador">
+                <lightning-input type="search" label="Filtrar cuentas"
+                                 placeholder="Por número o nombre"
+                                 value={busqueda} onchange={handleBusqueda}
+                                 disabled={sinEmpresa}></lightning-input>
+            </div>
+            <div class="sms-filtro-check">
+                <lightning-input type="checkbox" label="Solo líneas con saldo"
+                                 checked={soloConSaldo} onchange={handleSoloConSaldo}
+                                 title="Oculta las cuentas cuyo saldo del periodo es cero">
+                </lightning-input>
+            </div>
+            <div class="lms-filtro-btn">
+                <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar"
+                                       title="Refrescar" variant="border-filled"
+                                       onclick={handleRefresh}></lightning-button-icon>
+            </div>
+        </div>
+
+        <!-- ERROR -->
+        <template if:true={error}>
+            <div class="lms-error">
+                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- LOADING -->
+        <template if:true={loading}>
+            <div class="lms-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+        </template>
+
+        <!-- ESTADO INICIAL -->
+        <template if:true={showInicial}>
+            <div class="lms-empty">
+                <lightning-icon icon-name="utility:filterList" size="small"></lightning-icon>
+                <span>Selecciona una empresa para ver sus sumas y saldos del periodo.</span>
+            </div>
+        </template>
+
+        <!-- TABLA -->
+        <template if:true={showContenido}>
+            <div class="lms-card sms-card">
+                <template if:true={hayFilas}>
+                    <table class="lms-tabla">
+                        <thead>
+                            <tr>
+                                <th class="lms-th-num lms-th-idx">#</th>
+                                <th class="lms-th-izq">Cuenta</th>
+                                <th class="lms-th-izq">Título</th>
+                                <th class="lms-th-num">Debe</th>
+                                <th class="lms-th-num">Haber</th>
+                                <th class="lms-th-num">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={filasView} for:item="c">
+                                <tr key={c.key} class="lms-row">
+                                    <td class="lms-idx">{c.idx}</td>
+                                    <td>
+                                        <a href="javascript:void(0);" class="sms-cuenta-link"
+                                           data-codigo={c.codigo} onclick={handleCuentaMayor}
+                                           title="Abrir el libro mayor de esta cuenta">{c.codigo}</a>
+                                    </td>
+                                    <td class="lms-desc" title={c.titulo}>{c.titulo}</td>
+                                    <td class="lms-num">{c.debeFmt}</td>
+                                    <td class="lms-num">{c.haberFmt}</td>
+                                    <td class={c.saldoCls}>{c.saldoFmt}</td>
+                                </tr>
+                            </template>
+                            <tr class="lms-totalrow">
+                                <td></td>
+                                <td>TOTAL</td>
+                                <td class="sms-total-cuentas">{totales.cuentas} cuentas</td>
+                                <td class="lms-num">{totales.debe}</td>
+                                <td class="lms-num">{totales.haber}</td>
+                                <td class={totales.saldoCls}>{totales.saldo}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </template>
+                <template if:false={hayFilas}>
+                    <div class="lms-empty">
+                        <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                        <span>No hay cuentas con movimientos en el periodo para la selección.</span>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+    </div>
+</template>

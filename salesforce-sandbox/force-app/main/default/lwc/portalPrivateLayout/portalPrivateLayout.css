@@ -1,0 +1,795 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.portal-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: #eef1f6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ============ BARRA SUPERIOR FIJA (logo) ============ */
+.portal-layout__topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    padding: 22px 20px 18px;
+    background-color: rgb(14, 58, 102);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box;
+    z-index: 200;
+}
+
+.portal-layout__topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    cursor: pointer;
+}
+
+/* Botón de colapsar/desplegar del menú lateral (solo escritorio; en móvil se
+   oculta y sigue la pestaña del <aside>). Cuadrado redondeado un punto más
+   claro que la barra, con el icono de panel lateral. */
+.portal-layout__topbar-toggle {
+    margin-left: 14px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 9px;
+    color: #ffffff;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease;
+}
+
+.portal-layout__topbar-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+.portal-layout__topbar-toggle:focus-visible {
+    outline: 2px solid rgb(244, 169, 60);
+    outline-offset: 2px;
+}
+
+.topbar-toggle__icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+/* Franja izquierda del icono: rellena con el menú desplegado, vacía si está colapsado */
+.topbar-toggle__pane {
+    fill: transparent;
+    transition: fill 0.15s ease;
+}
+
+.portal-layout__topbar-toggle_open .topbar-toggle__pane {
+    fill: rgba(255, 255, 255, 0.35);
+}
+
+/* ============ BLOQUE DERECHO DE LA BARRA SUPERIOR ============
+   margin-left:auto lo empuja al margen derecho. Todas las cajas comparten el
+   mismo lenguaje: fondo un punto más claro que la barra, borde tenue y radio
+   10px. Textos en blanco roto (#dbe7f3), iconos en el azul claro del menú. */
+.portal-layout__topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+/* Grupos de accesos rápidos: uno con Alta / Baja / Incidencias / Modificación de
+   trabajador y otro con Subir facturas. Los botones van "a ras" dentro de una caja con borde. */
+.topbar-group {
+    display: flex;
+    align-items: center;
+    height: 38px;
+    padding: 0 4px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.topbar-group__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 9px;
+    background: none;
+    border: none;
+    border-radius: 7px;
+    color: #dbe7f3;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.topbar-group__item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.topbar-group__item:focus-visible,
+.topbar-chat:focus-visible,
+.topbar-iconbtn:focus-visible,
+.topbar-user:focus-visible {
+    outline: 2px solid rgb(244, 169, 60);
+    outline-offset: 1px;
+}
+
+/* Icono común de todos los botones de la barra superior */
+.topbar-icon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    color: rgb(156, 192, 224);
+}
+
+/* Raya vertical entre bloques (grupo de accesos | Chat Rosetta IA) */
+.topbar-separator {
+    width: 1px;
+    height: 26px;
+    background-color: rgba(255, 255, 255, 0.16);
+    flex-shrink: 0;
+}
+
+/* Botón Chat Rosetta IA: mismo formato pero con acento cian */
+.topbar-chat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px;
+    background-color: rgba(64, 200, 230, 0.12);
+    border: 1px solid rgba(64, 200, 230, 0.55);
+    border-radius: 10px;
+    color: #9fe6f3;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease;
+}
+
+.topbar-chat:hover {
+    background-color: rgba(64, 200, 230, 0.22);
+}
+
+.topbar-chat .topbar-icon {
+    color: #5fd8ea;
+}
+
+/* Botones cuadrados solo icono (formación, facturas) */
+.topbar-iconbtn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    color: #ffffff;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease;
+}
+
+.topbar-iconbtn:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.topbar-iconbtn .topbar-icon {
+    width: 17px;
+    height: 17px;
+    color: #ffffff;
+}
+
+/* Usuario logado: píldora con avatar, nombre, email y flecha; el desplegable
+   (.portal-layout__user-menu-panel) cuelga debajo, alineado a la derecha. */
+.topbar-user-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 12px 0 5px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    color: #ffffff;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.topbar-user:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* El avatar del pie era del mismo azul que la barra; aquí, sobre la barra, va en
+   un azul vivo para que destaque como en la referencia */
+.topbar-user__avatar {
+    background: linear-gradient(150deg, #3d8ef7, #1f5fd4) !important;
+    border-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+.topbar-user__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    max-width: 230px;
+}
+
+.topbar-user__name {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.topbar-user__email {
+    color: rgb(156, 192, 224);
+    font-size: 11px;
+    line-height: 1.15;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.topbar-user .chevron {
+    width: 16px;
+    height: 16px;
+}
+
+/* Fondo transparente a pantalla completa: cierra el desplegable abierto (usuario
+   o carrito) al pinchar fuera de él */
+.topbar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 60;
+}
+
+/* Desplegable del carrito (Contratos, Cuotas recurrentes, Listado facturas,
+   Precios pactados): misma caja blanca que la del usuario, colgando bajo el botón
+   y alineada a su derecha. Opciones con icono en el azul corporativo. */
+.topbar-cart-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.topbar-cart__panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 280px;
+    background: #ffffff;
+    border: 1px solid #E2EAF2;
+    border-radius: 13px;
+    box-shadow: 0 16px 40px rgba(15, 27, 45, 0.32);
+    padding: 8px;
+    box-sizing: border-box;
+    z-index: 70;
+}
+
+.topbar-cart__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    background: none;
+    border: none;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0F1B2D;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.topbar-cart__item:hover {
+    background: #F5F8FB;
+}
+
+.topbar-cart__item:focus-visible {
+    outline: 2px solid rgb(14, 58, 102);
+    outline-offset: -2px;
+}
+
+.topbar-cart__icon {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: rgb(14, 58, 102);
+}
+
+/* Raya que separa las opciones de facturación de Rosetta Store */
+.topbar-cart__divider {
+    height: 1px;
+    background: #EEF2F7;
+    margin: 6px 8px;
+}
+
+/* Rosetta Store: texto en el azul corporativo y en negrita, icono de bolsa en cian */
+.topbar-cart__item_store {
+    color: rgb(14, 58, 102);
+    font-weight: 700;
+}
+
+.topbar-cart__item_store .topbar-cart__icon {
+    color: #2ec4de;
+}
+
+/* Etiqueta NUEVO, pegada al margen derecho de la opción */
+.topbar-cart__badge {
+    margin-left: auto;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgb(244, 169, 60);
+    color: #3a2604;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    flex-shrink: 0;
+}
+
+/* ============ BARRA LATERAL ============ */
+.portal-layout__sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 252px;
+    height: 100vh;
+    height: 100dvh;
+    background-color: rgb(14, 58, 102);
+    transform: translateX(0);
+    transition: transform 0.25s ease;
+    z-index: 150;
+    box-sizing: border-box;
+}
+
+.portal-layout__sidebar_collapsed {
+    transform: translateX(-100%);
+}
+
+.portal-layout__sidebar-inner {
+    height: 100%;
+    padding-top: 79px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.portal-layout__sidebar-brand {
+    height: 90px;
+    background-color: #ffffff;
+    flex-shrink: 0;
+}
+
+.portal-layout__sidebar-account {
+    min-height: 70px;
+    background-color: #1c2c4d;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.portal-layout__nav-wrapper {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding-top: 0.5rem;
+}
+
+.menu-container2 {
+    margin: 0 12px !important;
+    padding-top: 6px !important;
+    padding-Bottom: 6px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    box-sizing: border-box !important;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 1.25rem;
+    cursor: pointer;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.nav-item__icon {
+    --slds-c-icon-color-foreground-default: rgb(156, 192, 224) !important;
+    flex-shrink: 0;
+}
+
+.nav-item__label {
+    flex: 1 1 auto;
+    font-size: 12.5px !important;
+    font-weight: 600;
+    color: rgb(156, 192, 224) !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-item_active .nav-item__label {
+    font-weight: 600;
+}
+
+.portal-layout__user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(150deg, rgb(14, 58, 102), rgb(29, 81, 137));
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.portal-layout__user-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* ============ COLUMNA PRINCIPAL ============ */
+.portal-layout__main {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin-left: 252px;
+    transition: margin-left 0.25s ease;
+}
+
+.portal-layout__main_expanded {
+    margin-left: 0;
+}
+
+.portal-layout__header {
+    flex-shrink: 0;
+}
+
+.portal-layout__header-top {
+    height: 64px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e8ef;
+}
+
+.portal-layout__header-account {
+    min-height: 79px;
+    background-color: rgb(14, 58, 102);
+}
+
+.portal-layout__content {
+    flex: 1 1 auto;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.icon-wrapper {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: linear-gradient(160deg, rgb(14, 58, 102), rgb(21, 64, 111));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid rgb(244, 169, 60);
+    flex-shrink: 0;
+}
+
+.header-icon {
+    width: 19px;
+    height: 19px;
+}
+
+.text-wrapper {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05 !important;
+}
+
+.brand-title {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 14px !important;
+    color: #ffffff !important;
+    letter-spacing: 0.01em !important;
+    text-transform: none !important;
+}
+
+.brand-subtitle {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-size: 9px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.22em !important;
+    color: rgb(126, 163, 200) !important;
+    margin-top: 3px !important;
+    text-transform: uppercase !important;
+}
+
+.chevron {
+    --slds-c-icon-color-foreground-default: rgb(156, 192, 224) !important;
+    color: rgb(156, 192, 224) !important;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+}
+
+.chevron_open {
+    transform: rotate(180deg);
+}
+
+.portal-layout__user-menu-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 272px;
+    background: #ffffff;
+    border: 1px solid #E2EAF2;
+    border-radius: 13px;
+    box-shadow: 0 16px 40px rgba(15, 27, 45, 0.32);
+    padding: 6px;
+    box-sizing: border-box;
+    z-index: 70;
+}
+
+.portal-layout__user-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px 12px;
+    border-bottom: 1px solid #F2F6FA;
+    margin-bottom: 4px;
+}
+
+.portal-layout__user-menu-name {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #0F1B2D;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.portal-layout__user-menu-email {
+    display: block;
+    font-size: 11px;
+    color: #6B7A8F;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.portal-layout__user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    cursor: pointer;
+    background: none;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 12.5px;
+    color: #0F1B2D;
+    text-align: left;
+    text-decoration: none;
+}
+
+.portal-layout__user-menu-item:hover {
+    background: #F5F8FB;
+}
+
+.portal-layout__user-menu-icon {
+    --slds-c-icon-color-foreground-default: rgb(14, 58, 102) !important;
+    flex-shrink: 0;
+}
+
+.portal-layout__user-menu-divider {
+    height: 1px;
+    background: #F2F6FA;
+    margin: 5px 6px;
+}
+
+.portal-layout__user-menu-item_danger {
+    color: #C93A3A;
+}
+
+.portal-layout__user-menu-item_danger:hover {
+    background: #FBE6E6;
+}
+
+.portal-layout__user-menu-icon_danger {
+    --slds-c-icon-color-foreground-default: #C93A3A !important;
+    flex-shrink: 0;
+}
+
+/* ============ PESTAÑA DE COLAPSAR/DESPLEGAR (solo móvil; en escritorio la oculta
+   la media query del final y se usa .portal-layout__topbar-toggle) ============ */
+/* Hijo directo del <aside>. NO tiene transición propia: al ser hijo, se mueve
+   automáticamente junto con el transform del <aside>.
+   CLAVE: width (26px) coincide exactamente con |right| (-26px). Esto hace
+   que el botón quede pegado justo en el borde del <aside>, sin invadir ni un
+   píxel hacia dentro del menú (cero solapamiento con las filas de navegación)
+   y sin sobresalir ni un píxel más hacia fuera de lo que ya sobresalía antes.
+   El icono, al centrarse por flex dentro de esta caja de 26px, queda
+   centrado en la pestaña visible de forma natural. La altura (40px) se
+   mantiene agrandada respecto a la versión original; ya no es un cuadrado
+   perfecto, pero se prioriza el comportamiento correcto sobre la forma. */
+.portal-layout__sidebar-toggle {
+    position: absolute;
+    top: 81px;
+    right: -26px;
+    width: 26px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(14, 58, 102);
+    border: 1px solid rgb(14, 58, 102);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 2px 0 8px rgba(15, 27, 45, 0.25);
+    cursor: pointer;
+    z-index: 160;
+}
+
+.toggle-icon {
+    --slds-c-icon-color-foreground-default: rgb(156, 192, 224) !important;
+    transition: transform 0.2s ease;
+}
+
+.toggle-icon_open {
+    transform: rotate(180deg);
+}
+
+/* ============ OVERLAY MÓVIL ============ */
+
+.portal-layout__overlay {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .portal-layout__main,
+    .portal-layout__main_expanded {
+        margin-left: 0;
+    }
+
+    .portal-layout__overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 27, 45, 0.45);
+        z-index: 140;
+    }
+
+    /* En móvil manda la pestaña del <aside>; el botón de la barra superior no se muestra */
+    .portal-layout__topbar-toggle {
+        display: none;
+    }
+
+    /* Barra superior en móvil: el logo puede encogerse, y desaparecen el separador
+       y los dos botones solo icono; los textos ya se han quitado antes por las
+       media queries de escritorio estrecho (final del fichero) */
+    .portal-layout__topbar-logo {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .portal-layout__topbar-right {
+        gap: 8px;
+        margin-left: 10px;
+    }
+
+    .topbar-separator,
+    .topbar-cart-wrap,
+    .topbar-iconbtn {
+        display: none;
+    }
+}
+
+@media (min-width: 769px) {
+    /* En escritorio la pestaña que sobresalía del <aside> deja paso al botón de la barra superior */
+    .portal-layout__sidebar-toggle {
+        display: none;
+    }
+}
+
+
+/* ============ BARRA SUPERIOR EN PANTALLAS ESTRECHAS ============
+   El bloque derecho pesa ~1.580px con todos los textos. Según se estrecha la
+   ventana se va quitando texto de derecha a izquierda, sin perder ningún botón:
+   primero el email del usuario, luego las etiquetas de los dos grupos de accesos
+   (un portátil de 1.536px los ve aún con texto), después el texto del chat y el
+   nombre del usuario, y en móviles muy estrechos el texto del logo. */
+@media (max-width: 1700px) {
+    .topbar-user__email {
+        display: none;
+    }
+}
+
+@media (max-width: 1510px) {
+    .topbar-group__item .topbar-label {
+        display: none;
+    }
+}
+
+@media (max-width: 1024px) {
+    .topbar-chat .topbar-label {
+        display: none;
+    }
+
+    .topbar-chat {
+        padding: 0 10px;
+    }
+
+    .topbar-user__info {
+        display: none;
+    }
+
+    .topbar-user {
+        padding-right: 8px;
+    }
+}
+
+@media (max-width: 560px) {
+    .portal-layout__topbar .text-wrapper {
+        display: none;
+    }
+}

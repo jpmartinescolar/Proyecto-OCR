@@ -1,0 +1,169 @@
+<template>
+    <div class="lms-container">
+
+        <!-- FILTROS -->
+        <div class="lms-filtros">
+            <div class="lms-filtro-empresa lms-dd-wrap">
+                <lightning-input type="search" label="Empresa"
+                                 placeholder="Busca por nombre o número"
+                                 value={textoEmpresa} onchange={handleTextoEmpresa}
+                                 onfocus={handleEmpresaFocus} autocomplete="off"></lightning-input>
+                <template if:true={empresaAbierta}>
+                    <div class="lms-dd-backdrop" onclick={cerrarEmpresas}></div>
+                    <div class="lms-dd-panel">
+                        <template if:true={empresaMuestraBuscador}>
+                            <div class="lms-dd-search-wrap">
+                                <input type="search" class="lms-dd-search"
+                                       placeholder="Buscar otra empresa por nombre o número..."
+                                       value={busquedaEmpresa} oninput={handleBusquedaEmpresa} />
+                            </div>
+                        </template>
+                        <template for:each={empresasFiltradas} for:item="e">
+                            <div key={e.codigo} class="lms-cuenta-item" data-codigo={e.codigo} onclick={handleEmpresaClick}>
+                                <span class="lms-cuenta-codigo">{e.codigo}</span>
+                                <span class="lms-cuenta-nombre">{e.nombre}</span>
+                            </div>
+                        </template>
+                        <template if:true={empresasCargando}>
+                            <div class="lms-dd-cargando">Cargando empresas…</div>
+                        </template>
+                        <template if:true={empresasVacias}>
+                            <div class="lms-dd-cargando">No hay empresas que casen con la búsqueda.</div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+            <lightning-input type="date" label="Desde" value={fechaDesde}
+                             onchange={handleDesde}></lightning-input>
+            <lightning-input type="date" label="Hasta" value={fechaHasta}
+                             onchange={handleHasta}></lightning-input>
+            <div class="lms-filtro-cuenta lms-dd-wrap">
+                <lightning-input type="search" label="Cuenta contable (número o nombre)"
+                                 placeholder="Pincha y elige, o teclea para filtrar"
+                                 value={textoCuenta} onchange={handleTextoCuenta}
+                                 onfocus={handleCuentaFocus} disabled={sinEmpresa}
+                                 autocomplete="off"></lightning-input>
+                <template if:true={cuentaAbierta}>
+                    <div class="lms-dd-backdrop" onclick={cerrarCuentas}></div>
+                    <div class="lms-dd-panel" onscroll={handleCuentasScroll}>
+                        <template if:true={cuentaMuestraBuscador}>
+                            <div class="lms-dd-search-wrap">
+                                <input type="search" class="lms-dd-search"
+                                       placeholder="Buscar otra cuenta por número o nombre..."
+                                       value={busquedaCuenta} oninput={handleBusquedaCuenta} />
+                            </div>
+                        </template>
+                        <template if:true={buscandoCuentas}>
+                            <div class="lms-dd-cargando">Buscando…</div>
+                        </template>
+                        <template for:each={cuentas} for:item="c">
+                            <div key={c.codigo} class="lms-cuenta-item" data-codigo={c.codigo} onclick={handleCuentaClick}>
+                                <span class="lms-cuenta-codigo">{c.codigo}</span>
+                                <span class="lms-cuenta-nombre">{c.titulo}</span>
+                            </div>
+                        </template>
+                        <template if:true={buscandoMas}>
+                            <div class="lms-dd-cargando">Cargando más cuentas…</div>
+                        </template>
+                        <template if:true={sinResultados}>
+                            <div class="lms-dd-cargando">No hay cuentas que casen con la búsqueda.</div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+            <div class="lms-filtro-check">
+                <lightning-input type="checkbox" label="Solo cuentas con movimientos"
+                                 checked={soloConMovs} onchange={handleSoloConMovs}
+                                 title="Anterior y Siguiente solo recorren cuentas con movimientos en el periodo">
+                </lightning-input>
+            </div>
+        </div>
+
+        <!-- ERROR -->
+        <template if:true={error}>
+            <div class="lms-error">
+                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- LIBRO MAYOR -->
+        <template if:true={cargandoInicial}>
+            <div class="lms-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+        </template>
+        <template if:true={hayMayor}>
+            <div class="lms-card">
+                <div class="lms-cabecera">
+                    <div class="lms-cabecera-izq">
+                        <span class="lms-cuenta-actual">{cabecera}</span>
+                        <span class="lms-cuenta-datos">Movimientos <strong>{numMovs}</strong></span>
+                        <span class="lms-cuenta-datos">Saldo <strong class={totales.saldoCls}>{totales.saldo}</strong></span>
+                    </div>
+                    <div class="lms-cabecera-btns">
+                        <template if:true={cargandoNavegacion}>
+                            <div class="lms-mini-spinner">
+                                <lightning-spinner alternative-text="Cargando" size="x-small"></lightning-spinner>
+                            </div>
+                        </template>
+                        <lightning-button label="Exportar PDF" icon-name="utility:print"
+                                          title="Descargar el libro mayor de esta cuenta en PDF"
+                                          onclick={handleExportPdf}></lightning-button>
+                        <lightning-button label="‹ Anterior" title="Cuenta anterior"
+                                          disabled={sinAnterior} onclick={handleAnterior}></lightning-button>
+                        <lightning-button label="Siguiente ›" title="Cuenta siguiente"
+                                          disabled={sinSiguiente} onclick={handleSiguiente}></lightning-button>
+                    </div>
+                </div>
+
+                <template if:true={hayMovs}>
+                    <table class="lms-tabla">
+                        <thead>
+                            <tr>
+                                <th class="lms-th-idx">#</th>
+                                <th class="lms-th-izq">Fecha</th>
+                                <th class="lms-th-izq">Descripción</th>
+                                <th class="lms-th-num">Debe</th>
+                                <th class="lms-th-num">Haber</th>
+                                <th class="lms-th-num">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={filas} for:item="f">
+                                <tr key={f.key} class="lms-row">
+                                    <td class="lms-idx">{f.idx}</td>
+                                    <td class="lms-fecha">{f.fecha}</td>
+                                    <td class="lms-desc" title={f.descripcion}>{f.descripcion}</td>
+                                    <td class="lms-num">{f.debe}</td>
+                                    <td class="lms-num">{f.haber}</td>
+                                    <td class={f.saldoCls}>{f.saldo}</td>
+                                </tr>
+                            </template>
+                            <tr class="lms-totalrow">
+                                <td></td>
+                                <td></td>
+                                <td class="lms-desc">TOTAL</td>
+                                <td class="lms-num">{totales.debe}</td>
+                                <td class="lms-num">{totales.haber}</td>
+                                <td class={totales.saldoCls}>{totales.saldo}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </template>
+                <template if:false={hayMovs}>
+                    <div class="lms-empty">La cuenta no tiene movimientos en el periodo.</div>
+                </template>
+
+                <div class="lms-pie">
+                    <span class="lms-pie-texto">{piePagina}</span>
+                    <div class="lms-cabecera-btns">
+                        <lightning-button label="‹ Anterior" title="Cuenta anterior"
+                                          disabled={sinAnterior} onclick={handleAnterior}></lightning-button>
+                        <lightning-button label="Siguiente ›" title="Cuenta siguiente"
+                                          disabled={sinSiguiente} onclick={handleSiguiente}></lightning-button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+    </div>
+</template>

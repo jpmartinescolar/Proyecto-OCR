@@ -1,0 +1,115 @@
+<template>
+    <template if:true={showChips}>
+        <!-- Chips de avisos -->
+        <div class="ss-chips-bar">
+            <button type="button" class={chipIncCls} onclick={toggleInc}>
+                <template if:true={chipIncBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Incidencias: {incidenciasCount}</button>
+            <button type="button" class={chipCheckCls} onclick={toggleCheck}>
+                <template if:true={chipCheckBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Check: {checkSinCount}</button>
+            <button type="button" class={chipDescCls} onclick={toggleDesc}>
+                <template if:true={chipDescBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Descuadre asientos: {descuadradosCount}</button>
+            <button type="button" class={chipSinCls} onclick={toggleSin}>
+                <template if:true={chipSinBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Apuntes sin cuenta: {sinCuentaCount}</button>
+            <button type="button" class={chipExtCls} onclick={toggleExt}>
+                <template if:true={chipExtBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Extractos sin conciliar: {extractosCount}</button>
+            <button type="button" class={chipCuadreCls} onclick={toggleCuadre}>
+                <template if:true={chipCuadreBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Facturas emitidas &amp; Apuntes: {chipCuadreTxt}</button>
+            <button type="button" class={chipCuadreRecCls} onclick={toggleCuadreRec}>
+                <template if:true={chipCuadreRecBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Facturas recibidas &amp; Apuntes: {chipCuadreRecTxt}</button>
+            <c-aviso-saldo-efectos empresas={empresas}></c-aviso-saldo-efectos>
+        </div>
+
+        <!-- AVISO DE INCIDENCIAS -->
+        <template if:true={hayIncidencias}>
+            <div class="ss-incidencias">
+                <lightning-icon icon-name="utility:warning" variant="warning" size="small"></lightning-icon>
+                <span>Existen <strong>{incidenciasCount}</strong> apuntes contables con incidencias en la(s) empresa(s) seleccionada(s), en <strong>todo el histórico</strong> (estén o no dentro de las fechas seleccionadas). Ve al componente <strong>Libro Mayor</strong> y filtra por incidencias para revisarlos.
+                    <span class="ss-inc-def">
+                        Se considera incidencia los apuntes contables con esta casuística:
+                        <span class="ss-inc-caso"><strong>1.</strong> La cuenta contable está asociada a «01. Operaciones» y sucede alguna de estas situaciones:</span>
+                        <span class="ss-inc-item">• El área no es ninguna de las cinco (Fiscal y Contable, Jurídico, Laboral, Distribución oficial, Innovación).</span>
+                        <span class="ss-inc-item">• No tiene director de facturación asignado.</span>
+                        <span class="ss-inc-caso"><strong>2.</strong> La cuenta contable no está asociada a «01. Operaciones» y sucede alguna de estas situaciones:</span>
+                        <span class="ss-inc-item">• El área no es «General».</span>
+                        <span class="ss-inc-item">• Tiene director de facturación asignado.</span>
+                    </span>
+                </span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarInc}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO DE APUNTES SIN CHECK -->
+        <template if:true={hayCheck}>
+            <div class="ss-incidencias">
+                <lightning-icon icon-name="utility:warning" variant="warning" size="small"></lightning-icon>
+                <span>Existen <strong>{checkSinCount}</strong> apuntes contables <strong>sin check</strong> (Check distinto de «Sí») en la(s) empresa(s) asignada(s), en <strong>todo el histórico</strong> (estén o no dentro de las fechas seleccionadas).</span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarCheck}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO DE ASIENTOS DESCUADRADOS -->
+        <template if:true={hayDescuadrados}>
+            <div class="ss-descuadrados">
+                <lightning-icon icon-name="utility:error" variant="error" size="small"></lightning-icon>
+                <span>Existen <strong>{descuadradosCount}</strong> asientos contables descuadrados (diferencia entre Debe y Haber) en la(s) empresa(s) seleccionada(s), en <strong>todo el histórico</strong> (estén o no dentro de las fechas seleccionadas).
+                    <template if:true={descuadradosAsientos.length}>
+                        <span class="ss-aviso-asientos">Asientos:
+                            <template for:each={descuadradosAsientos} for:item="a">
+                                <a key={a.id} href="javascript:void(0);" class="ss-aviso-link"
+                                   data-recordid={a.id} data-objectname="Asiento_contable__c"
+                                   onclick={navigateToRecordNewTab}>{a.numero}</a>
+                            </template>
+                        </span>
+                    </template>
+                </span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarDesc}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO DE APUNTES SIN CUENTA CONTABLE -->
+        <template if:true={haySinCuenta}>
+            <div class="ss-descuadrados">
+                <lightning-icon icon-name="utility:error" variant="error" size="small"></lightning-icon>
+                <span>Existen <strong>{sinCuentaCount}</strong> apuntes contables <strong>sin cuenta contable</strong> asignada en la(s) empresa(s) seleccionada(s), en <strong>todo el histórico</strong> (estén o no dentro de las fechas seleccionadas).
+                    <template if:true={sinCuentaAsientos.length}>
+                        <span class="ss-aviso-asientos">Asientos:
+                            <template for:each={sinCuentaAsientos} for:item="a">
+                                <a key={a.id} href="javascript:void(0);" class="ss-aviso-link"
+                                   data-recordid={a.id} data-objectname="Asiento_contable__c"
+                                   onclick={navigateToRecordNewTab}>{a.numero}</a>
+                            </template>
+                        </span>
+                    </template>
+                </span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarSin}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO DE EXTRACTOS BANCARIOS SIN CONCILIAR -->
+        <template if:true={hayExtractos}>
+            <div class="ss-extractos">
+                <lightning-icon icon-name="utility:moneybag" variant="warning" size="small"></lightning-icon>
+                <span>Para las fechas seleccionadas (<strong>{periodoLabel}</strong><template if:true={hayComparativa}> y comparativa <strong>{periodoComparativaLabel}</strong></template>) existen <strong>{extractosCount}</strong> extractos bancarios <strong>sin conciliar</strong> (estado Pendiente) de la(s) empresa(s) seleccionada(s).</span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarExt}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO FACTURAS EMITIDAS vs CUENTAS (muestra siempre los importes al pulsar) -->
+        <template if:true={showCuadre}>
+            <div class={cuadreBoxClass}>
+                <lightning-icon icon-name={cuadreIcon} variant={cuadreVariant} size="small"></lightning-icon>
+                <span><strong>{cuadreEstado}</strong> facturas emitidas vs apuntes (todo el histórico de la(s) empresa(s) seleccionada(s)): Base imponible facturas emitidas = <strong>{cuadreBaseFmt}</strong> · Importe apuntes (cuentas de venta) = <strong>{cuadreSaldoFmt}</strong> · Diferencia = <strong>{cuadreDifFmt}</strong>.</span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarCuadre}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO DESCUADRE FACTURAS RECIBIDAS vs APUNTES -->
+        <template if:true={hayDescuadreRecibidas}>
+            <div class="ss-descuadrados">
+                <lightning-icon icon-name="utility:warning" variant="error" size="small"></lightning-icon>
+                <span>Descuadre entre <strong>facturas recibidas</strong> y los apuntes de compras/gastos (todo el histórico de la(s) empresa(s) seleccionada(s)): Base imponible facturas = <strong>{cuadreRecBaseFmt}</strong>, Debe apuntes = <strong>{cuadreRecSaldoFmt}</strong>, Diferencia = <strong>{cuadreRecDifFmt}</strong>.</span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarCuadreRec}>✕</button>
+            </div>
+        </template>
+    </template>
+</template>

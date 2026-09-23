@@ -1,0 +1,222 @@
+<template>
+    <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container sa-contenedor">
+            <div class="sa-card">
+
+                <!-- Velo de procesando mientras se guardan los registros -->
+                <template if:true={guardando}>
+                    <div class="sa-procesando">
+                        <lightning-spinner alternative-text="Procesando" size="medium"></lightning-spinner>
+                        <div class="sa-procesando-texto">Procesando…</div>
+                    </div>
+                </template>
+
+                <div class="sa-head">
+                    <div>
+                        <div class="sa-sobre">Ausencias y Vacaciones</div>
+                        <h2 class="sa-titulo">Crear Ausencia y Vacaciones</h2>
+                    </div>
+                    <div class="sa-obligatorio"><span class="sa-ast">*</span> = Información obligatoria</div>
+                </div>
+
+                <div class="sa-cuerpo">
+                    <template if:true={cargando}>
+                        <div class="sa-cargando">
+                            <lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner>
+                        </div>
+                    </template>
+
+                    <template if:true={errorFicha}>
+                        <div class="sa-error">
+                            <lightning-icon icon-name="utility:error" alternative-text="Error" size="small"
+                                            variant="error"></lightning-icon>
+                            <span>{errorFicha}</span>
+                        </div>
+                    </template>
+
+                    <template if:true={muestraForm}>
+                        <!-- Tipo y cómputo -->
+                        <div class="sa-fila">
+                            <div class="sa-col">
+                                <lightning-combobox label="Tipo" required placeholder="--Ninguno--"
+                                                    value={tipo} options={tipoOpciones}
+                                                    onchange={handleTipo}></lightning-combobox>
+                            </div>
+                            <div class="sa-col">
+                                <div class="sa-label"><span class="sa-ast">*</span> Horas / Días</div>
+                                <div class="sa-toggles">
+                                    <button type="button" class={btnDiasCls} onclick={handleDias}>Días completos</button>
+                                    <button type="button" class={btnHorasCls} onclick={handleHoras}>Por horas</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aún sin tipo o cómputo -->
+                        <template if:true={faltaEleccion}>
+                            <div class="sa-placeholder">
+                                <div class="sa-placeholder-titulo">Elige el tipo y el cómputo</div>
+                                <div>Al completar ambos se mostrarán las fechas, el saldo y los registros que se crearán en el CRM.</div>
+                            </div>
+                        </template>
+
+                        <template if:false={faltaEleccion}>
+                            <!-- Saldo de vacaciones -->
+                            <template if:true={mostrarSaldo}>
+                                <div class="sa-saldo">
+                                    <div class="sa-saldo-head">
+                                        <span>Saldo de vacaciones</span>
+                                        <span class="sa-saldo-ej">Ejercicio {ejercicioActual}</span>
+                                    </div>
+                                    <div class="sa-saldo-nums">
+                                        <div>
+                                            <div class="sa-saldo-num">{pendientesLabel}</div>
+                                            <div class="sa-saldo-sub">Pendientes</div>
+                                        </div>
+                                        <div>
+                                            <div class="sa-saldo-num sa-num-azul">{solicitadoLabel}</div>
+                                            <div class="sa-saldo-sub">En esta solicitud</div>
+                                        </div>
+                                        <div>
+                                            <div class={quedarianCls}>{quedarianLabel}</div>
+                                            <div class="sa-saldo-sub">Quedarían</div>
+                                        </div>
+                                    </div>
+                                    <div class="sa-barra"><div class="sa-barra-fill" style={barraStyle}></div></div>
+                                    <div class="sa-saldo-nota">{saldoNota}</div>
+                                </div>
+                            </template>
+
+                            <!-- Días completos: rango y tramos -->
+                            <template if:true={esDias}>
+                                <div class="sa-fila">
+                                    <div class="sa-col">
+                                        <lightning-input type="date" label="Fecha Inicio" required
+                                                         value={fechaInicio} onchange={handleFechaInicio}></lightning-input>
+                                    </div>
+                                    <div class="sa-col">
+                                        <lightning-input type="date" label="Fecha Fin" required
+                                                         value={fechaFin} onchange={handleFechaFin}></lightning-input>
+                                    </div>
+                                </div>
+                                <template if:true={hayCalculo}>
+                                    <div class="sa-tramos">
+                                        <div class="sa-tramos-head">Registros que se crearán</div>
+                                        <table class="sa-tabla">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tramo</th>
+                                                    <th>Desde</th>
+                                                    <th>Hasta</th>
+                                                    <th class="sa-td-num">Días laborables</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template for:each={tramos} for:item="t">
+                                                    <tr key={t.idx}>
+                                                        <td>{t.idx}</td>
+                                                        <td>{t.desde}</td>
+                                                        <td>{t.hasta}</td>
+                                                        <td class="sa-td-num">{t.dias}</td>
+                                                    </tr>
+                                                </template>
+                                                <tr class="sa-total">
+                                                    <td colspan="3">Total días laborables</td>
+                                                    <td class="sa-td-num">{totalLaborables}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <template if:true={hayExcluidos}>
+                                            <div class="sa-excluidos">
+                                                <div class="sa-excluidos-titulo">Días excluidos del rango</div>
+                                                <template for:each={excluidos} for:item="x">
+                                                    <span key={x} class="sa-chip">{x}</span>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </template>
+
+                            <!-- Por horas: fecha, horas y duración -->
+                            <template if:true={esHoras}>
+                                <div class="sa-fila">
+                                    <div class="sa-col">
+                                        <lightning-input type="date" label="Fecha" required
+                                                         value={fechaInicio} onchange={handleFechaInicio}></lightning-input>
+                                    </div>
+                                    <div class="sa-col">
+                                        <lightning-input type="time" label="Hora de Inicio" required
+                                                         value={horaInicio} onchange={handleHoraInicio}></lightning-input>
+                                    </div>
+                                    <div class="sa-col">
+                                        <lightning-input type="time" label="Hora de Fin" required
+                                                         value={horaFin} onchange={handleHoraFin}></lightning-input>
+                                    </div>
+                                </div>
+                                <template if:true={hayDuracion}>
+                                    <div class="sa-duracion">Duración calculada: <strong>{duracionLabel}</strong></div>
+                                </template>
+                            </template>
+
+                            <!-- Descripción obligatoria fuera de Vacaciones -->
+                            <template if:true={requiereDescripcion}>
+                                <lightning-textarea label="Descripción" required placeholder="Motivo de la ausencia"
+                                                    value={descripcion} onchange={handleDescripcion}></lightning-textarea>
+                                <div class="sa-nota">Obligatoria para todos los tipos distintos de Vacaciones.</div>
+                            </template>
+
+                            <!-- Ejercicio anterior, solo para vacaciones -->
+                            <template if:true={esVacaciones}>
+                                <div class="sa-fila">
+                                    <div class="sa-col">
+                                        <lightning-combobox label="Correspondiente al ejercicio anterior"
+                                                            value={ejercicioAnterior} options={ejercicioOpciones}
+                                                            onchange={handleEjercicio}></lightning-combobox>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+
+                        <template if:true={error}>
+                            <div class="sa-error">
+                                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small"
+                                                variant="error"></lightning-icon>
+                                <span>{error}</span>
+                            </div>
+                        </template>
+                    </template>
+
+                    <template if:true={resultado}>
+                        <div class="sa-ok">
+                            <div>{resultadoTexto}</div>
+                            <div class="sa-ok-links">
+                                <template for:each={resultadoCreados} for:item="c">
+                                    <a key={c.id} href="javascript:void(0);" class="sa-ok-link"
+                                       data-recordid={c.id} onclick={abrirRegistro}
+                                       title="Abrir la ausencia en una pestaña nueva">{c.numero}</a>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="sa-pie">
+                    <span class="sa-pie-texto">{estadoPie}</span>
+                    <div class="sa-pie-botones">
+                        <template if:false={resultado}>
+                            <button type="button" class="sa-btn" onclick={handleCancelar}
+                                    disabled={guardando}>Cancelar</button>
+                            <button type="button" class="sa-btn sa-btn-primario" onclick={handleGuardar}
+                                    disabled={guardarDisabled}>{guardarLabel}</button>
+                        </template>
+                        <template if:true={resultado}>
+                            <button type="button" class="sa-btn sa-btn-primario" onclick={handleCancelar}>Cerrar</button>
+                        </template>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

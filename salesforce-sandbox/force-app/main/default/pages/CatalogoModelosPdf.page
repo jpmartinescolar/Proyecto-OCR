@@ -1,0 +1,74 @@
+<apex:page controller="CatalogoModelosPdfController"
+           renderAs="pdf"
+           applyHtmlTag="false"
+           applyBodyTag="false"
+           showHeader="false"
+           sidebar="false"
+           standardStylesheets="false"
+           language="es">
+<html>
+<head>
+<title>Catálogo de modelos</title>
+<style type="text/css">
+    @page {
+        size: A4 landscape;
+        margin: 1.2cm 1.2cm 1.7cm 1.2cm;
+        @bottom-left {
+            content: "Catálogo de modelos · Obligaciones tributarias";
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 7.5pt;
+            color: #9aa7b5;
+        }
+        @bottom-right {
+            content: "Página " counter(page) " de " counter(pages);
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 7.5pt;
+            color: #9aa7b5;
+        }
+    }
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 8.5pt; color: #33475b; line-height: 1.25; margin: 0; }
+
+    /* ===== CABECERA (mismo diseño que los demás PDF del área) ===== */
+    .topbar { height: 5pt; background: #14395c; margin-bottom: 0.35cm; }
+    .kicker { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.22em; color: #2878a8; font-weight: 700; }
+    .title { font-size: 18pt; font-weight: 700; color: #14395c; letter-spacing: -0.2pt; margin: 0.15cm 0 0.1cm 0; }
+    .sub { font-size: 8pt; color: #6b7a90; margin-bottom: 0.35cm; }
+    .error { color: #c0392b; font-weight: 700; padding: 0.4cm 0; }
+
+    /* ===== TABLA DEL CATÁLOGO (misma estructura y colores que la pantalla) ===== */
+    table.cat { width: 100%; border-collapse: collapse; }
+    thead { display: table-header-group; }
+    table.cat th { text-align: left; font-size: 7pt; text-transform: uppercase; letter-spacing: 0.05em;
+        color: #5f6b7c; padding: 4pt 5pt; border-bottom: 2px solid #c9d4e5; }
+    table.cat td { padding: 4pt 5pt; border-bottom: 1px solid #eef0f4; vertical-align: top; }
+    tr.modelo { page-break-inside: avoid; }
+    tr.banda td { color: #ffffff; font-weight: 700; font-size: 8pt; letter-spacing: 0.06em;
+        text-transform: uppercase; padding: 4pt 6pt; border-bottom: none; }
+    tr.gterrfila td { background: #eef4fd; color: #0b1f3a; font-weight: 700; font-size: 8pt; }
+    td.cod { font-weight: 700; color: #0b5cab; white-space: nowrap; width: 7%; }
+    td.desc { width: 23%; }
+    table.tg { border-collapse: collapse; width: 100%; }
+    table.tg td { border: none; padding: 1pt 4pt 2pt 0; vertical-align: middle; }
+    td.gterr { width: 27%; }
+    .tag { display: inline-block; font-size: 7pt; font-weight: 700; padding: 1pt 5pt; margin: 0 2pt 2pt 0; }
+    .tx { font-size: 7.5pt; color: #43506e; }
+    .linea { margin: 0 0 2pt 0; }
+    .chip { display: inline-block; width: 13pt; text-align: center; font-size: 6.5pt; font-weight: 700;
+        padding: 1pt 0; margin-right: 3pt; }
+    .per { font-size: 7.5pt; color: #43506e; margin-right: 4pt; }
+    .pill { display: inline-block; font-size: 6.8pt; font-weight: 700; padding: 1pt 4pt; margin-right: 2pt; }
+    .vacio { color: #b0b8c4; }
+</style>
+</head>
+<body>
+    <apex:outputPanel layout="none" rendered="{!ISBLANK(error)}">
+        <apex:outputText value="{!cuerpo}" escape="false"/>
+    </apex:outputPanel>
+    <apex:outputPanel layout="none" rendered="{!NOT(ISBLANK(error))}">
+        <div class="topbar"></div>
+        <div class="title">Catálogo de modelos</div>
+        <div class="error">No se pudo generar el PDF: <apex:outputText value="{!error}"/></div>
+    </apex:outputPanel>
+</body>
+</html>
+</apex:page>

@@ -1,0 +1,52 @@
+<template>
+    <c-site-header></c-site-header>
+    <article class="lg">
+        <div class="lg-wrap">
+            <p class="lg-eyebrow">Información legal</p>
+            <h1 class="lg-title">{pageTitle}</h1>
+
+            <!-- AVISO LEGAL -->
+            <template lwc:if={isAviso}>
+                <h3>Datos identificativos</h3>
+                <p>En cumplimiento del artículo 10 de la Ley 34/2002, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se informa de que este sitio web es titularidad de <span class="ph">[RAZÓN SOCIAL]</span>, con CIF <span class="ph">[CIF]</span> y domicilio en <span class="ph">[DIRECCIÓN]</span>. Correo de contacto: contacto@rosettaadvisor.com.</p>
+                <h3>Objeto</h3>
+                <p>El presente aviso regula el uso del sitio web de Rosetta Advisor. La navegación atribuye la condición de usuario e implica la aceptación plena de estas condiciones.</p>
+                <h3>Propiedad intelectual e industrial</h3>
+                <p>Todos los contenidos (textos, imágenes, marcas y logotipos) son titularidad de <span class="ph">[RAZÓN SOCIAL]</span> o de terceros que han autorizado su uso, y están protegidos por la normativa de propiedad intelectual e industrial. Queda prohibida su reproducción sin autorización.</p>
+                <h3>Responsabilidad</h3>
+                <p>Rosetta Advisor no se responsabiliza del mal uso del sitio ni de los daños derivados de su utilización. La información tiene carácter general e informativo y no constituye asesoramiento profesional concreto.</p>
+                <h3>Legislación aplicable</h3>
+                <p>Estas condiciones se rigen por la legislación española. Para cualquier controversia, las partes se someten a los juzgados y tribunales de <span class="ph">[CIUDAD]</span>.</p>
+            </template>
+
+            <!-- PRIVACIDAD -->
+            <template lwc:elseif={isPriv}>
+                <h3>Responsable del tratamiento</h3>
+                <p><span class="ph">[RAZÓN SOCIAL]</span> · CIF <span class="ph">[CIF]</span> · <span class="ph">[DIRECCIÓN]</span> · contacto@rosettaadvisor.com.</p>
+                <h3>Finalidad</h3>
+                <p>Tratamos los datos que nos facilitas para atender tus consultas, gestionar la relación profesional y, en su caso, enviarte información de interés relacionada con nuestros servicios.</p>
+                <h3>Legitimación</h3>
+                <p>La base legal del tratamiento es tu consentimiento, la ejecución de la relación contractual y el interés legítimo en responder a tus solicitudes.</p>
+                <h3>Conservación y destinatarios</h3>
+                <p>Conservamos los datos el tiempo necesario para la finalidad indicada y mientras existan obligaciones legales. No se ceden a terceros salvo obligación legal o proveedores necesarios para la prestación del servicio.</p>
+                <h3>Tus derechos</h3>
+                <p>Puedes ejercer los derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a contacto@rosettaadvisor.com. Asimismo, puedes presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).</p>
+            </template>
+
+            <!-- COOKIES -->
+            <template lwc:elseif={isCookies}>
+                <h3>¿Qué son las cookies?</h3>
+                <p>Las cookies son pequeños archivos que se almacenan en tu dispositivo al navegar y permiten recordar información sobre tu visita para mejorar la experiencia de uso.</p>
+                <h3>Cookies que utilizamos</h3>
+                <p>Utilizamos cookies técnicas, necesarias para el funcionamiento del sitio, y cookies analíticas que nos ayudan a entender el uso de la web para mejorarla. <span class="ph">[Detallar proveedores y finalidades concretas cuando estén definidos.]</span></p>
+                <h3>Gestión de cookies</h3>
+                <p>Puedes permitir, bloquear o eliminar las cookies instaladas desde la configuración de tu navegador. Si las desactivas, algunas funciones del sitio podrían no estar disponibles.</p>
+            </template>
+
+            <div class="lg-foot">
+                <button class="lg-btn" type="button" onclick={goHome}>Volver al inicio</button>
+            </div>
+        </div>
+    </article>
+    <c-site-footer></c-site-footer>
+</template>

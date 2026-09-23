@@ -1,0 +1,13 @@
+.apyg-container { background: #ffffff; border-radius: 0.4rem; }
+
+/* Pestañas superiores (mismo estilo que las subpestañas del Libro Mayor) */
+.apyg-tabs { display: flex; gap: 0.4rem; padding: 0.75rem 1rem 0; border-bottom: 2px solid #c9d4e5; }
+.apyg-tab { background: #f3f5fa; border: 1px solid #c9d4e5; border-bottom: none; color: #5f6b7c;
+    border-radius: 0.4rem 0.4rem 0 0; padding: 0.45rem 1.2rem; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; position: relative; top: 2px; white-space: nowrap; }
+.apyg-tab:hover { color: #0b1f3a; }
+.apyg-tab-active { background: #ffffff; color: #0b1f3a; border-color: #c9d4e5;
+    border-bottom: 2px solid #ffffff; }
+
+.apyg-panel { display: block; }
+.apyg-hidden { display: none; }

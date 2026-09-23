@@ -1,0 +1,1697 @@
+<template>
+    <div class="pyg-container">
+
+        <template if:false={concActiva}>
+
+        <!-- HEADER -->
+        <div class="pyg-header">
+            <div class="pyg-header-left">
+                <div class="pyg-icon">
+                    <lightning-icon icon-name="standard:client" size="medium"></lightning-icon>
+                </div>
+                <div>
+                    <h1 class="pyg-title">Tesorería</h1>
+                </div>
+            </div>
+            <div class="pyg-header-right">
+                <lightning-button label="Hojas de Caja antiguas" icon-name="utility:new_window"
+                                  onclick={abrirHojasCajaAntiguas}
+                                  title="Abrir la carpeta de hojas de caja antiguas en una pestaña nueva"
+                                  class="slds-m-right_x-small"></lightning-button>
+                <lightning-button label="Intermediaciones antiguas" icon-name="utility:new_window"
+                                  onclick={abrirIntermediacionesAntiguas}
+                                  title="Abrir la hoja de intermediaciones antiguas en una pestaña nueva"></lightning-button>
+            </div>
+        </div>
+
+        <!-- SUBMENÚS -->
+        <div class="lm-subtabs ts-tabs">
+            <button class={tabMediosCls} data-value="medios"      onclick={setTab}>Medios de pago</button>
+            <button class={tabCliCls}    data-value="clientes"    onclick={setTab}>Efectos clientes</button>
+            <button class={tabRemCliCls} data-value="remclientes" onclick={setTab}>Remesas clientes</button>
+            <button class={tabProvCls}   data-value="proveedores" onclick={setTab}>Efectos proveedores</button>
+            <button class={tabRemProvCls} data-value="remproveedores" onclick={setTab}>Remesas proveedores</button>
+            <button class={tabFlujoCls}  data-value="flujo"       onclick={setTab}>Flujo de Tesorería</button>
+            <button class={tabExtraCls}  data-value="extraordinario" onclick={setTab}>Extraordinario</button>
+            <button class={tabInterCls}  data-value="intermediacion" onclick={setTab}>Intermediación comisiones</button>
+            <button class={tabBancosCls} data-value="bancos"         onclick={setTab}>Bancos</button>
+        </div>
+
+        <!-- ERROR -->
+        <template if:true={hasError}>
+            <div class="pyg-error">
+                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- LOADING -->
+        <template if:true={loading}>
+            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+        </template>
+
+        <!-- ===================== MEDIOS DE PAGO ===================== -->
+        <template if:true={showMediosContent}>
+
+            <div class="ts-tab-actions">
+                <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar medios de pago"
+                                       title="Refrescar medios de pago" variant="border-filled" size="small"
+                                       onclick={handleRefreshMedios}></lightning-button-icon>
+            </div>
+
+            <div class="ts-top">
+                <!-- Total medios de pago por empresa -->
+                <div class="ts-card">
+                    <div class="ts-card-head">
+                        <span class="ts-card-title">Total medios de pago</span>
+                        <span class={totalMediosCls}>{totalMediosFmt}</span>
+                    </div>
+                    <div class="ts-bars">
+                    <div class="ts-grp">
+                        <span class={grpPropiasCls} data-grupo="propias" onclick={handleGrupoClick}
+                              title="Filtrar por las empresas propias (clic de nuevo para quitar el filtro)">Empresas propias</span>
+                        <span class={totalPropiasCls}>{totalPropiasFmt}</span>
+                    </div>
+                    <template for:each={barrasPropias} for:item="b">
+                        <div key={b.key} class="ts-bar-row">
+                            <span class={b.nombreCls} data-nombre={b.nombre} onclick={handleEmpresaClick}
+                                  title="Filtrar por esta empresa (clic de nuevo para quitar el filtro)">{b.nombre}</span>
+                            <div class="ts-bar-track">
+                                <template for:each={b.segs} for:item="s">
+                                    <div key={s.key} class="ts-bar-seg" style={s.style} title={s.title}></div>
+                                </template>
+                            </div>
+                            <span class={b.valCls}>{b.totalFmt}</span>
+                        </div>
+                    </template>
+                    <template if:true={hayOtras}>
+                        <div class="ts-grp">
+                            <span class={grpOtrasCls} data-grupo="otras" onclick={handleGrupoClick}
+                                  title="Filtrar por el resto de empresas (clic de nuevo para quitar el filtro)">Otras empresas</span>
+                            <span class={totalOtrasCls}>{totalOtrasFmt}</span>
+                        </div>
+                        <template for:each={barrasOtras} for:item="b">
+                            <div key={b.key} class="ts-bar-row">
+                                <span class={b.nombreCls} data-nombre={b.nombre} onclick={handleEmpresaClick}
+                                      title="Filtrar por esta empresa (clic de nuevo para quitar el filtro)">{b.nombre}</span>
+                                <div class="ts-bar-track">
+                                    <template for:each={b.segs} for:item="s">
+                                        <div key={s.key} class="ts-bar-seg" style={s.style} title={s.title}></div>
+                                    </template>
+                                </div>
+                                <span class={b.valCls}>{b.totalFmt}</span>
+                            </div>
+                        </template>
+                    </template>
+                    </div>
+                    <div class="ts-legend">
+                        <template for:each={legend} for:item="l">
+                            <span key={l.key} class="ts-legend-item">
+                                <span class="ts-legend-swatch" style={l.swatch}></span>
+                                {l.label} · <span class={l.importeCls}>{l.importe}</span>
+                            </span>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Evolución de la tesorería (acumulado por día) -->
+                <div class="ts-card">
+                    <div class="ts-card-head">
+                        <span class="ts-card-title">Evolución de la tesorería de cuentas bancarias
+                            <span class="ts-card-sub">{serieSub}</span></span>
+                        <span class={serieTotalCls}>{totalSerieFmt}</span>
+                    </div>
+                    <template if:true={hayLinea}>
+                        <div class="ts-line-wrap">
+                            <div class="ts-line-eje">
+                                <span>{ejeMax}</span>
+                                <span>{ejeMed}</span>
+                                <span>{ejeMin}</span>
+                            </div>
+                            <div class="ts-line-chart">
+                                <div class="ts-line-svgwrap">
+                                    <svg viewBox="0 0 600 220" preserveAspectRatio="none" class="ts-line-svg" aria-hidden="true">
+                                        <path d={areaPath} class="ts-line-area"></path>
+                                        <template for:each={lineasRef} for:item="r">
+                                            <line key={r.key} x1="0" x2="600" y1={r.y} y2={r.y}
+                                                  class="ts-line-ref" vector-effect="non-scaling-stroke"></line>
+                                        </template>
+                                        <template if:true={anioAtras}>
+                                            <line x1="0" x2="600" y1={anioAtras.cy} y2={anioAtras.cy}
+                                                  class="ts-line-anio" vector-effect="non-scaling-stroke"></line>
+                                        </template>
+                                        <polyline points={linePoints} class="ts-line-path" vector-effect="non-scaling-stroke"></polyline>
+                                        <template if:true={anioAtras}>
+                                            <circle cx={anioAtras.cx} cy={anioAtras.cy} r="4.5" class="ts-line-anio-dot"></circle>
+                                        </template>
+                                        <template for:each={marcadores} for:item="m">
+                                            <circle key={m.key} cx={m.cx} cy={m.cy} r="4" class="ts-line-marker"></circle>
+                                        </template>
+                                        <circle cx={lastX} cy={lastY} r="5" class="ts-line-dot"></circle>
+                                    </svg>
+                                    <template for:each={marcadores} for:item="m">
+                                        <span key={m.key} class="ts-line-marker-lbl" style={m.style} title={m.title}>
+                                            <span class="ts-line-marker-imp">{m.label}</span>
+                                            <span class="ts-line-marker-txt">{m.sub}</span>
+                                        </span>
+                                    </template>
+                                    <template for:each={lineasRef} for:item="r">
+                                        <span key={r.key} class="ts-line-ref-lbl" style={r.style}>{r.label}</span>
+                                    </template>
+                                    <template if:true={anioAtras}>
+                                        <span class="ts-line-anio-lbl" style={anioAtras.style} title={anioAtras.title}>
+                                            <span class="ts-line-anio-imp">{anioAtras.importe}</span>
+                                            <span class="ts-line-anio-txt">saldo hace un año</span>
+                                        </span>
+                                    </template>
+                                </div>
+                                <div class="ts-line-xlabels">
+                                    <template for:each={xLabels} for:item="x">
+                                        <span key={x.key}>{x.label}</span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template if:false={hayLinea}>
+                        <div class="pyg-empty">
+                            <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                            <span>No hay movimientos de extracto bancario para dibujar la evolución.</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Tres columnas: cuentas / tarjetas / hojas de caja -->
+            <div class="ts-cols">
+                <div class="ts-card">
+                    <div class="ts-col-head">
+                        <span class="ts-col-title">
+                            <lightning-icon icon-name="utility:money" size="xx-small" class="ts-col-icon"></lightning-icon>
+                            Cuentas bancarias
+                            <span class="ts-col-count">{cuentasCount}</span>
+                            <span class={pendCuentasCls} title="Movimientos no conciliados de la columna">{pendCuentasLabel}</span>
+                        </span>
+                        <span class="ts-col-right">
+                            <span class="ts-col-total-lbl">Total</span>
+                            <span class={totalCuentasCls}>{totalCuentasFmt}</span>
+                        </span>
+                    </div>
+                    <input type="search" class="ts-search-input ts-col-search" data-col="cuentas"
+                           placeholder="Buscar banco, IBAN o empresa..."
+                           value={filtroCuentas} oninput={handleFiltro}/>
+                    <template for:each={cuentasView} for:item="c">
+                        <div key={c.key} class="ts-item ts-item-click" data-id={c.id} onclick={handleCuentaClick}
+                             title="Abrir la conciliación bancaria de esta cuenta">
+                            <div class="ts-item-info">
+                                <div class="ts-item-line">
+                                    <a href="javascript:void(0);" class="ts-item-banco"
+                                       title="Abrir la conciliación bancaria de esta cuenta">{c.banco}</a>
+                                    <span class="ts-item-iban">{c.iban}</span>
+                                    <span class={c.pendCls} title="Movimientos no conciliados">{c.pendLabel}</span>
+                                </div>
+                                <div class="ts-item-line">
+                                    <span class="ts-item-sub">{c.empresa}</span>
+                                    <span class="ts-item-meta">{c.movsInfo}</span>
+                                </div>
+                            </div>
+                            <span class={c.saldoClass}>{c.saldoFmt}</span>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="ts-card">
+                    <div class="ts-col-head">
+                        <span class="ts-col-title">
+                            <lightning-icon icon-name="utility:card_details" size="xx-small" class="ts-col-icon"></lightning-icon>
+                            Tarjetas
+                            <span class="ts-col-count">{tarjetasCount}</span>
+                            <span class={pendTarjetasCls} title="Movimientos no conciliados de la columna">{pendTarjetasLabel}</span>
+                        </span>
+                        <span class="ts-col-right">
+                            <span class="ts-col-total-lbl">Total</span>
+                            <span class={totalTarjetasCls}>{totalTarjetasFmt}</span>
+                        </span>
+                    </div>
+                    <input type="search" class="ts-search-input ts-col-search" data-col="tarjetas"
+                           placeholder="Buscar banco, IBAN o empresa..."
+                           value={filtroTarjetas} oninput={handleFiltro}/>
+                    <template for:each={tarjetasView} for:item="c">
+                        <div key={c.key} class="ts-item ts-item-click" data-id={c.id} onclick={handleCuentaClick}
+                             title="Abrir la conciliación bancaria de esta tarjeta">
+                            <div class="ts-item-info">
+                                <div class="ts-item-line">
+                                    <a href="javascript:void(0);" class="ts-item-banco"
+                                       title="Abrir la conciliación bancaria de esta tarjeta">{c.banco}</a>
+                                    <span class="ts-item-iban">{c.iban}</span>
+                                    <span class={c.pendCls} title="Movimientos no conciliados">{c.pendLabel}</span>
+                                </div>
+                                <div class="ts-item-line">
+                                    <span class="ts-item-sub">{c.empresa}</span>
+                                    <span class="ts-item-meta">{c.movsInfo}</span>
+                                </div>
+                            </div>
+                            <span class={c.saldoClass}>{c.saldoFmt}</span>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="ts-card">
+                    <div class="ts-col-head">
+                        <span class="ts-col-title">
+                            <lightning-icon icon-name="utility:moneybag" size="xx-small" class="ts-col-icon"></lightning-icon>
+                            Hojas de caja
+                            <span class="ts-col-count">{cajasCount}</span>
+                            <span class={pendCajasCls} title="Movimientos no conciliados de la columna">{pendCajasLabel}</span>
+                        </span>
+                        <span class="ts-col-right">
+                            <span class="ts-col-total-lbl">Total</span>
+                            <span class={totalCajaCls}>{totalCajaFmt}</span>
+                        </span>
+                    </div>
+                    <input type="search" class="ts-search-input ts-col-search" data-col="cajas"
+                           placeholder="Buscar descripción o empresa..."
+                           value={filtroCajas} oninput={handleFiltro}/>
+                    <template for:each={cajasView} for:item="c">
+                        <div key={c.key} class="ts-item ts-item-click" data-id={c.id} onclick={handleCuentaClick}
+                             title="Abrir la conciliación bancaria de esta hoja de caja">
+                            <div class="ts-item-info">
+                                <div class="ts-item-line">
+                                    <a href="javascript:void(0);" class="ts-item-banco"
+                                       title="Abrir la conciliación bancaria de esta hoja de caja">{c.iban}</a>
+                                    <span class={c.pendCls} title="Movimientos no conciliados">{c.pendLabel}</span>
+                                </div>
+                                <div class="ts-item-line">
+                                    <span class="ts-item-sub">{c.empresa}</span>
+                                    <span class="ts-item-meta">{c.movsInfo}</span>
+                                </div>
+                            </div>
+                            <span class={c.saldoClass}>{c.saldoFmt}</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <!-- ===================== EFECTOS CLIENTES ===================== -->
+        <template if:true={esClientes}>
+            <template if:true={efcLoading}>
+                <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+            </template>
+            <template if:true={hasEfcError}>
+                <div class="pyg-error">
+                    <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                    <span>{efcError}</span>
+                </div>
+            </template>
+            <template if:true={showEfcContent}>
+                <div class="ts-efc-wrap">
+                    <!-- Submenú de Efectos clientes (a la altura del de Extraordinario) -->
+                    <div class="lm-subtabs ts-efc-tabs2 ts-extra-tabs">
+                        <button class={efcEmpresasCls}   data-value="empresas"   onclick={setEfcVista}>Situación por empresas</button>
+                        <button class={efcAntiguedadCls} data-value="antiguedad" onclick={setEfcVista}>Situación por antigüedad</button>
+                        <button class={efcListadoCls}    data-value="listado"    onclick={setEfcVista}>Listado de efectos</button>
+                        <span class="ts-efc-tabs-right">
+                            <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar visión general"
+                                                   title="Refrescar visión general" variant="border-filled" size="small"
+                                                   onclick={handleEfcRefresh}></lightning-button-icon>
+                        </span>
+                    </div>
+
+                    <!-- KPIs: dentro de Situación por empresas y Situación por antigüedad -->
+                    <template if:false={esEfcListado}>
+                    <div class="ts-efc-kpis">
+                        <div class="ts-card ts-efc-kpi">
+                            <div class="ts-efc-kpi-title">Total efectos</div>
+                            <div class={efcTotalKpiCls}>{efcTotalKpiFmt}</div>
+                            <div class="ts-efc-kpi-sub">{efcNumEfectosLabel}</div>
+                        </div>
+                        <div class="ts-card ts-efc-kpi">
+                            <div class="ts-efc-kpi-title">Total remesables</div>
+                            <div class={efcRemesableCls}>{efcRemesableFmt}</div>
+                            <div class="ts-efc-kpi-sub">{efcRemesablesSub}</div>
+                        </div>
+                        <div class="ts-card ts-efc-kpi-ant">
+                            <div class="ts-efc-kpi-title">Efectos por antigüedad
+                                <span class="ts-efc-kpi-note">días desde el vencimiento inicial a hoy</span></div>
+                            <div class="ts-efc-tramos">
+                                <template for:each={efcTramos} for:item="t">
+                                    <div key={t.key} class={t.cls} data-desde={t.desde} data-hasta={t.hasta}
+                                         onclick={handleEfcTramoClick}
+                                         title="Ver estos efectos en el listado">
+                                        <div class="ts-efc-tramo-rango">{t.label}</div>
+                                        <div class={t.importeCls}>{t.importeFmt}</div>
+                                        <div class="ts-efc-tramo-num">{t.numLabel}</div>
+                                        <div class="ts-efc-tramo-track"><div class="ts-efc-tramo-bar" style={t.barStyle}></div></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    </template>
+
+                    <template if:true={esEfcEmpresas}>
+                    <div class="ts-card">
+                        <div class="ts-card-head">
+                            <span class="ts-card-title">Total pendiente por empresa titular</span>
+                            <span class={efcTotalCls}>{efcTotalFmt}</span>
+                        </div>
+                        <div class="ts-efc-scroll">
+                            <table class="ts-efc-tabla ts-efc-tabla-compacta">
+                                <thead>
+                                    <tr class="ts-efc-suphead">
+                                        <th></th>
+                                        <th colspan="5" class="ts-efc-band ts-efc-band-cobro ts-efc-gapr">Situación de cobro</th>
+                                        <th colspan="7" class="ts-efc-band ts-efc-band-estados">Estados de efectos</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="ts-efc-th-emp">Empresa titular</th>
+                                        <th class="ts-efc-col-total">Total</th>
+                                        <th class="ts-efc-col-plazo ts-efc-enplazo-h">En plazo</th>
+                                        <th class="ts-efc-col-venc ts-efc-vencido-h">Vencido</th>
+                                        <th class="ts-efc-col-abonar ts-efc-abonar-h">Abonar</th>
+                                        <th class="ts-efc-col-monit ts-efc-gapr ts-efc-monit-h">Monitorio</th>
+                                        <template for:each={efcEstadosHead} for:item="h">
+                                            <th key={h.key}>{h.label}</th>
+                                        </template>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={efcRows} for:item="r">
+                                        <tr key={r.key} class={r.cls}>
+                                            <td class={r.nombreCls} data-col="t"
+                                                data-empresa={r.empresa} data-forma={r.forma}
+                                                data-clickable={r.nameClickAttr}
+                                                onclick={handleEfcCellClick}>{r.nombre} <span class="ts-efc-count">{r.extra}</span></td>
+                                            <template for:each={r.cells} for:item="c">
+                                                <td key={c.key} class={c.cls} data-col={c.col}
+                                                    data-empresa={r.empresa} data-forma={r.forma}
+                                                    data-clickable={r.clickAttr}
+                                                    onclick={handleEfcCellClick}>
+                                                    <template if:true={c.esPill}><span class={c.pillCls}>{c.txt}</span></template>
+                                                    <template if:false={c.esPill}>{c.txt}</template>
+                                                </td>
+                                            </template>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    </template>
+
+                    <template if:true={esEfcAntiguedad}>
+                    <div class="ts-card">
+                        <div class="ts-card-head">
+                            <span class="ts-card-title">Total pendiente por antigüedad</span>
+                            <span class={efcAntTotalCls}>{efcAntTotalFmt}</span>
+                        </div>
+                        <div class="ts-efc-scroll">
+                            <table class="ts-efc-tabla">
+                                <thead>
+                                    <tr class="ts-efc-suphead">
+                                        <th></th>
+                                        <th colspan="2" class="ts-efc-band ts-efc-band-cobro ts-efc-gapr">Situación de cobro</th>
+                                        <th colspan="7" class="ts-efc-band ts-efc-band-estados">Estados de efectos</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="ts-efc-th-emp">Antigüedad</th>
+                                        <th class="ts-efc-col-total">Importe</th>
+                                        <th class="ts-efc-col-total ts-efc-gapr">Efectos</th>
+                                        <template for:each={efcEstadosHead} for:item="h">
+                                            <th key={h.key}>{h.label}</th>
+                                        </template>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={efcAntRows} for:item="r">
+                                        <tr key={r.key} class={r.cls}>
+                                            <td class="ts-efc-nombre">{r.nombre}</td>
+                                            <template for:each={r.cells} for:item="c">
+                                                <td key={c.key} class={c.cls} data-col={c.col}
+                                                    data-desde={r.desde} data-hasta={r.hasta}
+                                                    data-clickable={r.clickAttr}
+                                                    onclick={handleEfcAntClick}>{c.txt}</td>
+                                            </template>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    </template>
+
+                    <template if:true={esEfcListado}>
+                    <div class="ts-card">
+                        <div class="ts-efc-filtros">
+                            <lightning-combobox label="Empresa titular" value={efcFEmpresa}
+                                                options={efcEmpresaOptions} placeholder="Todas"
+                                                onchange={hEfcFEmpresa}></lightning-combobox>
+                            <!-- Estado: multiselección -->
+                            <div class={efcEstadoDropdownClass}>
+                                <label class="slds-form-element__label">Estado</label>
+                                <button class="ts-ms-trigger" type="button" onclick={toggleEfcEstadoDropdown}>
+                                    <span class="ts-ms-trigger-text">{efcEstadoTriggerLabel}</span>
+                                    <span class="ts-ms-caret">▾</span>
+                                </button>
+                                <template if:true={showEfcEstadoDropdown}>
+                                    <div class="ts-ms-backdrop" onclick={closeEfcEstadoDropdown}></div>
+                                    <div class="ts-ms-panel" onclick={stopClick}>
+                                        <div class="ts-ms-actions">
+                                            <button type="button" class="ts-ms-link" onclick={handleEfcEstadoTodos}>Todos</button>
+                                            <span>·</span>
+                                            <button type="button" class="ts-ms-link" onclick={handleEfcEstadoNinguno}>Ninguno</button>
+                                        </div>
+                                        <div class="ts-ms-list">
+                                            <template for:each={efcEstadoOptionsView} for:item="opt">
+                                                <div key={opt.value} class={opt.optionClass}
+                                                     data-value={opt.value} onclick={handleEfcEstadoToggle}>
+                                                    <span class="ts-ms-check"></span>
+                                                    <span class="ts-ms-label">{opt.label}</span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <div class="ts-ms-foot">
+                                            <button type="button" class="slds-button slds-button_brand ts-ms-apply"
+                                                    onclick={closeEfcEstadoDropdown}>Aplicar</button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            <lightning-input type="number" step="0.01" formatter="currency" label="Importe efecto"
+                                             value={efcFImporte} onchange={hEfcFImporte}></lightning-input>
+                            <lightning-input label="Nombre del cliente" value={efcFCliente}
+                                             onchange={hEfcFCliente}></lightning-input>
+                            <lightning-combobox label="Forma de pago" value={efcFForma}
+                                                options={efcFormaOptions} placeholder="Todas"
+                                                onchange={hEfcFForma}></lightning-combobox>
+                            <lightning-combobox label="Agrupación" value={efcFAgrupacion}
+                                                options={efcAgrupacionOptions} placeholder="Todas"
+                                                onchange={hEfcFAgrupacion}></lightning-combobox>
+                            <lightning-input label="Grupo empresarial" value={efcFGrupo}
+                                             onchange={hEfcFGrupo}></lightning-input>
+                            <lightning-input type="date" label="Vencimiento desde" value={efcFDesde}
+                                             onchange={hEfcFDesde}></lightning-input>
+                            <lightning-input type="date" label="Vencimiento hasta" value={efcFHasta}
+                                             onchange={hEfcFHasta}></lightning-input>
+                            <div class="ts-efc-filtros-btn">
+                                <lightning-button label="Generar" icon-name="utility:apex" variant="brand"
+                                                  onclick={handleEfcListGenerar}></lightning-button>
+                                <!-- Enlace oculto sobre el que se da el clic de descarga (ver handleEfcExportar) -->
+                                <a class="ts-efl-export-link" href={efcExportUrl} download={efcExportNombre} hidden>Descargar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <template if:true={efcListLoading}>
+                        <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+                    </template>
+                    <template if:true={hasEfcListError}>
+                        <div class="pyg-error">
+                            <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                            <span>{efcListError}</span>
+                        </div>
+                    </template>
+                    <template if:true={showEfcListInicial}>
+                        <div class="pyg-placeholder">
+                            <lightning-icon icon-name="utility:filterList" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                            <span>Selecciona los filtros y pulsa <strong>Generar</strong>.</span>
+                        </div>
+                    </template>
+                    <template if:true={showEfcListTabla}>
+                        <div class="ts-card ts-efl-card">
+                            <div class="ts-card-head">
+                                <span class="ts-card-title">Listado de efectos
+                                    <span class={efcListTotalCls} title="Total de los importes efecto de lo generado">{efcListTotalFmt}</span>
+                                    <template if:true={hayEfcColNav}>
+                                        <span class="ts-chip ts-chip-info">{efcColNavLabel}</span>
+                                    </template>
+                                </span>
+                                <div class="ts-efl-head-der">
+                                    <span class="ts-col-count">{efcListCount}</span>
+                                    <lightning-button label="Exportar" icon-name="utility:download"
+                                                      title="Descargar el listado completo en Excel (CSV)"
+                                                      onclick={handleEfcExportar}></lightning-button>
+                                </div>
+                            </div>
+                            <div class="ts-efc-scroll">
+                                <table class="ts-efc-tabla ts-efl-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="ts-efl-th-izq">Nº efecto</th>
+                                            <th class="ts-efl-th-izq">Fecha de vencimiento</th>
+                                            <th>Importe efecto</th>
+                                            <th class="ts-efl-th-izq">Factura emitida</th>
+                                            <th class="ts-efl-th-izq">Cliente</th>
+                                            <th class="ts-efl-th-izq">Plan general contable</th>
+                                            <th class="ts-efl-th-izq">Grupo empresarial</th>
+                                            <th class="ts-efl-th-izq">Empresa titular</th>
+                                            <th class="ts-efl-th-izq">Estado</th>
+                                            <th class="ts-efl-th-izq">Forma de pago</th>
+                                            <th class="ts-efl-th-izq">Agrupación</th>
+                                            <th class="ts-efl-th-izq">Mandato SEPA</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={efcList} for:item="r">
+                                            <tr key={r.key} class="ts-efc-row">
+                                                <td>
+                                                    <a href="javascript:void(0);" class="ts-efl-link"
+                                                       data-recordid={r.id} data-objectname="Reclamaci_n_de_impagados__c"
+                                                       onclick={navigateToRecordNewTab}
+                                                       title="Abrir el efecto en una pestaña nueva">{r.numero}</a>
+                                                </td>
+                                                <td>{r.fechaVenc}</td>
+                                                <td class={r.importeCls}>{r.importeFmt}</td>
+                                                <td>
+                                                    <template if:true={r.hayFactura}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={r.facturaId} data-objectname="Facturas__c"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir la factura emitida en una pestaña nueva">{r.facturaNumero}</a>
+                                                    </template>
+                                                    <template if:false={r.hayFactura}><span class="ts-efc-vacio">—</span></template>
+                                                </td>
+                                                <td>
+                                                    <template if:true={r.hayCliente}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={r.clienteId} data-objectname="Account"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir el cliente en una pestaña nueva">{r.clienteNombre}</a>
+                                                    </template>
+                                                </td>
+                                                <td>
+                                                    <template if:true={r.hayPlan}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={r.planId} data-objectname="Plan_general_contable__c"
+                                                           data-empresa={r.empresa}
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir la cuenta contable en una pestaña nueva">{r.planNumero}</a>
+                                                    </template>
+                                                    <template if:false={r.hayPlan}><span class="ts-efc-vacio">—</span></template>
+                                                </td>
+                                                <td>
+                                                    <template if:true={r.hayGrupo}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={r.grupoId} data-objectname="Grupo_Empresarial__c"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir el grupo empresarial en una pestaña nueva">{r.grupoNombre}</a>
+                                                    </template>
+                                                    <template if:false={r.hayGrupo}><span class="ts-efc-vacio">—</span></template>
+                                                </td>
+                                                <td title={r.empresa}>{r.empresa}</td>
+                                                <td title={r.estado}><span class={r.estadoCls}>{r.estado}</span></td>
+                                                <td title={r.formaPago}>{r.formaPago}</td>
+                                                <td title={r.agrupacion}>{r.agrupacion}</td>
+                                                <td>
+                                                    <template if:true={r.hayMandato}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={r.mandatoId} data-objectname="Mandato_SEPA__c"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir el mandato SEPA en una pestaña nueva">{r.mandatoNumero}</a>
+                                                    </template>
+                                                    <template if:false={r.hayMandato}><span class="ts-efc-vacio">—</span></template>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <template if:true={showEfcVerMas}>
+                                <div class="ts-efl-vermas">
+                                    <lightning-button label={efcVerMasLabel} icon-name="utility:chevrondown"
+                                                      onclick={handleEfcVerMas}></lightning-button>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template if:true={showEfcListVacio}>
+                        <div class="pyg-placeholder">
+                            <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                            <span>No hay efectos que cumplan los filtros seleccionados.</span>
+                        </div>
+                    </template>
+                    </template>
+                </div>
+            </template>
+        </template>
+
+        <!-- ===================== EFECTOS PROVEEDORES ===================== -->
+        <template if:true={esProveedores}>
+            <div class="pyg-placeholder">
+                <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                <span>Apartado <strong>Efectos proveedores</strong> pendiente de definir.</span>
+            </div>
+        </template>
+
+        <!-- ===================== FLUJO DE TESORERÍA ===================== -->
+        <template if:true={esFlujo}>
+            <div class="pyg-placeholder">
+                <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                <span>Apartado <strong>Flujo de Tesorería</strong> pendiente de definir.</span>
+            </div>
+        </template>
+
+        <!-- ===================== EXTRAORDINARIO ===================== -->
+        <template if:true={esExtraordinario}>
+            <div class="ts-efc-wrap">
+                <div class="lm-subtabs ts-efc-tabs2 ts-extra-tabs">
+                    <button class={extraCajaCls}     data-value="caja"     onclick={setExtraVista}>Hoja de caja extraordinario</button>
+                    <button class={extraIngastosCls} data-value="ingastos" onclick={setExtraVista}>Ingresos y Gastos Extraordinario</button>
+                </div>
+                <template if:true={esExtraCaja}>
+                    <template if:true={hcLoading}>
+                        <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+                    </template>
+                    <template if:true={hasHcError}>
+                        <div class="pyg-error">
+                            <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                            <span>{hcError}</span>
+                        </div>
+                    </template>
+                    <template if:true={showHcContent}>
+                        <div class="ts-card">
+                            <div class="ts-conc-card-head">
+                                <span class="ts-conc-title-grp">
+                                    <span class="ts-col-title">
+                                        <lightning-icon icon-name="utility:moneybag" size="xx-small" class="ts-col-icon"></lightning-icon>
+                                        Hoja de caja extraordinario
+                                        <span class="ts-col-count">{hcCountLabel}</span>
+                                    </span>
+                                    <lightning-button label="Crear movimiento" icon-name="utility:add" size="small"
+                                                      onclick={handleHcNuevoOpen}
+                                                      title="Crear un movimiento de la hoja de caja"></lightning-button>
+                                </span>
+                                <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar"
+                                                       title="Refrescar" variant="border-filled" size="small"
+                                                       onclick={handleHcRefresh}></lightning-button-icon>
+                            </div>
+                            <template if:true={hayHcRows}>
+                                <div class="ts-efc-scroll">
+                                    <table class="ts-efc-tabla ts-conc-tabla">
+                                        <thead>
+                                            <tr>
+                                                <th class="ts-efl-th-izq">Fecha</th>
+                                                <th class="ts-efl-th-izq">Nº de Hoja de caja</th>
+                                                <th class="ts-efl-th-izq">Descripción</th>
+                                                <th>Importe</th>
+                                                <th>Saldo acumulado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template for:each={hcRows} for:item="m">
+                                                <tr key={m.key} class="ts-efc-row">
+                                                    <td class="ts-conc-td-fecha">{m.fechaFmt}</td>
+                                                    <td class="ts-conc-td-num">
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={m.id} data-objectname="Hoja_de_caja_extraordinaria__c"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir el movimiento en una pestaña nueva">{m.numero}</a>
+                                                    </td>
+                                                    <td class="ts-conc-td-concepto" title={m.descripcion}>{m.descripcion}</td>
+                                                    <td class={m.importeCls}>{m.importeFmt}</td>
+                                                    <td class="ts-efc-num ts-conc-td-saldo">{m.saldoFmt}</td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
+                            <template if:false={hayHcRows}>
+                                <div class="pyg-placeholder ts-conc-ph">
+                                    <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                                    <span>No hay movimientos. Pulsa <strong>Crear movimiento</strong> para añadir el primero.</span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <!-- Pop-up: nuevo movimiento de la hoja de caja -->
+                    <template if:true={hcNuevoOpen}>
+                        <div class="ts-modal-backdrop" onclick={handleHcNuevoClose}>
+                            <div class="ts-modal" onclick={stopClick}>
+                                <div class="ts-modal-head">
+                                    <div>
+                                        <div class="ts-modal-title">Crear movimiento</div>
+                                        <div class="ts-modal-sub">Hoja de caja extraordinario</div>
+                                    </div>
+                                    <lightning-button-icon icon-name="utility:close" variant="bare" size="medium"
+                                                           alternative-text="Cerrar" title="Cerrar"
+                                                           onclick={handleHcNuevoClose}></lightning-button-icon>
+                                </div>
+                                <div class="ts-modal-body">
+                                    <div class="ts-modal-tipo-lbl">Selecciona una opción</div>
+                                    <div class="ts-modal-tipo">
+                                        <button class={hcNuevoIngresoCls} data-value="ingreso" onclick={setHcNuevoTipo}>
+                                            ↓ Ingreso
+                                        </button>
+                                        <button class={hcNuevoGastoCls} data-value="gasto" onclick={setHcNuevoTipo}>
+                                            ↑ Gasto
+                                        </button>
+                                    </div>
+                                    <template if:true={hcNuevoTipoElegido}>
+                                    <div class="ts-modal-grid">
+                                        <lightning-input type="date" label="Fecha del movimiento" required
+                                                         value={hcNuevoFecha} onchange={hHcNuevoFecha}></lightning-input>
+                                        <lightning-input type="number" step="0.01" min="0.01" label="Importe (siempre en positivo)" required
+                                                         formatter="currency" placeholder="0,00"
+                                                         value={hcNuevoImporte} onchange={hHcNuevoImporte}></lightning-input>
+                                    </div>
+                                    <lightning-input label="Descripción" required placeholder="Descripción del movimiento..."
+                                                     value={hcNuevoDescripcion} onchange={hHcNuevoDescripcion}></lightning-input>
+                                    </template>
+                                    <template if:true={hasHcNuevoError}>
+                                        <div class="ts-modal-error">
+                                            <lightning-icon icon-name="utility:error" size="x-small" variant="error"></lightning-icon>
+                                            <span>{hcNuevoError}</span>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="ts-modal-foot">
+                                    <lightning-button label="Cancelar" onclick={handleHcNuevoClose}
+                                                      disabled={hcNuevoSaving}></lightning-button>
+                                    <lightning-button label="Guardar movimiento" variant="brand" icon-name="utility:save"
+                                                      onclick={handleHcNuevoGuardar} disabled={hcNuevoGuardarDisabled}></lightning-button>
+                                </div>
+                                <template if:true={hcNuevoSaving}>
+                                    <lightning-spinner alternative-text="Guardando" size="small"></lightning-spinner>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </template>
+                <template if:true={esExtraIngastos}>
+                    <div class="pyg-placeholder">
+                        <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                        <span>Apartado <strong>Ingresos y gastos</strong> pendiente de definir.</span>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- ===================== REMESAS CLIENTES ===================== -->
+        <template if:true={esRemClientes}>
+            <div class="ts-efc-wrap">
+                <div class="lm-subtabs ts-efc-tabs2 ts-extra-tabs">
+                    <button class={remProcesosCls} data-value="procesos" onclick={setRemVista}>Gestor de procesos</button>
+                    <button class={remCobrosCls}   data-value="cobros"   onclick={setRemVista}>Remesas cobros</button>
+                </div>
+                <template if:true={esRemProcesos}>
+                    <div class="pyg-placeholder">
+                        <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                        <span>Apartado <strong>Gestor de procesos</strong> pendiente de definir.</span>
+                    </div>
+                </template>
+                <template if:true={esRemCobros}>
+                    <div class="pyg-placeholder">
+                        <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                        <span>Apartado <strong>Remesas cobros</strong> pendiente de definir.</span>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- ===================== REMESAS PROVEEDORES ===================== -->
+        <template if:true={esRemProveedores}>
+            <div class="pyg-placeholder">
+                <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                <span>Apartado <strong>Remesas proveedores</strong> pendiente de definir.</span>
+            </div>
+        </template>
+
+        <!-- ===================== INTERMEDIACIÓN COMISIONES ===================== -->
+        <template if:true={esIntermediacion}>
+            <div class="pyg-placeholder">
+                <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                <span>Apartado <strong>Intermediación comisiones</strong> pendiente de definir.</span>
+            </div>
+        </template>
+
+        <!-- ===================== BANCOS ===================== -->
+        <template if:true={esBancos}>
+            <div class="pyg-placeholder">
+                <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                <span>Apartado <strong>Bancos</strong> pendiente de definir.</span>
+            </div>
+        </template>
+
+        </template>
+
+        <!-- ===================== CONCILIACIÓN BANCARIA ===================== -->
+        <template if:true={concActiva}>
+
+            <!-- Cabecera: volver + pestañas + cuenta y saldo -->
+            <div class="ts-conc-top">
+                <div class="ts-conc-top-left">
+                    <lightning-button-icon icon-name="utility:chevronleft" alternative-text="Volver a medios de pago"
+                                           title="Volver a medios de pago" variant="border-filled"
+                                           onclick={handleConcVolver}></lightning-button-icon>
+                    <div class="ts-conc-toggles">
+                        <button class={concTabConcCls}   data-value="conciliacion" onclick={setConcTab}>Conciliación</button>
+                        <button class={concTabReglasCls} data-value="reglas"       onclick={setConcTab}>Reglas de la cuenta</button>
+                    </div>
+                </div>
+                <div class="ts-conc-top-right">
+                    <div class="ts-conc-cuenta">
+                        <div class="ts-conc-banco">{concCuenta.banco} <span class="ts-conc-emp">· {concCuenta.empresa}</span></div>
+                        <div class="ts-conc-iban">{concCuenta.iban}</div>
+                    </div>
+                    <div class="ts-conc-saldo">
+                        <div class="ts-conc-saldo-lbl">Saldo actual</div>
+                        <div class={concSaldoCls}>{concCuenta.saldoFmt}</div>
+                    </div>
+                </div>
+            </div>
+
+            <template if:true={hasConcError}>
+                <div class="pyg-error">
+                    <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                    <span>{concError}</span>
+                </div>
+            </template>
+            <template if:true={concLoading}>
+                <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+            </template>
+
+            <template if:true={showConcContent}>
+
+                <div class="ts-conc-grid">
+
+                    <!-- MOVIMIENTOS DEL BANCO -->
+                    <div class="ts-card ts-conc-panel">
+                        <div class="ts-conc-card-head">
+                            <span class="ts-conc-title-grp">
+                                <span class="ts-col-title">
+                                    <lightning-icon icon-name="utility:list" size="xx-small" class="ts-col-icon"></lightning-icon>
+                                    Movimientos del banco
+                                </span>
+                                <lightning-button label="Nuevo movimiento" icon-name="utility:add" size="small"
+                                                  onclick={handleNuevoMovOpen}
+                                                  title="Crear un movimiento manual del extracto"></lightning-button>
+                            </span>
+                            <span class="ts-conc-pend">Total pendientes
+                                <span class="ts-conc-pend-badge">{concNumPend}</span></span>
+                            <span class="ts-conc-filtros">
+                                <button class={concFiltroTodosCls} data-value="todos"       onclick={setConcFiltro}>Todos</button>
+                                <button class={concFiltroPendCls}  data-value="pendientes"  onclick={setConcFiltro}>Pendientes</button>
+                                <button class={concFiltroConcCls}  data-value="conciliados" onclick={setConcFiltro}>Conciliados</button>
+                            </span>
+                        </div>
+                        <div class="ts-conc-mov-filtros">
+                            <lightning-input type="date" label="Desde" value={concFDesde}
+                                             onchange={hConcFDesde}></lightning-input>
+                            <lightning-input type="date" label="Hasta" value={concFHasta}
+                                             onchange={hConcFHasta}></lightning-input>
+                            <lightning-input label="Concepto / Más datos" placeholder="Buscar texto..."
+                                             value={concFTexto} onchange={hConcFTexto}></lightning-input>
+                            <lightning-input type="number" step="0.01" label="Importe"
+                                             value={concFImporte} onchange={hConcFImporte}></lightning-input>
+                        </div>
+                        <div class="ts-efc-scroll ts-conc-mov-scroll">
+                            <table class="ts-efc-tabla ts-conc-tabla">
+                                <thead>
+                                    <tr>
+                                        <th class="ts-efl-th-izq">Fecha</th>
+                                        <th class="ts-efl-th-izq">Nº</th>
+                                        <th class="ts-efl-th-izq">Concepto</th>
+                                        <th class="ts-efl-th-izq">Más datos</th>
+                                        <th>Importe</th>
+                                        <th>Saldo</th>
+                                        <th class="ts-efl-th-izq">Conciliado</th>
+                                        <th class="ts-efl-th-izq">PDF</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={concMovsView} for:item="m">
+                                        <tr key={m.key} class={m.cls} data-id={m.id} onclick={handleConcMovClick}
+                                            title="Seleccionar este movimiento para conciliarlo">
+                                            <td class="ts-conc-td-fecha">{m.fechaFmt}</td>
+                                            <td class="ts-conc-td-num">
+                                                <a href="javascript:void(0);" class="ts-efl-link"
+                                                   data-recordid={m.id} data-objectname="Extracto_bancario__c"
+                                                   onclick={navigateToRecordNewTab}
+                                                   title="Abrir el extracto bancario en una pestaña nueva">{m.numero}</a>
+                                            </td>
+                                            <td class="ts-conc-td-concepto" title={m.concepto}>{m.concepto}</td>
+                                            <td class="ts-conc-td-masdatos" title={m.masDatos}>{m.masDatos}</td>
+                                            <td class={m.importeCls}>{m.importeFmt}</td>
+                                            <td class="ts-efc-num ts-conc-td-saldo">{m.saldoFmt}</td>
+                                            <td class="ts-conc-td-estado">
+                                                <template if:true={m.conciliado}>
+                                                    <span class="ts-chip ts-chip-ok">✓</span>
+                                                </template>
+                                            </td>
+                                            <td class="ts-conc-td-pdf">
+                                                <template if:true={m.pdfUrl}>
+                                                    <a href={m.pdfUrl} target="_blank" rel="noopener"
+                                                       onclick={stopClick} class="ts-conc-pdf-link"
+                                                       title="Ver el PDF adjunto a tamaño completo en una pestaña nueva">
+                                                        <svg class="ts-conc-pdf-svg ts-conc-pdf-on" viewBox="0 0 24 24" aria-hidden="true">
+                                                            <path d="M6 2h9l4 4v16H6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                                                            <path d="M15 2v4h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                                                            <path d="M8.5 6h6.5M8.5 8.2h6.5M8.5 10.4h6.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path>
+                                                            <rect x="3" y="12.2" width="17" height="7" rx="1.2" fill="currentColor"></rect>
+                                                            <text x="11.5" y="17.6" text-anchor="middle" font-size="5.6" font-weight="bold" fill="#ffffff" font-family="Arial, sans-serif">PDF</text>
+                                                        </svg>
+                                                    </a>
+                                                </template>
+                                                <template if:false={m.pdfUrl}>
+                                                    <svg class="ts-conc-pdf-svg ts-conc-pdf-off" viewBox="0 0 24 24" aria-hidden="true">
+                                                        <title>Sin PDF adjunto</title>
+                                                        <path d="M6 2h9l4 4v16H6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                                                        <path d="M15 2v4h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                                                        <path d="M8.5 6h6.5M8.5 8.2h6.5M8.5 10.4h6.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path>
+                                                        <rect x="3" y="12.2" width="17" height="7" rx="1.2" fill="currentColor"></rect>
+                                                        <text x="11.5" y="17.6" text-anchor="middle" font-size="5.6" font-weight="bold" fill="#ffffff" font-family="Arial, sans-serif">PDF</text>
+                                                    </svg>
+                                                </template>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                            <template if:false={hayConcMovs}>
+                                <div class="pyg-empty">
+                                    <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                                    <span>No hay movimientos con este filtro.</span>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="ts-conc-mov-foot">{concFooterMovs}</div>
+                    </div>
+
+                    <!-- CONCILIACIÓN BANCARIA DE EFECTOS -->
+                    <div class={concPanelDerCls}>
+                        <!-- Velo mientras se crea la conciliación y el asiento -->
+                        <template if:true={concConciliando}>
+                            <div class="ts-conc-guardando">
+                                <div class="ts-conc-guardando-box">
+                                    <lightning-spinner alternative-text="Creando" size="small"></lightning-spinner>
+                                    <div class="ts-conc-guardando-txt">Se está creando la conciliación y el asiento contable…<br/>Espera un momento.</div>
+                                </div>
+                            </div>
+                        </template>
+                        <template if:true={esConcBuscar}>
+                        <div class="ts-conc-card-head">
+                            <span class="ts-col-title">
+                                <lightning-icon icon-name="utility:check" size="xx-small" class="ts-col-icon"></lightning-icon>
+                                Conciliación bancaria de efectos
+                            </span>
+                        </div>
+                        <div class="ts-conc-efc-filtros">
+                            <lightning-input type="number" step="0.01" label="Importe"
+                                             value={concImporte} onchange={hConcImporte}></lightning-input>
+                            <lightning-input label="Concepto / Cliente" placeholder="Nombre, NIF o nº factura..."
+                                             value={concTexto} onchange={hConcTexto}></lightning-input>
+                            <lightning-combobox label="Tipo de efectos" value={concTipo}
+                                                options={concTipoOptions} onchange={hConcTipo}></lightning-combobox>
+                        </div>
+
+                        <template if:true={concEfectosLoading}>
+                            <div class="pyg-loading"><lightning-spinner alternative-text="Buscando" size="small"></lightning-spinner></div>
+                        </template>
+                        <template if:true={hasConcEfectosError}>
+                            <div class="pyg-error">
+                                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                                <span>{concEfectosError}</span>
+                            </div>
+                        </template>
+                        <template if:true={showConcEfectosPlaceholder}>
+                            <div class="pyg-placeholder ts-conc-ph">
+                                <lightning-icon icon-name="utility:touch_action" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                                <span>Selecciona un movimiento del banco o introduce un importe, nombre, NIF o nº de factura.</span>
+                            </div>
+                        </template>
+                        <template if:true={showConcEfectosVacio}>
+                            <div class="pyg-placeholder ts-conc-ph">
+                                <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                                <span>No hay efectos que coincidan con la búsqueda.</span>
+                            </div>
+                        </template>
+                        <template if:true={showConcEfectosTabla}>
+                            <div class="ts-efc-scroll ts-conc-efc-scroll">
+                                <table class="ts-efc-tabla ts-conc-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="ts-conc-th-check"></th>
+                                            <th class="ts-efl-th-izq">F. vencimiento</th>
+                                            <th class="ts-efl-th-izq">F. factura</th>
+                                            <th class="ts-efl-th-izq">Nº efecto</th>
+                                            <th class="ts-efl-th-izq">Empresa</th>
+                                            <th>Importe</th>
+                                            <th class="ts-efl-th-izq">Tipo</th>
+                                            <th class="ts-efl-th-izq">Estado</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={concEfectosView} for:item="r">
+                                            <tr key={r.key} class={r.filaCls}>
+                                                <td class="ts-conc-td-check">
+                                                    <input type="checkbox" checked={r.checked} data-id={r.id}
+                                                           onchange={handleConcEfectoCheck}/>
+                                                </td>
+                                                <td class="ts-conc-td-fecha">{r.fechaVencFmt}</td>
+                                                <td>{r.fechaFacturaFmt}</td>
+                                                <td>
+                                                    <a href="javascript:void(0);" class="ts-efl-link"
+                                                       data-recordid={r.id} data-objectname="Reclamaci_n_de_impagados__c"
+                                                       onclick={navigateToRecordNewTab}
+                                                       title="Abrir el efecto en una pestaña nueva">{r.numero}</a>
+                                                </td>
+                                                <td class="ts-conc-td-emp">
+                                                    <div class="ts-conc-emp-nombre">{r.clienteNombre}</div>
+                                                    <div class="ts-conc-emp-sub">
+                                                        <span>{r.subLinea}</span>
+                                                        <template if:true={r.planNumero}>
+                                                            <span class="ts-conc-emp-cta" title="Cuenta contable del cliente">{r.planNumero}</span>
+                                                        </template>
+                                                        <template if:true={r.verTodos}>
+                                                            <a href="javascript:void(0);" class="ts-conc-veref"
+                                                               data-clienteid={r.clienteId} data-clientenombre={r.clienteNombre}
+                                                               onclick={handleVerEfectosCliente}
+                                                               title="Ver todos los efectos de esta empresa">Ver todos los efectos</a>
+                                                        </template>
+                                                        <template if:true={r.verTodosProv}>
+                                                            <a href="javascript:void(0);" class="ts-conc-veref"
+                                                               data-clienteid={r.clienteId} data-clientenombre={r.clienteNombre}
+                                                               data-tipo="proveedor"
+                                                               onclick={handleVerEfectosCliente}
+                                                               title="Ver todos los efectos de proveedores de esta empresa">Ver todos los efectos de proveedores</a>
+                                                        </template>
+                                                    </div>
+                                                </td>
+                                                <td class={r.importeCls}>
+                                                    <div>{r.importeFmt}</div>
+                                                    <template if:true={r.exacto}>
+                                                        <span class="ts-conc-exacto">exacto</span>
+                                                    </template>
+                                                </td>
+                                                <td><span class={r.tipoCls}>{r.tipo}</span></td>
+                                                <td title={r.estado}><span class={r.estadoCls}>{r.estado}</span></td>
+                                                <td class="ts-conc-td-dividir">
+                                                    <button class="pyg-toggle" title="Dividir el efecto (pendiente de definir)">Dividir</button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+
+                        <div class="ts-conc-efc-foot">
+                            <span class="ts-conc-tot">Efectos <span class={concEfectosSelCls}>{concEfectosSelFmt}</span></span>
+                            <span class="ts-conc-tot">Movimiento <span class={concMovImporteCls}>{concMovImporteFmt}</span></span>
+                            <span class="ts-conc-tot">Diferencia <span class={concDifCls}>{concDifFmt}</span></span>
+                            <span class="ts-conc-sel-lbl">{concSelLabel}</span>
+                            <lightning-button label="Proponer asiento contable" variant="brand" disabled={concProponerDisabled}
+                                              onclick={handleConcProponer}
+                                              title="Ver los efectos seleccionados y la propuesta de asiento"></lightning-button>
+                        </div>
+                        </template>
+
+                        <!-- Subvista: movimiento FATIR, se concilia eligiendo una remesa -->
+                        <template if:true={esConcRemesa}>
+                        <div class="ts-conc-card-head">
+                            <span class="ts-col-title">
+                                <lightning-icon icon-name="utility:money" size="xx-small" class="ts-col-icon"></lightning-icon>
+                                Remesas pendientes de ingreso
+                            </span>
+                            <span class="ts-col-count">{concRemesasCountLabel}</span>
+                        </div>
+                        <template if:true={concRemesasLoading}>
+                            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+                        </template>
+                        <template if:true={hasConcRemesasError}>
+                            <div class="pyg-error">
+                                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                                <span>{concRemesasError}</span>
+                            </div>
+                        </template>
+                        <template if:true={showConcRemesasVacio}>
+                            <div class="pyg-placeholder ts-conc-ph">
+                                <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                                <span>No hay remesas con pendiente de ingreso de la empresa titular de esta cuenta.</span>
+                            </div>
+                        </template>
+                        <template if:true={showConcRemesasTabla}>
+                            <div class="ts-efc-scroll ts-conc-efc-scroll">
+                                <table class="ts-efc-tabla ts-conc-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="ts-conc-th-check"></th>
+                                            <th class="ts-efl-th-izq">Fecha remesa</th>
+                                            <th>Importe remesa</th>
+                                            <th>Total otros</th>
+                                            <th>Total caixa</th>
+                                            <th>Pendiente ingreso</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={concRemesas} for:item="r">
+                                            <tr key={r.key} class={r.filaCls}>
+                                                <td class="ts-conc-td-check">
+                                                    <input type="radio" checked={r.checked} data-id={r.id}
+                                                           onclick={handleConcRemesaCheck}
+                                                           title="Marcar esta remesa para conciliar el movimiento (solo puede marcarse una)"/>
+                                                </td>
+                                                <td class="ts-conc-td-fecha">{r.fechaFmt}</td>
+                                                <td class="ts-efc-num">{r.importeFmt}</td>
+                                                <td class="ts-efc-num">{r.totalOtrosFmt}</td>
+                                                <td class="ts-efc-num">{r.totalCaixaFmt}</td>
+                                                <td class="ts-efc-num">{r.pendienteFmt}</td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                        <div class="ts-conc-efc-foot">
+                            <span class="ts-conc-tot">Movimiento <span class={concMovImporteCls}>{concMovImporteFmt}</span></span>
+                            <lightning-button label="Conciliar y crear asiento contable" variant="brand"
+                                              disabled={concRemesaConciliarDisabled}
+                                              onclick={handleConcRemesaConciliar}
+                                              title="Crear la conciliación con la remesa marcada y el asiento contable"></lightning-button>
+                        </div>
+                        </template>
+
+                        <!-- Subvista: todos los efectos de un cliente -->
+                        <template if:true={esConcCliente}>
+                        <div class="ts-conc-card-head">
+                            <span class="ts-conc-title-grp">
+                                <lightning-button-icon icon-name="utility:chevronleft" alternative-text="Volver a la búsqueda"
+                                                       title="Volver a la búsqueda de efectos" variant="border-filled" size="small"
+                                                       onclick={handleConcClienteVolver}></lightning-button-icon>
+                                <span class="ts-col-title">Efectos de {concClienteNombre}</span>
+                            </span>
+                            <span class="ts-col-count">{concClienteCountLabel}</span>
+                        </div>
+                        <template if:true={concClienteLoading}>
+                            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+                        </template>
+                        <template if:true={hasConcClienteError}>
+                            <div class="pyg-error">
+                                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                                <span>{concClienteError}</span>
+                            </div>
+                        </template>
+                        <template if:true={showConcClienteTabla}>
+                            <div class="ts-efc-scroll ts-conc-efc-scroll">
+                                <table class="ts-efc-tabla ts-conc-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="ts-efl-th-izq">F. vencimiento</th>
+                                            <th class="ts-efl-th-izq">F. factura</th>
+                                            <th class="ts-efl-th-izq">Nº efecto</th>
+                                            <th class="ts-efl-th-izq">Factura</th>
+                                            <th>Importe</th>
+                                            <th class="ts-efl-th-izq">Tipo</th>
+                                            <th class="ts-efl-th-izq">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={concClienteEfectos} for:item="r">
+                                            <tr key={r.key} class="ts-efc-row">
+                                                <td class="ts-conc-td-fecha">{r.fechaVencFmt}</td>
+                                                <td>{r.fechaFacturaFmt}</td>
+                                                <td>
+                                                    <a href="javascript:void(0);" class="ts-efl-link"
+                                                       data-recordid={r.id} data-objectname="Reclamaci_n_de_impagados__c"
+                                                       onclick={navigateToRecordNewTab}
+                                                       title="Abrir el efecto en una pestaña nueva">{r.numero}</a>
+                                                </td>
+                                                <td>{r.facturaNumero}</td>
+                                                <td class={r.importeCls}>
+                                                    <div>{r.importeFmt}</div>
+                                                    <template if:true={r.exacto}>
+                                                        <span class="ts-conc-exacto">exacto</span>
+                                                    </template>
+                                                </td>
+                                                <td><span class={r.tipoCls}>{r.tipo}</span></td>
+                                                <td title={r.estado}><span class={r.estadoCls}>{r.estado}</span></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                        <template if:true={showConcClienteVacio}>
+                            <div class="pyg-placeholder ts-conc-ph">
+                                <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                                <span>Este cliente no tiene efectos.</span>
+                            </div>
+                        </template>
+                        </template>
+
+                        <!-- Subvista: efectos de la propuesta / conciliación + asiento contable -->
+                        <template if:true={esConcPropuesta}>
+                        <template if:false={concPropExistente}>
+                            <div class="ts-conc-card-head">
+                                <span class="ts-conc-title-grp">
+                                    <lightning-button-icon icon-name="utility:chevronleft" alternative-text="Volver a la búsqueda"
+                                                           title="Volver a la búsqueda de efectos" variant="border-filled" size="small"
+                                                           onclick={handleConcPropVolver}></lightning-button-icon>
+                                    <span class="ts-col-title">Propuesta de conciliación</span>
+                                </span>
+                                <span class="ts-col-count">{concPropCountLabel}</span>
+                            </div>
+                        </template>
+                        <template if:true={concPropExistente}>
+                            <div class="ts-conc-banner-ok">
+                                <lightning-icon icon-name="utility:success" size="x-small" class="ts-conc-banner-icon"></lightning-icon>
+                                <span class="ts-conc-banner-txt">Efectos seleccionados</span>
+                                <span class="ts-conc-banner-count">{concPropCountLabel}</span>
+                            </div>
+                        </template>
+                        <template if:true={concPropLoading}>
+                            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+                        </template>
+                        <template if:true={hasConcPropError}>
+                            <div class="pyg-error">
+                                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                                <span>{concPropError}</span>
+                            </div>
+                        </template>
+                        <template if:true={showConcPropContent}>
+                        <div class="ts-efc-scroll ts-conc-prop-scroll">
+                            <table class="ts-efc-tabla ts-conc-tabla">
+                                <thead>
+                                    <tr>
+                                        <th class="ts-efl-th-izq">F. vencimiento</th>
+                                        <th class="ts-efl-th-izq">F. factura</th>
+                                        <th class="ts-efl-th-izq">Nº efecto</th>
+                                        <th class="ts-efl-th-izq">Empresa</th>
+                                        <th>Importe</th>
+                                        <th class="ts-efl-th-izq">Tipo</th>
+                                        <th class="ts-efl-th-izq">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={concPropEfectos} for:item="r">
+                                        <tr key={r.key} class="ts-efc-row">
+                                            <td class="ts-conc-td-fecha">{r.fechaVencFmt}</td>
+                                            <td>{r.fechaFacturaFmt}</td>
+                                            <td>
+                                                <a href="javascript:void(0);" class="ts-efl-link"
+                                                   data-recordid={r.id} data-objectname="Reclamaci_n_de_impagados__c"
+                                                   onclick={navigateToRecordNewTab}
+                                                   title="Abrir el efecto en una pestaña nueva">{r.numero}</a>
+                                            </td>
+                                            <td class="ts-conc-td-emp">
+                                                <div class="ts-conc-emp-nombre">{r.clienteNombre}</div>
+                                                <div class="ts-conc-emp-sub">{r.subLinea}</div>
+                                            </td>
+                                            <td class={r.importeCls}>{r.importeFmt}</td>
+                                            <td><span class={r.tipoCls}>{r.tipo}</span></td>
+                                            <td title={r.estado}><span class={r.estadoCls}>{r.estado}</span></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="ts-conc-efc-foot ts-conc-foot-compacto">
+                            <span class="ts-conc-tot">Efectos <span class={concPropEfectosCls}>{concPropEfectosFmt}</span></span>
+                            <span class="ts-conc-tot">Movimiento <span class={concMovImporteCls}>{concMovImporteFmt}</span></span>
+                            <span class="ts-conc-tot">Diferencia <span class={concPropDifCls}>{concPropDifFmt}</span></span>
+                        </div>
+                        <!-- Asiento ya realizado: conciliaciones y apuntes reales, solo lectura -->
+                        <template if:true={concPropExistente}>
+                        <div class="ts-conc-prop-head ts-conc-prop-head-ok">
+                            <span class="ts-conc-banner-txt">Conciliación bancaria</span>
+                            <span class="ts-conc-banner-count">{concConcLabel}</span>
+                        </div>
+                        <template if:true={hayConcConcRows}>
+                            <div class="ts-conc-conc-scroll">
+                                <table class="ts-efc-tabla ts-conc-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="ts-efl-th-izq">Nº</th>
+                                            <th class="ts-efl-th-izq ts-conc-th-cta">Cuenta contable</th>
+                                            <th class="ts-efl-th-izq">Título</th>
+                                            <th>Debe</th>
+                                            <th>Haber</th>
+                                            <th class="ts-efl-th-izq">Efectos proveedores</th>
+                                            <th class="ts-efl-th-izq">Efectos clientes</th>
+                                            <th class="ts-efl-th-izq">Remesa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={concConcRows} for:item="c">
+                                            <tr key={c.key} class="ts-conc-asiento-row">
+                                                <td class="ts-conc-td-num">
+                                                    <a href="javascript:void(0);" class="ts-efl-link"
+                                                       data-recordid={c.id} data-objectname="Conciliacion_bancaria__c"
+                                                       onclick={navigateToRecordNewTab}
+                                                       title="Abrir la conciliación en una pestaña nueva">{c.numero}</a>
+                                                </td>
+                                                <td>
+                                                    <template if:true={c.cuentaId}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={c.cuentaId} data-objectname="Plan_general_contable__c"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir la cuenta contable en una pestaña nueva">{c.cuentaNumero}</a>
+                                                    </template>
+                                                    <template if:false={c.cuentaId}><span class="ts-efc-vacio">—</span></template>
+                                                </td>
+                                                <td class="ts-conc-cta-titulo" title={c.cuentaTitulo}>{c.cuentaTitulo}</td>
+                                                <td class="ts-efc-num">{c.debeFmt}</td>
+                                                <td class="ts-efc-num">{c.haberFmt}</td>
+                                                <td>
+                                                    <template if:true={c.provId}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={c.provId} data-objectname="Efectos_proveedores__c"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir el efecto de proveedor en una pestaña nueva">{c.provNumero}</a>
+                                                    </template>
+                                                    <template if:false={c.provId}><span class="ts-efc-vacio">—</span></template>
+                                                </td>
+                                                <td>
+                                                    <template if:true={c.efectoId}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={c.efectoId} data-objectname="Reclamaci_n_de_impagados__c"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir el efecto de cliente en una pestaña nueva">{c.efectoNumero}</a>
+                                                    </template>
+                                                    <template if:false={c.efectoId}><span class="ts-efc-vacio">—</span></template>
+                                                </td>
+                                                <td class="ts-conc-td-rem">
+                                                    <template if:true={c.remesaId}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={c.remesaId} data-objectname="CI_Remesa__c"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir la remesa en una pestaña nueva">{c.remesaNumero}</a>
+                                                    </template>
+                                                    <template if:false={c.remesaId}><span class="ts-efc-vacio">—</span></template>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                        <template if:false={hayConcConcRows}>
+                            <div class="ts-conc-prop-vacio">No hay registros de conciliación bancaria para este extracto.</div>
+                        </template>
+
+                        <div class="ts-conc-prop-head ts-conc-prop-head-ok">
+                            <span class="ts-conc-banner-txt">Asiento contable realizado</span>
+                            <template if:true={concAsientoId}>
+                                <a href="javascript:void(0);" class="ts-conc-asiento-link"
+                                   data-recordid={concAsientoId} data-objectname="Asiento_contable__c"
+                                   onclick={navigateToRecordNewTab}
+                                   title="Abrir el asiento contable en una pestaña nueva">{concAsientoNumero}</a>
+                            </template>
+                        </div>
+                        <template if:true={hayConcApuntes}>
+                            <div class="ts-conc-asiento-scroll">
+                                <table class="ts-efc-tabla ts-conc-asiento-tabla ts-conc-apuntes-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="ts-efl-th-izq">Nº apunte</th>
+                                            <th class="ts-efl-th-izq ts-conc-th-cta">Cuenta contable</th>
+                                            <th class="ts-efl-th-izq">Título</th>
+                                            <th>Debe</th>
+                                            <th>Haber</th>
+                                            <th class="ts-efl-th-izq">Descripción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={concApuntes} for:item="a">
+                                            <tr key={a.key} class="ts-conc-asiento-row">
+                                                <td class="ts-conc-td-num">
+                                                    <a href="javascript:void(0);" class="ts-efl-link"
+                                                       data-recordid={a.id} data-objectname="Linea_asiento_contable__c"
+                                                       onclick={navigateToRecordNewTab}
+                                                       title="Abrir el apunte contable en una pestaña nueva">{a.numero}</a>
+                                                </td>
+                                                <td>
+                                                    <template if:true={a.cuentaId}>
+                                                        <a href="javascript:void(0);" class="ts-efl-link"
+                                                           data-recordid={a.cuentaId} data-objectname="Plan_general_contable__c"
+                                                           onclick={navigateToRecordNewTab}
+                                                           title="Abrir la cuenta contable en una pestaña nueva">{a.cuentaNumero}</a>
+                                                    </template>
+                                                    <template if:false={a.cuentaId}><span class="ts-efc-vacio">—</span></template>
+                                                </td>
+                                                <td class="ts-conc-cta-titulo" title={a.cuentaTitulo}>{a.cuentaTitulo}</td>
+                                                <td class="ts-efc-num">{a.debeFmt}</td>
+                                                <td class="ts-efc-num">{a.haberFmt}</td>
+                                                <td class="ts-conc-apunte-desc" title={a.descripcion}>{a.descripcion}</td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                        <template if:false={hayConcApuntes}>
+                            <div class="ts-conc-prop-vacio">No hay apuntes contables asociados a este extracto.</div>
+                        </template>
+                        <div class="ts-conc-prop-foot">
+                            <span class="ts-conc-prop-lineas">{concApuntesLabel}</span>
+                            <span class="ts-conc-prop-sep"></span>
+                            <lightning-button label="Conciliar y crear asiento" variant="brand" icon-name="utility:save"
+                                              disabled={concConciliarDisabled}
+                                              title="El movimiento ya está conciliado"></lightning-button>
+                        </div>
+                        </template>
+
+                        <!-- Propuesta nueva: líneas editables -->
+                        <template if:false={concPropExistente}>
+                        <div class="ts-conc-prop-head">
+                            <span class="ts-col-title">Propuesta de asiento contable</span>
+                            <span class={concCuadradoCls}>{concCuadradoLabel}</span>
+                        </div>
+                        <template if:true={hayConcAsiento}>
+                            <div class="ts-conc-asiento-edit">
+                                <table class="ts-efc-tabla ts-conc-asiento-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="ts-efl-th-izq ts-conc-th-cta">Cuenta contable</th>
+                                            <th>Debe</th>
+                                            <th>Haber</th>
+                                            <th class="ts-efl-th-izq">Descripción</th>
+                                            <th class="ts-conc-th-del"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={concAsiento} for:item="l">
+                                            <tr key={l.key} class="ts-conc-asiento-row">
+                                                <td class="ts-conc-td-cta">
+                                                    <div class="ts-conc-cta-cell">
+                                                        <lightning-record-picker object-api-name="Plan_general_contable__c"
+                                                                                 placeholder="Nº cuenta..." label="Cuenta contable"
+                                                                                 variant="label-hidden" value={l.cuentaId}
+                                                                                 display-info={concPickerDisplayInfo}
+                                                                                 matching-info={concPickerMatchingInfo}
+                                                                                 data-key={l.key}
+                                                                                 onchange={hConcLineaCuenta}></lightning-record-picker>
+                                                        <template if:true={l.cuentaId}>
+                                                            <lightning-button-icon icon-name="utility:new_window" size="small"
+                                                                                   variant="bare" alternative-text="Abrir la cuenta contable"
+                                                                                   title="Abrir la cuenta contable en una pestaña nueva"
+                                                                                   data-recordid={l.cuentaId} data-objectname="Plan_general_contable__c"
+                                                                                   onclick={navigateToRecordNewTab}></lightning-button-icon>
+                                                        </template>
+                                                    </div>
+                                                </td>
+                                                <td class="ts-conc-td-imp">
+                                                    <lightning-input type="number" step="0.01" variant="label-hidden" label="Debe"
+                                                                     value={l.debe} data-key={l.key} data-campo="debe"
+                                                                     onchange={hConcLineaCampo}></lightning-input>
+                                                </td>
+                                                <td class="ts-conc-td-imp">
+                                                    <lightning-input type="number" step="0.01" variant="label-hidden" label="Haber"
+                                                                     value={l.haber} data-key={l.key} data-campo="haber"
+                                                                     onchange={hConcLineaCampo}></lightning-input>
+                                                </td>
+                                                <td class="ts-conc-td-desc">
+                                                    <lightning-input variant="label-hidden" label="Descripción" required
+                                                                     value={l.descripcion} data-key={l.key} data-campo="descripcion"
+                                                                     onchange={hConcLineaCampo}></lightning-input>
+                                                </td>
+                                                <td class="ts-conc-td-del">
+                                                    <lightning-button-icon icon-name="utility:delete" size="small" variant="bare"
+                                                                           alternative-text="Borrar la línea" title="Borrar la línea"
+                                                                           class="ts-conc-del" data-key={l.key}
+                                                                           onclick={handleConcDelLinea}></lightning-button-icon>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                        <template if:false={hayConcAsiento}>
+                            <div class="ts-conc-prop-vacio">
+                                No hay líneas de asiento. Pulsa <strong>Añadir línea</strong> para crear una.
+                            </div>
+                        </template>
+                        <div class="ts-conc-prop-foot">
+                            <lightning-button label="Añadir línea" icon-name="utility:add"
+                                              onclick={handleConcAddLinea}
+                                              title="Añadir una línea al asiento"></lightning-button>
+                            <template if:true={hayDescuadre}>
+                                <lightning-button label="Cuadrar automáticamente" icon-name="utility:magicwand"
+                                                  onclick={handleConcCuadrar}
+                                                  title="Añade una línea con la diferencia en el debe o el haber; elige después la cuenta y la descripción"></lightning-button>
+                            </template>
+                            <lightning-button label="Seguro periodificación" icon-name="utility:shield"
+                                              onclick={handleSegOpen}
+                                              title="Genera las líneas del seguro periodificado: la 6250000000 por la parte del ejercicio y la 4802000000 por la parte periodificada"></lightning-button>
+                            <span class="ts-conc-prop-lineas">{concLineasLabel}</span>
+                            <span class="ts-conc-prop-sep"></span>
+                            <lightning-button label="Conciliar y crear asiento" variant="brand" icon-name="utility:save"
+                                              disabled={concConciliarDisabled} onclick={handleConcConciliar}
+                                              title="Crear la conciliación y el asiento contable de este movimiento"></lightning-button>
+                        </div>
+                        </template>
+                        </template>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Barra inferior -->
+                <div class="ts-conc-bottombar">
+                    <span>{concBottomInfo}</span>
+                    <span class="ts-conc-bottombar-der">Conciliación bancaria</span>
+                </div>
+            </template>
+
+            <template if:true={esConcReglas}>
+                <div class="pyg-placeholder">
+                    <lightning-icon icon-name="utility:info" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                    <span>Apartado <strong>Reglas de la cuenta</strong> pendiente de definir.</span>
+                </div>
+            </template>
+
+            <!-- Pop-up: seguro periodificado -->
+            <template if:true={segOpen}>
+                <div class="ts-modal-backdrop" onclick={handleSegClose}>
+                    <div class="ts-modal" onclick={stopClick}>
+                        <div class="ts-modal-head">
+                            <div>
+                                <div class="ts-modal-title">Seguro periodificación</div>
+                                <div class="ts-modal-sub">La parte del ejercicio va a la 6250000000 y el resto a la 4802000000</div>
+                            </div>
+                            <lightning-button-icon icon-name="utility:close" variant="bare" size="medium"
+                                                   alternative-text="Cerrar" title="Cerrar"
+                                                   onclick={handleSegClose}></lightning-button-icon>
+                        </div>
+                        <div class="ts-modal-body">
+                            <lightning-input type="number" step="0.01" min="0.01" label="Importe de la prima" required
+                                             formatter="currency" value={segImporte} onchange={hSegImporte}></lightning-input>
+                            <div class="ts-modal-grid">
+                                <lightning-input type="date" label="Inicio de cobertura" required
+                                                 value={segInicio} onchange={hSegInicio}></lightning-input>
+                                <lightning-input type="date" label="Fin de cobertura" required
+                                                 value={segFin} onchange={hSegFin}></lightning-input>
+                            </div>
+                            <template if:true={hasSegError}>
+                                <div class="ts-modal-error">
+                                    <lightning-icon icon-name="utility:error" size="x-small" variant="error"></lightning-icon>
+                                    <span>{segError}</span>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="ts-modal-foot">
+                            <lightning-button label="Cancelar" onclick={handleSegClose}
+                                              disabled={segGuardando}></lightning-button>
+                            <lightning-button label="Generar líneas" variant="brand" icon-name="utility:apex"
+                                              onclick={handleSegAceptar} disabled={segGuardando}></lightning-button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Pop-up: aviso al proponer sin efectos o con diferencia -->
+            <template if:true={concPropAvisoOpen}>
+                <div class="ts-modal-backdrop" onclick={handleConcPropAvisoCancelar}>
+                    <div class="ts-modal ts-modal-aviso" onclick={stopClick}>
+                        <div class="ts-modal-head">
+                            <div class="ts-modal-title">Proponer asiento contable</div>
+                            <lightning-button-icon icon-name="utility:close" variant="bare" size="medium"
+                                                   alternative-text="Cerrar" title="Cerrar"
+                                                   onclick={handleConcPropAvisoCancelar}></lightning-button-icon>
+                        </div>
+                        <div class="ts-modal-body">
+                            <div class="ts-conc-aviso-warn">
+                                <lightning-icon icon-name="utility:warning" size="small" variant="warning"></lightning-icon>
+                                <span>{concPropAvisoMsg}</span>
+                            </div>
+                            <div class="ts-conc-aviso-pregunta">¿Quieres continuar?</div>
+                        </div>
+                        <div class="ts-modal-foot">
+                            <lightning-button label="Cancelar" onclick={handleConcPropAvisoCancelar}></lightning-button>
+                            <lightning-button label="Continuar" variant="brand"
+                                              onclick={handleConcPropAvisoContinuar}></lightning-button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Pop-up: nuevo movimiento manual del extracto -->
+            <template if:true={concNuevoOpen}>
+                <div class="ts-modal-backdrop" onclick={handleNuevoMovClose}>
+                    <div class="ts-modal" onclick={stopClick}>
+                        <div class="ts-modal-head">
+                            <div>
+                                <div class="ts-modal-title">Nuevo movimiento</div>
+                                <div class="ts-modal-sub">{concCuenta.banco} · {concCuenta.empresa}</div>
+                            </div>
+                            <lightning-button-icon icon-name="utility:close" variant="bare" size="medium"
+                                                   alternative-text="Cerrar" title="Cerrar"
+                                                   onclick={handleNuevoMovClose}></lightning-button-icon>
+                        </div>
+                        <div class="ts-modal-body">
+                            <div class="ts-modal-tipo-lbl">Selecciona una opción</div>
+                            <div class="ts-modal-tipo">
+                                <button class={concNuevoIngresoCls} data-value="ingreso" onclick={setConcNuevoTipo}>
+                                    ↓ Ingreso
+                                </button>
+                                <button class={concNuevoPagoCls} data-value="pago" onclick={setConcNuevoTipo}>
+                                    ↑ Pago
+                                </button>
+                            </div>
+                            <template if:true={concNuevoTipoElegido}>
+                            <div class="ts-modal-grid">
+                                <lightning-input type="date" label="Fecha del movimiento" required
+                                                 value={concNuevoFecha} onchange={hConcNuevoFecha}></lightning-input>
+                                <lightning-input type="number" step="0.01" min="0.01" label="Importe (siempre en positivo)" required
+                                                 formatter="currency" placeholder="0,00"
+                                                 value={concNuevoImporte} onchange={hConcNuevoImporte}></lightning-input>
+                            </div>
+                            <lightning-input label="Concepto" required placeholder="Concepto del movimiento..."
+                                             value={concNuevoConcepto} onchange={hConcNuevoConcepto}></lightning-input>
+                            <lightning-input label="Más datos" placeholder="Información adicional (opcional)..."
+                                             value={concNuevoMasDatos} onchange={hConcNuevoMasDatos}></lightning-input>
+                            <lightning-input type="file" label="Documento adjunto (opcional)"
+                                             onchange={hConcNuevoFichero}></lightning-input>
+                            <template if:true={concNuevoFileName}>
+                                <div class="ts-modal-file">
+                                    <lightning-icon icon-name="utility:attach" size="xx-small"></lightning-icon>
+                                    <span>{concNuevoFileLabel}</span>
+                                </div>
+                            </template>
+                            </template>
+                            <template if:true={hasConcNuevoError}>
+                                <div class="ts-modal-error">
+                                    <lightning-icon icon-name="utility:error" size="x-small" variant="error"></lightning-icon>
+                                    <span>{concNuevoError}</span>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="ts-modal-foot">
+                            <lightning-button label="Cancelar" onclick={handleNuevoMovClose}
+                                              disabled={concNuevoSaving}></lightning-button>
+                            <lightning-button label="Guardar movimiento" variant="brand" icon-name="utility:save"
+                                              onclick={handleNuevoMovGuardar} disabled={concNuevoGuardarDisabled}></lightning-button>
+                        </div>
+                        <template if:true={concNuevoSaving}>
+                            <lightning-spinner alternative-text="Guardando" size="small"></lightning-spinner>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </template>
+
+    </div>
+</template>

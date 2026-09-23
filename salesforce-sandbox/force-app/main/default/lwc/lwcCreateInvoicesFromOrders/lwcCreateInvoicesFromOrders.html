@@ -1,0 +1,27 @@
+<template>
+    <div class="slds-m-top_medium slds-m-bottom_x-large">
+        <!-- <lightning-card title="Seleccionar pedidos a facturar" icon-name="standard:record_signature_task"></lightning-card> -->
+        <lightning-card title="Seleccionar pedidos a facturar"> 
+            <lightning-datatable
+                key-field="id"
+                data={gridData}
+                columns={columns}
+                onrowselection={handleRowSelection}
+                default-sort-direction={defaultSortDirection}
+                sorted-direction={sortDirection}
+                sorted-by={sortedBy}
+                onsort={onHandleSort}>
+            </lightning-datatable>
+        </lightning-card>
+    </div>
+    <!-- <div class="slds-var-m-top_medium">
+        <lightning-button
+            variant="brand"
+            label="Facturar"
+            title="Facturar"
+            onclick={handleButtonClickCreate}
+            disabled={disableButtonClickCreate}
+            class="bottonFacturar">
+        </lightning-button>
+    </div> -->
+</template>

@@ -1,0 +1,28 @@
+<template>
+    <header class="nv-header">
+        <div class="nv-wrap">
+            <a class="nv-brand" data-target="inicio" onclick={handleNav}>
+                <span class="nv-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M10 2l1.6 4.9a4 4 0 0 0 2.5 2.5L19 11l-4.9 1.6a4 4 0 0 0-2.5 2.5L10 20l-1.6-4.9a4 4 0 0 0-2.5-2.5L1 11l4.9-1.6a4 4 0 0 0 2.5-2.5z"/><path d="M18.5 13l.7 2.1a2 2 0 0 0 1.2 1.2l2.1.7-2.1.7a2 2 0 0 0-1.2 1.2l-.7 2.1-.7-2.1a2 2 0 0 0-1.2-1.2L14.5 17l2.1-.7a2 2 0 0 0 1.2-1.2z"/></svg></span>
+                <span style="display:flex;flex-direction:column">
+                    <span class="nv-brand-name">Rosetta Advisor</span>
+                    <span class="nv-brand-sub">ABOGADOS &amp; ASESORES</span>
+                </span>
+            </a>
+            <nav class={navClass}>
+                <a data-target="servicios" onclick={handleNav}>Áreas</a>
+                <a data-target="internacional" onclick={handleNav}>Internacional</a>
+                <a data-target="empresas" onclick={handleNav}>Servicio 360º</a>
+                <a data-target="tecnologia" onclick={handleNav}>Tecnología</a>
+                <a data-target="nosotros" onclick={handleNav}>Sobre nosotros</a>
+                <a data-target="noticias" onclick={handleNav}>Noticias</a>
+            </nav>
+            <button class="nv-burger" onclick={toggleMenu} aria-label="Abrir menú">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
+            <div class="nv-header-cta">
+                <a class="nv-cta-sm" data-target="contacto" onclick={handleNav}>Solicitar consulta</a>
+                <a class="nv-cta-access" data-target="login" onclick={handleNav}>Acceso clientes</a>
+            </div>
+        </div>
+    </header>
+</template>

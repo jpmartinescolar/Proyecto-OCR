@@ -1,0 +1,440 @@
+<template>
+  <div class="nv">
+
+    <!-- HEADER -->
+    <header class={headerClass}>
+      <div class="nv-wrap">
+        <a class="nv-brand" data-target="inicio" onclick={handleNav}>
+          <span class="nv-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M10 2l1.6 4.9a4 4 0 0 0 2.5 2.5L19 11l-4.9 1.6a4 4 0 0 0-2.5 2.5L10 20l-1.6-4.9a4 4 0 0 0-2.5-2.5L1 11l4.9-1.6a4 4 0 0 0 2.5-2.5z"/><path d="M18.5 13l.7 2.1a2 2 0 0 0 1.2 1.2l2.1.7-2.1.7a2 2 0 0 0-1.2 1.2l-.7 2.1-.7-2.1a2 2 0 0 0-1.2-1.2L14.5 17l2.1-.7a2 2 0 0 0 1.2-1.2z"/></svg></span>
+          <span style="display:flex;flex-direction:column">
+            <span class="nv-brand-name">Rosetta Advisor</span>
+            <span class="nv-brand-sub">ABOGADOS &amp; ASESORES</span>
+          </span>
+        </a>
+        <nav class={navClass}>
+          <a data-target="servicios" onclick={handleNav}>Áreas</a>
+          <a data-target="internacional" onclick={handleNav}>Internacional</a>
+          <a data-target="empresas" onclick={handleNav}>Servicio 360º</a>
+          <a data-target="tecnologia" onclick={handleNav}>Tecnología</a>
+          <a data-target="nosotros" onclick={handleNav}>Sobre nosotros</a>
+          <a onclick={goNoticias} style="cursor:pointer">Noticias</a>
+        </nav>
+        <button class="nv-burger" onclick={toggleMenu} aria-label="Abrir menú">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <div class="nv-header-cta">
+          <a class="nv-cta-sm" data-target="contacto" onclick={handleNav}>Solicitar consulta</a>
+          <a class="nv-cta-access" href="https://www.rosettaadvisor.com/login">Acceso clientes</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="nv-hero" data-section="inicio">
+      <span class="nv-hero-orb"></span>
+      <div class="nv-wrap nv-hero-grid">
+        <div>
+          <h1 class="nv-h1">Compromiso, rigor y cercanía <span class="hl">al servicio de tu empresa</span>.</h1>
+          <div class="nv-toggle">
+            <button class={empActive} onclick={setEmpresas}>Para empresas</button>
+            <button class={partActive} onclick={setParticulares}>Para particulares</button>
+          </div>
+          <p class="nv-lead">{audienceSub} {audienceSubB}</p>
+          <br/>
+          <ul class="nv-checks">
+            <template for:each={audiencePoints} for:item="pt">
+              <li key={pt.id}>
+                <span class="nv-check-i"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0E3A66" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                {pt.text}
+              </li>
+            </template>
+          </ul>
+          <div class="nv-hero-cta">
+            <button class="nv-btn nv-btn-primary" data-target="contacto" onclick={handleNav}>Solicitar consulta</button>
+            <a class="nv-link-arrow" data-target="servicios" onclick={handleNav}>Áreas de práctica
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+          </div>
+        </div>
+        <div class="nv-hero-media">
+          <div class="nv-img tall"><img src={heroImg} alt="Rosetta Advisor" class="nv-img-photo" /></div>
+          <div class="nv-float left">
+            <span style="width:46px;height:46px;border-radius:11px;background:#E9F1F8;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E3A66" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M7 7l-3 7a4 4 0 0 0 6 0zM17 7l-3 7a4 4 0 0 0 6 0z"/><path d="M8 21h8"/></svg></span>
+            <div><div class="nv-float-num">+500</div><div class="nv-float-lbl">operaciones asesoradas al año</div></div>
+          </div>
+          <div class="nv-badge"><div class="nv-badge-num">+25 años</div><div class="nv-badge-lbl">de ejercicio profesional</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST -->
+    <section class="nv-trust">
+      <div class="nv-wrap">
+        <div class="cell"><div class="n">+1.200</div><div class="l">clientes recurrentes</div></div>
+        <div class="cell"><div class="n">+70</div><div class="l">personas</div></div>
+        <div class="cell"><div class="n">+25</div><div class="l">años de ejercicio</div></div>
+        <div class="cell"><div class="n">98%</div><div class="l">satisfacción de clientes</div></div>
+      </div>
+    </section>
+
+    <!-- INTERNACIONAL -->
+    <section class="nv-sec bord" data-section="internacional">
+      <div class="nv-wrap">
+        <div class="nv-head">
+          <span class="nv-ey">Alcance internacional</span>
+          <h2 class="nv-h2">Para empresas que operan más allá de las fronteras.</h2>
+          <p class="nv-sub">Acompañamos a grupos y filiales con un único interlocutor, en tu idioma y con la mirada puesta en cada jurisdicción.</p>
+        </div>
+        <div class="nv-g3">
+          <div class="nv-intl">
+            <div class="nv-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E3A66" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 0 20 15.3 15.3 0 0 1 0-20z"/></svg></div>
+            <h3>Asesoramiento multilingüe</h3>
+            <p>Trabajamos en español, inglés y francés, con un interlocutor único para toda la organización.</p>
+          </div>
+          <div class="nv-intl">
+            <div class="nv-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E3A66" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6.6 10 10M17 6.6 14 10M7 17.4 10 14M17 17.4 14 14"/></svg></div>
+            <h3>Red de corresponsales</h3>
+            <p>Cobertura en la Unión Europea y Latinoamérica a través de despachos asociados de confianza.</p>
+          </div>
+          <div class="nv-intl">
+            <div class="nv-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E3A66" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 5-6"/></svg></div>
+            <h3>Fiscalidad internacional</h3>
+            <p>Precios de transferencia, doble imposición y estructuras transfronterizas con plena seguridad.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICIOS -->
+    <section class="nv-sec" data-section="servicios">
+      <div class="nv-wrap">
+        <div class="nv-head">
+          <span class="nv-ey">Áreas de práctica</span>
+          <h2 class="nv-h2">Toda la asesoría de tu empresa, bajo un mismo despacho.</h2>
+          <p class="nv-sub">Cuatro áreas integradas y un único interlocutor. Sin descoordinación entre asesores, sin plazos que se escapan.</p>
+        </div>
+        <div class="nv-g2">
+          <div class="nv-card">
+            <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0078FF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h8M8 14h5"/><path d="M16 18h.01"/></svg></div>
+            <h3>Contabilidad y auditoría</h3>
+            <p class="d">Contabilidad al día, reporting fiable y cuentas conforme a normativa nacional e internacional.</p>
+            <ul><li>Contabilidad oficial y analítica</li><li>Consolidación de grupos</li><li>Auditoría e informes</li></ul>
+            <button class="nv-card-link" data-area="Contable" onclick={handleRequest}>Solicitar información<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+          </div>
+          <div class="nv-card">
+            <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0078FF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 5-6"/></svg></div>
+            <h3>Fiscal y tributario</h3>
+            <p class="d">Cumplimiento riguroso y planificación que aporta seguridad a cada decisión del grupo.</p>
+            <ul><li>Impuestos y modelos (IVA, IS, IRPF)</li><li>Fiscalidad internacional</li><li>Inspecciones y litigios tributarios</li></ul>
+            <button class="nv-card-link" data-area="Fiscal" onclick={handleRequest}>Solicitar información<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+          </div>
+          <div class="nv-card">
+            <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0078FF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <h3>Laboral y movilidad</h3>
+            <p class="d">Gestión integral de la plantilla, con experiencia en movilidad internacional de empleados.</p>
+            <ul><li>Nóminas y Seguridad Social</li><li>Contratación y expatriados</li><li>Despidos y conflictos colectivos</li></ul>
+            <button class="nv-card-link" data-area="Laboral" onclick={handleRequest}>Solicitar información<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+          </div>
+          <div class="nv-card">
+            <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0078FF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M7 7l-3 7a4 4 0 0 0 6 0zM17 7l-3 7a4 4 0 0 0 6 0z"/><path d="M8 21h8"/></svg></div>
+            <h3>Mercantil, M&amp;A e internacional</h3>
+            <p class="d">Acompañamiento legal en operaciones societarias y contratos transfronterizos.</p>
+            <ul><li>Constitución y societario</li><li>Contratos y operaciones de M&amp;A</li><li>Operaciones transfronterizas</li></ul>
+            <button class="nv-card-link" data-area="Juridica" onclick={handleRequest}>Solicitar información<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMPRESAS -->
+    <section class="nv-sec alt" data-section="empresas">
+      <div class="nv-wrap nv-emp">
+        <div class="nv-img box"><img src={empresasImg} alt="Equipo de Rosetta Advisor" class="nv-img-photo" /></div>
+        <div>
+          <span class="nv-ey">Para tu empresa</span>
+          <h2 class="nv-h2">Toda la gestión de tu grupo, bajo un mismo despacho.</h2>
+          <p class="nv-sub" style="margin-bottom:28px;max-width:540px">Desde pymes y autónomos hasta grupos y multinacionales. Asumimos la contabilidad, los impuestos, las nóminas y lo jurídico de toda la organización, con reporting periódico y un único interlocutor.</p>
+          <div class="nv-pts">
+            <template for:each={companyPoints} for:item="cp">
+              <div class="nv-pt" key={cp.id}>
+                <span class="nv-pt-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                <span class="t">{cp.text}</span>
+              </div>
+            </template>
+          </div>
+          <button class="nv-btn nv-btn-primary" data-target="contacto" onclick={handleNav}>Solicitar propuesta para mi empresa
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="nv-wrap">
+        <div class="nv-part">
+          <div style="max-width:560px">
+            <h3>También para particulares y no residentes</h3>
+            <p>Patrimonio, herencias, fiscalidad del expatriado o un asunto laboral. Te asesoramos con rigor y trato directo, también en inglés.</p>
+          </div>
+          <div class="nv-chips">
+            <span class="nv-chip">Renta y patrimonio</span>
+            <span class="nv-chip">No residentes</span>
+            <span class="nv-chip">Autónomos</span>
+            <span class="nv-chip">Herencias</span>
+            <span class="nv-chip">Laboral</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- METODO -->
+    <section class="nv-sec" data-section="metodo">
+      <div class="nv-wrap">
+        <div class="nv-head center">
+          <span class="nv-ey">Nuestro método</span>
+          <h2 class="nv-h2" style="margin-bottom:0">Una relación clara, de principio a fin.</h2>
+        </div>
+        <div class="nv-g4">
+          <div class="nv-step"><div class="num">01</div><div class="bar"><span></span></div><h3>Diagnóstico</h3><p>Analizamos tu situación contable, fiscal y laboral.</p></div>
+          <div class="nv-step"><div class="num">02</div><div class="bar"><span></span></div><h3>Plan a medida</h3><p>Diseñamos un plan claro con responsable y plazos definidos.</p></div>
+          <div class="nv-step"><div class="num">03</div><div class="bar"><span></span></div><h3>Ejecución</h3><p>Asumimos la gestión y cumplimos cada obligación a tiempo.</p></div>
+          <div class="nv-step"><div class="num">04</div><div class="bar"><span></span></div><h3>Seguimiento</h3><p>Reporting periódico y un equipo siempre accesible.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TECH / PORTAL -->
+    <section class="nv-sec nv-tech" data-section="tecnologia">
+      <span class="nv-tech-orb"></span>
+      <div class="nv-wrap nv-tech-grid">
+        <div>
+          <span class="nv-ey teal">Procesos y tecnología</span>
+          <h2>Toda tu información, y conectada a tu IA.</h2>
+          <p class="lead">Tu información fiscal, laboral, expedientes, escrituras y todo lo relacionado con tu empresa, disponible 24/7 en un portal seguro. Y vamos un paso más allá: te ofrecemos acceso <strong style="color:#2DC0D6">MCP</strong> a tus datos para que los conectes con tu propia IA —ChatGPT, Gemini…— con total seguridad.</p>
+          <ul>
+            <template for:each={techPoints} for:item="tp">
+              <li key={tp.id}><span class="nv-tech-ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2DC0D6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>{tp.text}</li>
+            </template>
+          </ul>
+        </div>
+        <div class="nv-mcp">
+          <div class="nv-mcp-node">
+            <span class="nv-mcp-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M10 2l1.6 4.9a4 4 0 0 0 2.5 2.5L19 11l-4.9 1.6a4 4 0 0 0-2.5 2.5L10 20l-1.6-4.9a4 4 0 0 0-2.5-2.5L1 11l4.9-1.6a4 4 0 0 0 2.5-2.5z"/></svg></span>
+            <div><strong>Rosetta Advisor</strong><span>Tus datos: facturas, expedientes, escrituras…</span></div>
+          </div>
+          <div class="nv-mcp-line"></div>
+          <div class="nv-mcp-pill">conexión MCP segura</div>
+          <div class="nv-mcp-line"></div>
+          <div class="nv-mcp-ais">
+            <div class="nv-mcp-ai">ChatGPT</div>
+            <div class="nv-mcp-ai">Gemini</div>
+            <div class="nv-mcp-ai">Claude</div>
+          </div>
+          <p class="nv-mcp-cap">Pregunta a tu propia información en lenguaje natural, desde la IA que ya usas.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOBRE NOSOTROS -->
+    <section class="nv-sec" data-section="nosotros">
+      <div class="nv-wrap">
+        <div style="text-align:center;max-width:980px;margin:0 auto">
+          <span class="nv-ey">Sobre nosotros</span>
+          <h2 class="nv-h2" style="margin:16px 0 20px">La fuerza está en el equipo.</h2>
+          <div class="nv-about">
+            <p>Somos una firma de servicios legales, laborales y fiscales que asesora a nivel local, regional y global desde todos los ángulos del derecho de los negocios.</p>
+            <p>La fuerza de Rosetta Advisor reside en su equipo: <strong>más de 70 personas</strong> que trabajan de manera transversal para resolver los problemas de sus clientes, con el fin último de contribuir a un entorno de seguridad y confianza que impulse el desarrollo de las empresas en una sociedad más justa, ética, responsable y sostenible.</p>
+          </div>
+        </div>
+        <div class="nv-team">
+          <article class="nv-member">
+            <div class="nv-member-photo"><img src={joseImg} alt="José Pedro Martín" /></div>
+            <h3>José Pedro Martín</h3>
+            <p>Abogado</p>
+          </article>
+          <article class="nv-member">
+            <div class="nv-member-photo"><img src={rafaelImg} alt="Rafael Ruiz Montero" /></div>
+            <h3>Rafael Ruiz Montero</h3>
+            <p>Asesor Fiscal</p>
+          </article>
+          <article class="nv-member">
+            <div class="nv-member-photo"><img src={emilioImg} alt="Emilio José García" /></div>
+            <h3>Emilio José García</h3>
+            <p>Asesor Mercantil y Laboral</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOTICIAS (CMS) - Home: solo las 3 últimas + Ver todas -->
+    <c-noticias-list data-section="noticias" max-items="3" show-view-all="true"
+      subheading="Últimas novedades fiscales, laborales y jurídicas de nuestro equipo."></c-noticias-list>
+
+    <!-- CONTACTO -->
+    <section class="nv-sec alt bord" data-section="contacto" style="border-top:1px solid #D8E3EE">
+      <div class="nv-wrap nv-contact">
+        <div>
+          <span class="nv-ey">Hablemos</span>
+          <h2 class="nv-h2">Cuéntanos tu caso y te preparamos una propuesta.</h2>
+          <p class="nv-sub" style="margin-bottom:34px;max-width:460px">Sin compromiso. Te respondemos en menos de 24 horas laborables con una primera valoración.</p>
+          <div class="nv-cinfo">
+            <div class="row"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0078FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><div><div class="lbl">Teléfono</div><div class="val">91 000 00 00</div></div></div>
+            <div class="row"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0078FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></span><div><div class="lbl">Email</div><div class="val">contacto@rosettaadvisor.com</div></div></div>
+            <div class="row"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0078FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span><div><div class="lbl">Oficinas</div><div class="val">Madrid</div></div></div>
+          </div>
+        </div>
+        <div class="nv-form">
+          <template lwc:if={sent}>
+            <div class="nv-sent">
+              <span class="ok"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1F8A5B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <h3>¡Solicitud recibida!</h3>
+              <p class="nv-sub" style="font-size:15.5px;margin-bottom:22px">Gracias por confiar en Rosetta Advisor. Te contactaremos en menos de 24 horas laborables.</p>
+              <button class="nv-card-link" style="justify-content:center" onclick={resetForm}>Enviar otra consulta</button>
+            </div>
+          </template>
+          <template lwc:else>
+            <form onsubmit={handleSubmit}>
+              <div class="grid2">
+                <div>
+                  <label class="fl">Nombre y apellidos *</label>
+                  <input type="text" name="nombre" value={form.nombre} onchange={handleFormChange} placeholder="Tu nombre" />
+                  <template lwc:if={errNombre}><span class="nv-err">Indícanos tu nombre.</span></template>
+                </div>
+                <div>
+                  <label class="fl">Empresa</label>
+                  <input type="text" name="empresa" value={form.empresa} onchange={handleFormChange} placeholder="Opcional" />
+                </div>
+              </div>
+              <div class="grid2">
+                <div>
+                  <label class="fl">Email *</label>
+                  <input type="email" name="email" value={form.email} onchange={handleFormChange} placeholder="tu@email.com" />
+                  <template lwc:if={errEmail}><span class="nv-err">Introduce un email válido.</span></template>
+                </div>
+                <div>
+                  <label class="fl">Teléfono</label>
+                  <input type="tel" name="telefono" value={form.telefono} onchange={handleFormChange} placeholder="6XX XXX XXX" />
+                </div>
+              </div>
+              <div style="margin-bottom:16px">
+                <label class="fl">Área de interés</label>
+                <select name="area" value={form.area} onchange={handleFormChange}>
+                  <option value="">Selecciona un área</option>
+                  <option value="Contable">Contabilidad y auditoría</option>
+                  <option value="Fiscal">Fiscal y tributario</option>
+                  <option value="Laboral">Laboral y movilidad</option>
+                  <option value="Juridica">Mercantil, M&amp;A e internacional</option>
+                  <option value="Particular">Particulares / no residentes</option>
+                </select>
+              </div>
+              <div style="margin-bottom:18px">
+                <label class="fl">¿En qué podemos ayudarte?</label>
+                <textarea name="mensaje" rows="3" value={form.mensaje} onchange={handleFormChange} placeholder="Cuéntanos brevemente tu situación"></textarea>
+              </div>
+              <label class="nv-consent">
+                <input type="checkbox" name="consent" checked={form.consent} onchange={handleFormChange} />
+                <span>He leído y acepto la <span style="color:#0078FF;font-weight:600">política de privacidad</span> y el tratamiento de mis datos.</span>
+              </label>
+              <template lwc:if={errConsent}><span class="nv-err" style="margin:-12px 0 14px">Debes aceptar la política de privacidad.</span></template>
+              <button type="submit" class="nv-submit">Solicitar propuesta</button>
+            </form>
+          </template>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="nv-footer">
+      <div class="nv-wrap">
+        <div class="nv-foot-grid">
+          <div>
+            <div class="nv-brand" style="margin-bottom:16px">
+              <span class="nv-mark" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M10 2l1.6 4.9a4 4 0 0 0 2.5 2.5L19 11l-4.9 1.6a4 4 0 0 0-2.5 2.5L10 20l-1.6-4.9a4 4 0 0 0-2.5-2.5L1 11l4.9-1.6a4 4 0 0 0 2.5-2.5z"/><path d="M18.5 13l.7 2.1a2 2 0 0 0 1.2 1.2l2.1.7-2.1.7a2 2 0 0 0-1.2 1.2l-.7 2.1-.7-2.1a2 2 0 0 0-1.2-1.2L14.5 17l2.1-.7a2 2 0 0 0 1.2-1.2z"/></svg></span>
+              <span style="display:flex;flex-direction:column"><span class="nv-brand-name" style="color:#fff">Rosetta Advisor</span><span class="nv-brand-sub" style="color:#6f97bf">ABOGADOS &amp; ASESORES</span></span>
+            </div>
+            <p style="font-size:14px;line-height:1.6;color:#9cc0e0;margin:0;max-width:310px">Abogados y asesores para empresas nacionales y multinacionales. Contable, fiscal, laboral y jurídico, con un único interlocutor en tu idioma.</p>
+          </div>
+          <div>
+            <h5>Áreas de práctica</h5>
+            <div class="nv-foot-col">
+              <a data-target="servicios" onclick={handleNav}>Contabilidad y auditoría</a>
+              <a data-target="servicios" onclick={handleNav}>Fiscal y tributario</a>
+              <a data-target="servicios" onclick={handleNav}>Laboral y movilidad</a>
+              <a data-target="servicios" onclick={handleNav}>Mercantil, M&amp;A e internacional</a>
+            </div>
+          </div>
+          <div>
+            <h5>La Firma</h5>
+            <div class="nv-foot-col">
+              <a data-target="nosotros" onclick={handleNav}>Sobre nosotros</a>
+              <a data-target="metodo" onclick={handleNav}>Nuestro método</a>
+              <a data-target="empresas" onclick={handleNav}>Para empresas</a>
+              <a data-target="contacto" onclick={handleNav}>Trabaja con nosotros</a>
+            </div>
+          </div>
+          <div>
+            <h5>Contacto</h5>
+            <div class="nv-foot-col">
+              <span>+34 91 000 00 00</span>
+              <span>contacto@rosettaadvisor.com</span>
+              <span>Madrid</span>
+            </div>
+          </div>
+        </div>
+        <div class="nv-foot-bottom">
+          <span>© 2026 Rosetta Advisor. Todos los derechos reservados.</span>
+          <div style="display:flex;gap:22px">
+            <a data-doc="aviso" onclick={goLegal} style="cursor:pointer">Aviso legal</a>
+            <a data-doc="privacidad" onclick={goLegal} style="cursor:pointer">Privacidad</a>
+            <a data-doc="cookies" onclick={goLegal} style="cursor:pointer">Cookies</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <template lwc:if={legalOpen}>
+      <div class="nv-modal" onclick={closeLegal}>
+        <div class="nv-modal-box" onclick={stopProp}>
+          <button class="nv-modal-x" onclick={closeLegal} aria-label="Cerrar">&times;</button>
+
+          <template lwc:if={isAviso}>
+            <h2 class="nv-modal-title">Aviso legal</h2>
+            <h3>Datos identificativos</h3>
+            <p>En cumplimiento del artículo 10 de la Ley 34/2002, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se informa de que este sitio web es titularidad de <span class="ph">[RAZÓN SOCIAL]</span>, con CIF <span class="ph">[CIF]</span> y domicilio en <span class="ph">[DIRECCIÓN]</span>. Correo de contacto: contacto@rosettaadvisor.com.</p>
+            <h3>Objeto</h3>
+            <p>El presente aviso regula el uso del sitio web de Rosetta Advisor. La navegación atribuye la condición de usuario e implica la aceptación plena de estas condiciones.</p>
+            <h3>Propiedad intelectual e industrial</h3>
+            <p>Todos los contenidos (textos, imágenes, marcas y logotipos) son titularidad de <span class="ph">[RAZÓN SOCIAL]</span> o de terceros que han autorizado su uso, y están protegidos por la normativa de propiedad intelectual e industrial. Queda prohibida su reproducción sin autorización.</p>
+            <h3>Responsabilidad</h3>
+            <p>Rosetta Advisor no se responsabiliza del mal uso del sitio ni de los daños derivados de su utilización. La información tiene carácter general e informativo y no constituye asesoramiento profesional concreto.</p>
+            <h3>Legislación aplicable</h3>
+            <p>Estas condiciones se rigen por la legislación española. Para cualquier controversia, las partes se someten a los juzgados y tribunales de <span class="ph">[CIUDAD]</span>.</p>
+          </template>
+
+          <template lwc:if={isPriv}>
+            <h2 class="nv-modal-title">Política de privacidad</h2>
+            <h3>Responsable del tratamiento</h3>
+            <p><span class="ph">[RAZÓN SOCIAL]</span> · CIF <span class="ph">[CIF]</span> · <span class="ph">[DIRECCIÓN]</span> · contacto@rosettaadvisor.com.</p>
+            <h3>Finalidad</h3>
+            <p>Tratamos los datos que nos facilitas para atender tus consultas, gestionar la relación profesional y, en su caso, enviarte información de interés relacionada con nuestros servicios.</p>
+            <h3>Legitimación</h3>
+            <p>La base legal del tratamiento es tu consentimiento, la ejecución de la relación contractual y el interés legítimo en responder a tus solicitudes.</p>
+            <h3>Conservación y destinatarios</h3>
+            <p>Conservamos los datos el tiempo necesario para la finalidad indicada y mientras existan obligaciones legales. No se ceden a terceros salvo obligación legal o proveedores necesarios para la prestación del servicio.</p>
+            <h3>Tus derechos</h3>
+            <p>Puedes ejercer los derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a contacto@rosettaadvisor.com. Asimismo, puedes presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).</p>
+          </template>
+
+          <template lwc:if={isCookies}>
+            <h2 class="nv-modal-title">Política de cookies</h2>
+            <h3>¿Qué son las cookies?</h3>
+            <p>Las cookies son pequeños archivos que se almacenan en tu dispositivo al navegar y permiten recordar información sobre tu visita para mejorar la experiencia de uso.</p>
+            <h3>Cookies que utilizamos</h3>
+            <p>Utilizamos cookies técnicas, necesarias para el funcionamiento del sitio, y cookies analíticas que nos ayudan a entender el uso de la web para mejorarla. <span class="ph">[Detallar proveedores y finalidades concretas cuando estén definidos.]</span></p>
+            <h3>Gestión de cookies</h3>
+            <p>Puedes permitir, bloquear o eliminar las cookies instaladas desde la configuración de tu navegador. Si las desactivas, algunas funciones del sitio podrían no estar disponibles.</p>
+          </template>
+
+        </div>
+      </div>
+    </template>
+
+  </div>
+</template>

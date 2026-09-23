@@ -1,0 +1,69 @@
+<aura:component controller="RegistroHorarioCtr" implements="flexipage:availableForAllPageTypes,forceCommunity:availableForAllPageTypes">
+    <aura:attribute name="recordId" type="string"/>
+    <aura:attribute name="isStarted" type="boolean" default="false"/>
+    <aura:attribute name="seconds" type="string" default="00"/>
+    <aura:attribute name="minutes" type="string" default="00"/>
+    <aura:attribute name="hours" type="string" default="00"/>
+    <aura:attribute name="showMessage" type="boolean" default="false"/>
+    <aura:attribute name="message" type="string"/>
+    <aura:attribute name="spinner" type="boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <aura:attribute name="isStartGeoLocation" type="boolean" default="false"/>
+    <aura:attribute name="startLatitude" type="object"/>
+    <aura:attribute name="startLongitude" type="object"/>
+    <aura:attribute name="isStartIpInfo" type="boolean" default="false"/>
+    <aura:attribute name="startIpInfo" type="object"/>
+    
+    <aura:attribute name="isStopGeoLocation" type="boolean" default="false"/>
+    <aura:attribute name="stopLatitude" type="object"/>
+    <aura:attribute name="stopLongitude" type="object"/>
+    <aura:attribute name="isStopIpInfo" type="boolean" default="false"/>
+    <aura:attribute name="stopIpInfo" type="object"/>
+    
+    
+    <article class="slds-card">
+        <div class="slds-card__header slds-grid">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+            </header>
+        </div>
+        <div class="slds-card__body slds-card__body_inner">
+            <aura:if isTrue="{!v.spinner}">
+                <lightning:spinner alternativeText="Loading" size="small" />
+            </aura:if>
+            <aura:if isTrue="{!v.showMessage}">
+                <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">
+                    <lightning:icon iconName="utility:error" alternativeText="error" title="Error" variant="inverse" size="x-small" />
+                    <h2>{!v.message}</h2>
+                    <div class="slds-notify__close">
+                        <button class="slds-button slds-button_icon slds-button_icon-small slds-button_icon-inverse" title="Close" onclick="{!c.close}">
+                            <lightning:icon iconName="utility:close" alternativeText="close" title="Close"  size="x-small" variant="inverse"/>
+                        </button>
+                    </div>
+                </div>
+            </aura:if>
+            <div class="c-container">
+                <lightning:layout >
+                    <!--<lightning:layoutItem padding="around-small" size="7">     
+                    </lightning:layoutItem>-->
+                    <lightning:layoutItem padding="around-small"  size="9">
+                        <div id="demo" style="padding-top: 5px;margin-left: 42%;">{!v.hours}:{!v.minutes}:{!v.seconds} </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem padding="around-small"  size="3">
+                        <div style="margin-left: -152%;">
+                            <aura:if isTrue="{!!v.isStarted}">
+                                <button class="slds-button slds-button_success" onclick="{!c.start}" style="color: white;background-color: var(--sds-c-button-success-color-background-active,#04844b);">Entrada</button>
+                                <!--<lightning:button variant="success" label="Entrada" title="Entrada" onclick="{!c.start}" > </lightning:button>-->
+                            </aura:if>
+                            <aura:if isTrue="{!v.isStarted}">
+                                <lightning:button variant="destructive" label="Salida" title="Salida" onclick="{!c.stop}"/>
+                            </aura:if>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </div>
+        <footer class="slds-card__footer"></footer>
+    </article>
+    
+</aura:component>

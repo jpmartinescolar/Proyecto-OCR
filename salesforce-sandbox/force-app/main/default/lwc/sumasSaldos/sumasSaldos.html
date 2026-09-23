@@ -1,0 +1,501 @@
+<template>
+    <div class="pyg-container">
+
+        <!-- HEADER -->
+        <div class="pyg-header">
+            <div class="pyg-header-left">
+                <div class="pyg-icon">
+                    <lightning-icon icon-name="standard:account_info" size="medium"></lightning-icon>
+                </div>
+                <div>
+                    <h1 class="pyg-title">Sumas y Saldos</h1>
+                    <p class="pyg-subtitle">Balance de comprobación · Plan General Contable</p>
+                </div>
+            </div>
+            <div class="pyg-header-right">
+                <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar"
+                                       variant="border-filled" onclick={handleRefresh}
+                                       class="slds-m-right_x-small"></lightning-button-icon>
+                <lightning-button label="Limpiar" icon-name="utility:clear" variant="neutral"
+                                  title="Borra filtros y resultados para empezar de cero"
+                                  onclick={handleLimpiar} class="slds-m-right_x-small"></lightning-button>
+                <lightning-button label="Generar" icon-name="utility:apex" variant="brand"
+                                  onclick={handleGenerar}></lightning-button>
+            </div>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="pyg-filtros">
+            <div class="pyg-filtros-titulo">
+                <div class="pyg-toggles">
+                    <span class="pyg-toggle-label">Simulación</span>
+                    <button class={simTodasCls}  data-value="Todas"             onclick={setSimulacion}>Todas</button>
+                    <button class={simNoCls}     data-value="No"                onclick={setSimulacion}>No</button>
+                    <button class={simIvaCls}    data-value="Si"                onclick={setSimulacion}>Sí. IVA</button>
+                    <button class={simTransfCls} data-value="Sí. Transferencia" onclick={setSimulacion}>Sí. Transferencia</button>
+
+                    <span class="pyg-toggle-label">Extraordinarios</span>
+                    <button class={extTodasCls} data-value="Todas" onclick={setExtraordinarios}>Todas</button>
+                    <button class={extSiCls}    data-value="Si"    onclick={setExtraordinarios}>Sí</button>
+                    <button class={extNoCls}    data-value="No"    onclick={setExtraordinarios}>No</button>
+
+                    <span class="pyg-toggle-label">Check</span>
+                    <button class={chkTodosCls} data-value="Todos" onclick={setCheck}>Todos</button>
+                    <button class={chkSiCls}    data-value="Si"    onclick={setCheck}>Sí</button>
+                    <button class={chkNoCls}    data-value="No"    onclick={setCheck}>No</button>
+
+                    <span class="pyg-toggle-label">Cuentas contables</span>
+                    <button class={ctaConCls}   data-value="Con"   onclick={setCuentasModo}>Con apuntes contables</button>
+                    <button class={ctaSinCls}   data-value="Sin"   onclick={setCuentasModo}>Sin apuntes contables</button>
+                    <button class={ctaTodasCls} data-value="Todas" onclick={setCuentasModo}>Todas</button>
+
+                    <span class="pyg-toggle-label" title="Solo cuentas de efectos (400/410/430) cuya diferencia de efectos no es cero">Diferencia efectos</span>
+                    <button class={difTodasCls} data-value="Todas"          onclick={setDiferenciaEfectos}>Todas</button>
+                    <button class={difConCls}   data-value="ConDiferencias" onclick={setDiferenciaEfectos}>Con diferencias</button>
+                </div>
+            </div>
+
+            <div class="pyg-filtros-grid">
+                <div class={empresaDropdownClass}>
+                    <label class="slds-form-element__label">Empresa titular <span class="pyg-req">*</span></label>
+                    <button class={empresaTriggerClass} type="button" onclick={toggleEmpresaDropdown}>
+                        <span class="pyg-ms-trigger-text">{empresaTriggerLabel}</span>
+                        <span class="pyg-ms-caret">▾</span>
+                    </button>
+                    <template if:true={showEmpresaDropdown}>
+                        <div class="pyg-ms-backdrop" onclick={closeEmpresaDropdown}></div>
+                        <div class="pyg-ms-panel" onclick={stopProp}>
+                            <div class="pyg-ms-panel-head">
+                                <input type="search" class="pyg-ms-search" placeholder="Buscar..."
+                                       value={empresaFiltroBusqueda} oninput={handleEmpresaBusqueda} />
+                                <div class="pyg-ms-actions">
+                                    <button type="button" class="pyg-ms-link" onclick={handleEmpresaSelectAll}>Todas</button>
+                                    <span>·</span>
+                                    <button type="button" class="pyg-ms-link" onclick={handleEmpresaClearAll}>Ninguna</button>
+                                </div>
+                            </div>
+                            <div class="pyg-ms-list">
+                                <template for:each={empresaOptionsFiltradas} for:item="opt">
+                                    <div key={opt.value} class={opt.optionClass} data-value={opt.value} onclick={handleEmpresaToggle}>
+                                        <span class="pyg-ms-check"></span>
+                                        <span class="pyg-ms-label">{opt.label}</span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="pyg-ms-panel-foot">
+                                <span class="pyg-ms-count">{empresaCount}</span>
+                                <button type="button" class="slds-button slds-button_brand pyg-ms-apply" onclick={closeEmpresaDropdown}>Aplicar</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <lightning-input type="date" label="Desde" value={fechaDesde} onchange={handleFechaDesdeChange}></lightning-input>
+                <lightning-input type="date" label="Hasta" value={fechaHasta} onchange={handleFechaHastaChange}></lightning-input>
+
+                <!-- Cuenta por título -->
+                <div class={cuentaTitWrapClass}>
+                    <label class="slds-form-element__label">Cuenta contable (por título)</label>
+                    <button class={cuentaTitTriggerClass} type="button" onclick={toggleCuentaTitDropdown}>
+                        <span class="pyg-ms-trigger-text">{cuentaTitTriggerLabel}</span>
+                        <span class="pyg-ms-caret">▾</span>
+                    </button>
+                    <template if:true={showCuentaTitDropdown}>
+                        <div class="pyg-ms-backdrop" onclick={closeCuentaTitDropdown}></div>
+                        <div class="pyg-ms-panel" onclick={stopProp}>
+                            <div class="pyg-ms-panel-head">
+                                <input type="search" class="pyg-ms-search ss-search-tit" placeholder="Buscar por título..."
+                                       value={cuentaTitBusqueda} oninput={handleCuentaTitBusqueda} />
+                            </div>
+                            <div class="pyg-ms-list">
+                                <template if:true={sinEmpresa}>
+                                    <div class="ss-ms-hint">Selecciona primero la <strong>Empresa titular</strong></div>
+                                </template>
+                                <template if:false={sinEmpresa}>
+                                    <template for:each={cuentaTitFiltradas} for:item="opt">
+                                        <div key={opt.id} class={opt.optionClass} data-id={opt.id} onclick={handleCuentaTitPick}>
+                                            <span class="pyg-ms-label">{opt.label}</span>
+                                            <span class="ss-ms-num">{opt.numero}</span>
+                                        </div>
+                                    </template>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Cuenta desde (por número) -->
+                <div class={cuentaDesdeWrapClass}>
+                    <label class="slds-form-element__label">Cuenta desde (por número)</label>
+                    <button class={cuentaDesdeTriggerClass} type="button" onclick={toggleCuentaDesdeDropdown}>
+                        <span class="pyg-ms-trigger-text">{cuentaDesdeTriggerLabel}</span>
+                        <span class="pyg-ms-caret">▾</span>
+                    </button>
+                    <template if:true={showCuentaDesdeDropdown}>
+                        <div class="pyg-ms-backdrop" onclick={closeCuentaDesdeDropdown}></div>
+                        <div class="pyg-ms-panel" onclick={stopProp}>
+                            <div class="pyg-ms-panel-head">
+                                <input type="search" class="pyg-ms-search ss-search-desde" placeholder="Buscar por número..."
+                                       value={cuentaDesdeBusqueda} oninput={handleCuentaDesdeBusqueda} />
+                            </div>
+                            <div class="pyg-ms-list">
+                                <template if:true={sinEmpresa}>
+                                    <div class="ss-ms-hint">Selecciona primero la <strong>Empresa titular</strong></div>
+                                </template>
+                                <template if:false={sinEmpresa}>
+                                    <template for:each={cuentaDesdeFiltradas} for:item="opt">
+                                        <div key={opt.id} class={opt.optionClass} data-numero={opt.numero} data-label={opt.label} onclick={handleCuentaDesdePick}>
+                                            <span class="pyg-ms-label">{opt.label}</span>
+                                        </div>
+                                    </template>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Cuenta hasta (por número) -->
+                <div class={cuentaHastaWrapClass}>
+                    <label class="slds-form-element__label">Cuenta hasta (por número)</label>
+                    <button class={cuentaHastaTriggerClass} type="button" onclick={toggleCuentaHastaDropdown}>
+                        <span class="pyg-ms-trigger-text">{cuentaHastaTriggerLabel}</span>
+                        <span class="pyg-ms-caret">▾</span>
+                    </button>
+                    <template if:true={showCuentaHastaDropdown}>
+                        <div class="pyg-ms-backdrop" onclick={closeCuentaHastaDropdown}></div>
+                        <div class="pyg-ms-panel" onclick={stopProp}>
+                            <div class="pyg-ms-panel-head">
+                                <input type="search" class="pyg-ms-search ss-search-hasta" placeholder="Buscar por número..."
+                                       value={cuentaHastaBusqueda} oninput={handleCuentaHastaBusqueda} />
+                            </div>
+                            <div class="pyg-ms-list">
+                                <template if:true={sinEmpresa}>
+                                    <div class="ss-ms-hint">Selecciona primero la <strong>Empresa titular</strong></div>
+                                </template>
+                                <template if:false={sinEmpresa}>
+                                    <template for:each={cuentaHastaFiltradas} for:item="opt">
+                                        <div key={opt.id} class={opt.optionClass} data-numero={opt.numero} data-label={opt.label} onclick={handleCuentaHastaPick}>
+                                            <span class="pyg-ms-label">{opt.label}</span>
+                                        </div>
+                                    </template>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chips de avisos (línea propia, encima de Empresa/Periodo) -->
+        <template if:true={showChips}>
+            <div class="ss-chips-bar">
+                <button type="button" class={chipIncCls}  onclick={toggleInc}>
+                    <template if:true={chipIncBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Incidencias: {incidenciasCount}</button>
+                <button type="button" class={chipDescCls} onclick={toggleDesc}>
+                    <template if:true={chipDescBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Descuadre asientos: {descuadradosCount}</button>
+                <button type="button" class={chipSinCls}  onclick={toggleSin}>
+                    <template if:true={chipSinBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Apuntes sin cuenta: {sinCuentaCount}</button>
+                <button type="button" class={chipExtCls}  onclick={toggleExt}>
+                    <template if:true={chipExtBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Extractos sin conciliar: {extractosCount}</button>
+                <button type="button" class={chipCuadreCls} onclick={toggleCuadre}>
+                    <template if:true={chipCuadreBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Facturas emitidas &amp; Apuntes: {chipCuadreTxt}</button>
+                <button type="button" class={chipCuadreRecCls} onclick={toggleCuadreRec}>
+                    <template if:true={chipCuadreRecBad}><lightning-icon icon-name="utility:preview" size="xx-small" class="ss-chip-eye" alternative-text="Ver detalle"></lightning-icon></template>Facturas recibidas &amp; Apuntes: {chipCuadreRecTxt}</button>
+                <c-aviso-saldo-efectos empresas={genEmpresas}></c-aviso-saldo-efectos>
+            </div>
+        </template>
+
+        <!-- BARRA DE CONTEXTO -->
+        <div class="pyg-contextbar">
+            <span><strong>Empresa:</strong> {empresaLabel}</span>
+            <span class="pyg-divider">·</span>
+            <span><strong>Periodo:</strong> {periodoLabel}</span>
+        </div>
+
+        <!-- AVISO DE INCIDENCIAS -->
+        <template if:true={hayIncidencias}>
+            <div class="ss-incidencias">
+                <lightning-icon icon-name="utility:warning" variant="warning" size="small"></lightning-icon>
+                <span>Existen <strong>{incidenciasCount}</strong> apuntes contables con incidencias en la(s) empresa(s) seleccionada(s), en <strong>todo el histórico</strong> (estén o no dentro de las fechas seleccionadas). Ve al componente <strong>Libro Mayor</strong> y filtra por incidencias para revisarlos.</span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarInc}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO DE ASIENTOS DESCUADRADOS -->
+        <template if:true={hayDescuadrados}>
+            <div class="ss-descuadrados">
+                <lightning-icon icon-name="utility:error" variant="error" size="small"></lightning-icon>
+                <span>Existen <strong>{descuadradosCount}</strong> asientos contables descuadrados (diferencia entre Debe y Haber) en la(s) empresa(s) seleccionada(s), en <strong>todo el histórico</strong> (estén o no dentro de las fechas seleccionadas).
+                    <template if:true={descuadradosAsientos.length}>
+                        <span class="ss-aviso-asientos">Asientos:
+                            <template for:each={descuadradosAsientos} for:item="a">
+                                <a key={a.id} href="javascript:void(0);" class="ss-aviso-link"
+                                   data-recordid={a.id} data-objectname="Asiento_contable__c"
+                                   onclick={navigateToRecordNewTab}>{a.numero}</a>
+                            </template>
+                        </span>
+                    </template>
+                </span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarDesc}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO DE APUNTES SIN CUENTA CONTABLE -->
+        <template if:true={haySinCuenta}>
+            <div class="ss-descuadrados">
+                <lightning-icon icon-name="utility:error" variant="error" size="small"></lightning-icon>
+                <span>Existen <strong>{sinCuentaCount}</strong> apuntes contables <strong>sin cuenta contable</strong> asignada en la(s) empresa(s) seleccionada(s), en <strong>todo el histórico</strong> (estén o no dentro de las fechas seleccionadas).
+                    <template if:true={sinCuentaAsientos.length}>
+                        <span class="ss-aviso-asientos">Asientos:
+                            <template for:each={sinCuentaAsientos} for:item="a">
+                                <a key={a.id} href="javascript:void(0);" class="ss-aviso-link"
+                                   data-recordid={a.id} data-objectname="Asiento_contable__c"
+                                   onclick={navigateToRecordNewTab}>{a.numero}</a>
+                            </template>
+                        </span>
+                    </template>
+                </span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarSin}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO DE EXTRACTOS BANCARIOS SIN CONCILIAR -->
+        <template if:true={hayExtractos}>
+            <div class="ss-extractos">
+                <lightning-icon icon-name="utility:moneybag" variant="warning" size="small"></lightning-icon>
+                <span>Para las fechas seleccionadas (<strong>{periodoLabel}</strong>) existen <strong>{extractosCount}</strong> extractos bancarios <strong>sin conciliar</strong> (estado Pendiente) de la(s) empresa(s) seleccionada(s).</span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarExt}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO FACTURAS EMITIDAS vs CUENTAS (muestra siempre los importes al pulsar) -->
+        <template if:true={hayDescuadreFacturas}>
+            <div class={cuadreBoxClass}>
+                <lightning-icon icon-name={cuadreIcon} variant={cuadreVariant} size="small"></lightning-icon>
+                <span><strong>{cuadreEstado}</strong> facturas emitidas vs apuntes (todo el histórico de la(s) empresa(s) seleccionada(s)): Base imponible facturas emitidas = <strong>{cuadreBaseFmt}</strong> · Importe apuntes (cuentas de venta) = <strong>{cuadreSaldoFmt}</strong> · Diferencia = <strong>{cuadreDifFmt}</strong>.</span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarCuadre}>✕</button>
+            </div>
+        </template>
+
+        <!-- AVISO DESCUADRE FACTURAS RECIBIDAS vs APUNTES -->
+        <template if:true={hayDescuadreRecibidas}>
+            <div class="ss-descuadrados">
+                <lightning-icon icon-name="utility:warning" variant="error" size="small"></lightning-icon>
+                <span>Descuadre entre <strong>facturas recibidas</strong> y los apuntes de compras/gastos (todo el histórico de la(s) empresa(s) seleccionada(s)): Base imponible facturas = <strong>{cuadreRecBaseFmt}</strong>, Debe apuntes = <strong>{cuadreRecSaldoFmt}</strong>, Diferencia = <strong>{cuadreRecDifFmt}</strong>.</span>
+                <button class="ss-aviso-x" title="Cerrar" onclick={cerrarCuadreRec}>✕</button>
+            </div>
+        </template>
+
+        <!-- LOADING -->
+        <template if:true={loading}>
+            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+        </template>
+
+        <!-- ERROR -->
+        <template if:true={hasError}>
+            <div class="pyg-error">
+                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- ESTADO INICIAL -->
+        <template if:true={showInicial}>
+            <div class="pyg-placeholder">
+                <lightning-icon icon-name="utility:filterList" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                <span>{textoInicial} <strong>Generar</strong>.</span>
+            </div>
+        </template>
+
+        <!-- TABLA -->
+        <template if:true={hasRows}>
+            <div class="pyg-tabla-wrap">
+                <table class="ss-tabla">
+                    <thead>
+                        <tr class="ss-grp-row">
+                            <th class="ss-grp-empty" colspan="3"></th>
+                            <th class="ss-grp ss-grp-super" colspan="8">Sumas y saldos</th>
+                            <th class="ss-grp-empty"></th>
+                            <th class="ss-grp-empty" colspan="3"></th>
+                        </tr>
+                        <tr class="ss-grp-row">
+                            <th class="ss-grp ss-grp-cuentas" colspan="3">Cuentas</th>
+                            <th class="ss-grp ss-grp-ap" colspan="2">Asiento de apertura</th>
+                            <th class="ss-grp ss-grp-pe" colspan="3">Periodo</th>
+                            <th class="ss-grp ss-grp-acum" colspan="3">Acumulado</th>
+                            <th class="ss-grp ss-grp-act">Saldo actual cuentas</th>
+                            <th class="ss-grp ss-grp-ef" colspan="3">Saldo actual efectos</th>
+                        </tr>
+                        <tr class="ss-sub-row">
+                            <th class="ss-th-linea">Nº</th>
+                            <th class="ss-th-num-cta">CUENTA</th>
+                            <th class="ss-th-nombre">NOMBRE</th>
+                            <th class="ss-th-num">DEBE</th>
+                            <th class="ss-th-num">HABER</th>
+                            <th class="ss-th-num">DEBE</th>
+                            <th class="ss-th-num">HABER</th>
+                            <th class="ss-th-num">SALDO</th>
+                            <th class="ss-th-num">DEBE</th>
+                            <th class="ss-th-num">HABER</th>
+                            <th class="ss-th-num">SALDO</th>
+                            <th class="ss-th-vacio"></th>
+                            <th class="ss-th-num">Efectos clientes</th>
+                            <th class="ss-th-num">Efectos proveedores</th>
+                            <th class="ss-th-num">Diferencia efectos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={rowsView} for:item="row">
+                            <tr key={row.key} class={row.rowClass}>
+                                <td class="ss-linea">{row.num}</td>
+                                <td class="ss-cta">
+                                    <a href="javascript:void(0);" class="ss-codigo"
+                                       data-recordid={row.cuentaId} data-objectname="Plan_general_contable__c"
+                                       onclick={navigateToRecordNewTab}
+                                       title="Abrir cuenta contable en una pestaña nueva">{row.numero}</a>
+                                </td>
+                                <td class="ss-nombre">{row.titulo}</td>
+                                <td class="ss-num ss-click" data-cuentaid={row.cuentaId} data-periodo="apertura" data-concepto={row.concepto} onclick={handleAmountClick}>{row.apDebe}</td>
+                                <td class="ss-num ss-click" data-cuentaid={row.cuentaId} data-periodo="apertura" data-concepto={row.concepto} onclick={handleAmountClick}>{row.apHaber}</td>
+                                <td class="ss-num ss-click" data-cuentaid={row.cuentaId} data-periodo="periodo" data-concepto={row.concepto} onclick={handleAmountClick}>{row.peDebe}</td>
+                                <td class="ss-num ss-click" data-cuentaid={row.cuentaId} data-periodo="periodo" data-concepto={row.concepto} onclick={handleAmountClick}>{row.peHaber}</td>
+                                <td class={row.peSaldoClass}>{row.peSaldo}</td>
+                                <td class="ss-num ss-acum">{row.acDebe}</td>
+                                <td class="ss-num ss-acum">{row.acHaber}</td>
+                                <td class={row.acSaldoClass}>{row.acSaldo}</td>
+                                <td class={row.saldoActualClass}>{row.saldoActual}</td>
+                                <td class={row.efClientesClass}>{row.efClientes}</td>
+                                <td class={row.efProveedoresClass}>{row.efProveedores}</td>
+                                <td class={row.difEfectosClass}>{row.difEfectos}</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+
+        <!-- EMPTY -->
+        <template if:true={emptyState}>
+            <div class="pyg-empty">
+                <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                <span>No se han encontrado cuentas para esta selección.</span>
+            </div>
+        </template>
+
+        <!-- MODAL movimientos -->
+        <template if:true={showModal}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_large">
+                <div class="slds-modal__container pyg-modal-container">
+                    <header class="slds-modal__header pyg-modal-header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={closeModal} title="Cerrar">
+                            <lightning-icon icon-name="utility:close" alternative-text="Cerrar" variant="inverse" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Detalle de apuntes</h2>
+                        <div class="pyg-modal-subtitle">
+                            <span><strong>Cuenta:</strong> {modalTitulo}</span>
+                            <span class="pyg-divider">·</span>
+                            <span><strong>{modalSubtitulo}</strong></span>
+                        </div>
+                    </header>
+                    <div class="slds-modal__content pyg-modal-content">
+                        <template if:true={modalLoading}>
+                            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+                        </template>
+                        <template if:true={modalError}>
+                            <div class="pyg-error">
+                                <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                                <span>{modalError}</span>
+                            </div>
+                        </template>
+                        <template if:true={modalContentReady}>
+                            <table class="pyg-modal-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Nº Apunte</th>
+                                        <th>Descripción</th>
+                                        <th class="pyg-th-num">Debe</th>
+                                        <th class="pyg-th-num">Haber</th>
+                                        <th>Tipo de asiento</th>
+                                        <th>Empresa titular</th>
+                                        <th class="pyg-th-edit">Área</th>
+                                        <th class="pyg-th-edit">Director facturación</th>
+                                        <th class="pyg-th-edit">Campaña</th>
+                                        <th class="pyg-th-edit">Simulación</th>
+                                        <th class="pyg-th-edit">Check</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={modalMovimientos} for:item="mv">
+                                        <tr key={mv.key}>
+                                            <td>{mv.fecha}</td>
+                                            <td><a href="javascript:void(0);" class="pyg-link"
+                                                   data-recordid={mv.recordId} data-objectname={mv.objectApiName}
+                                                   onclick={navigateToRecordNewTab}>{mv.numero}</a></td>
+                                            <td class="pyg-desc">
+                                                <template if:true={mv.descLinkId}>
+                                                    <a href="javascript:void(0);" class="pyg-link" data-recordid={mv.descLinkId}
+                                                       data-objectname={mv.descLinkObject} onclick={navigateToRecordNewTab} title={mv.descLinkTitle}>
+                                                        <div class="pyg-text-wrap">{mv.descripcion}</div></a>
+                                                </template>
+                                                <template if:false={mv.descLinkId}>
+                                                    <div class="pyg-text-wrap">{mv.descripcion}</div>
+                                                </template>
+                                            </td>
+                                            <td class="pyg-num">{mv.debe}</td>
+                                            <td class="pyg-num">{mv.haber}</td>
+                                            <td>{mv.tipoAsiento}</td>
+                                            <td class="pyg-empresa"><div class="pyg-text-wrap pyg-text-wrap-empresa">{mv.empresaTitular}</div></td>
+                                            <td class="pyg-cell-edit">
+                                                <lightning-combobox variant="label-hidden" label="Área"
+                                                    value={mv.area} options={areaEditOptions}
+                                                    data-rid={mv.recordId} data-fld="area"
+                                                    onchange={handleModalEdit}></lightning-combobox>
+                                            </td>
+                                            <td class="pyg-cell-edit pyg-cell-edit-wide">
+                                                <lightning-record-picker label="Director" placeholder="Buscar persona..."
+                                                    object-api-name="User" variant="label-hidden"
+                                                    value={mv.directorFacturacionId} data-rid={mv.recordId}
+                                                    onchange={handleModalEditDirector}></lightning-record-picker>
+                                            </td>
+                                            <td class="pyg-cell-edit pyg-cell-edit-wide">
+                                                <lightning-record-picker label="Campaña" placeholder="Buscar campaña..."
+                                                    object-api-name="Campaign" variant="label-hidden"
+                                                    value={mv.campaniaId} data-rid={mv.recordId}
+                                                    onchange={handleModalEditCampania}></lightning-record-picker>
+                                            </td>
+                                            <td class="pyg-cell-edit">
+                                                <lightning-combobox variant="label-hidden" label="Simulación"
+                                                    value={mv.simulacion} options={simulacionEditOptions}
+                                                    data-rid={mv.recordId} data-fld="simulacion"
+                                                    onchange={handleModalEdit}></lightning-combobox>
+                                            </td>
+                                            <td class="pyg-cell-edit">
+                                                <lightning-combobox variant="label-hidden" label="Check"
+                                                    value={mv.checkValue} options={checkEditOptions}
+                                                    data-rid={mv.recordId} data-fld="check"
+                                                    onchange={handleModalEdit}></lightning-combobox>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </template>
+                        <template if:true={noMovimientos}>
+                            <div class="pyg-empty">
+                                <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                                <span>No hay apuntes para esta selección.</span>
+                            </div>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeModal}>Cerrar</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={closeModal}></div>
+        </template>
+
+    </div>
+</template>

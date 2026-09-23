@@ -1,0 +1,186 @@
+<template>
+    <lightning-card title="Amortización masiva" icon-name="standard:account_score">
+
+        <!-- Paso 1: Filtros -->
+        <template lwc:if={esPaso1}>
+            <div class="slds-p-horizontal_large slds-p-vertical_medium">
+
+                <!-- Sección: Período -->
+                <div class="seccion slds-m-bottom_large">
+                    <div class="seccion-titulo">
+                        <lightning-icon icon-name="utility:date_input" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        <span>Período a amortizar</span>
+                    </div>
+                    <div class="slds-box slds-box_x-small slds-theme_default">
+                        <div class="slds-grid slds-gutters slds-wrap">
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                                <lightning-combobox
+                                    label="Ejercicio"
+                                    value={anioSeleccionado}
+                                    options={aniosOpts}
+                                    onchange={handleAnioChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3">
+                                <lightning-combobox
+                                    label="Mes desde"
+                                    value={mesDesde}
+                                    options={mesesOpts}
+                                    onchange={handleMesDesdeChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-3">
+                                <lightning-combobox
+                                    label="Mes hasta"
+                                    value={mesHasta}
+                                    options={mesesOpts}
+                                    onchange={handleMesHastaChange}>
+                                </lightning-combobox>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Empresas titulares -->
+                <div class="seccion slds-m-bottom_large">
+                    <div class="seccion-titulo">
+                        <lightning-icon icon-name="utility:company" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        <span>Empresas titulares</span>
+                        <span class="slds-text-color_weak slds-text-body_small slds-m-left_x-small">
+                            ({contadorEmpresas} seleccionada{contadorEmpresasPlural})
+                        </span>
+                    </div>
+                    <div class="slds-box slds-box_x-small slds-theme_default contenedor-empresas">
+                        <lightning-checkbox-group
+                            label=""
+                            variant="label-hidden"
+                            options={empresasOpts}
+                            value={empresasSeleccionadas}
+                            onchange={handleEmpresasChange}>
+                        </lightning-checkbox-group>
+                    </div>
+                </div>
+
+                <template lwc:if={error}>
+                    <div class="slds-notify slds-notify_alert slds-theme_error slds-m-bottom_medium">{error}</div>
+                </template>
+            </div>
+
+            <div slot="footer" class="slds-text-align_right">
+                <lightning-button
+                    variant="brand"
+                    label="Calcular preview"
+                    icon-name="utility:preview"
+                    icon-position="left"
+                    onclick={handleCalcular}
+                    disabled={procesando}>
+                </lightning-button>
+            </div>
+        </template>
+
+        <!-- Paso 2: Preview -->
+        <template lwc:if={esPaso2}>
+            <div class="slds-p-around_medium">
+                <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                    <div class="slds-grid slds-gutters slds-wrap">
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                            <div class="slds-text-color_weak">Periodo</div>
+                            <div class="slds-text-heading_small">{periodoTxt}</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                            <div class="slds-text-color_weak">Inmovilizados afectados</div>
+                            <div class="slds-text-heading_small">{preview.inmovilizadosAfectados}</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                            <div class="slds-text-color_weak">Asientos / Apuntes</div>
+                            <div class="slds-text-heading_small">{preview.asientosACrear} / {preview.apuntesACrear}</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                            <div class="slds-text-color_weak">Importe total</div>
+                            <div class="slds-text-heading_small">{importeTotalFmt}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="seccion-titulo slds-m-bottom_x-small">
+                    <lightning-icon icon-name="utility:summary" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    <span>Desglose por empresa titular</span>
+                </div>
+                <c-datatable-con-enlace
+                    key-field="id"
+                    data={flatData}
+                    columns={flatCols}
+                    onrowaction={handleRowAction}
+                    hide-checkbox-column
+                    column-widths-mode="auto">
+                </c-datatable-con-enlace>
+
+                <template lwc:if={mostrarDetalle}>
+                    <div class="slds-m-top_medium slds-box slds-theme_default">
+                        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-m-bottom_small">
+                            <div class="seccion-titulo">
+                                <lightning-icon icon-name="utility:zoomin" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                                <span>Desglose mensual · {detalleTitulo}</span>
+                            </div>
+                            <lightning-button-icon
+                                icon-name="utility:close"
+                                variant="bare"
+                                alternative-text="Cerrar"
+                                onclick={handleCerrarDetalle}>
+                            </lightning-button-icon>
+                        </div>
+                        <template lwc:if={detalleCargando}>
+                            <div class="slds-p-around_medium slds-text-align_center">
+                                <lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner>
+                            </div>
+                        </template>
+                        <template lwc:else>
+                            <lightning-datatable
+                                key-field="mes"
+                                data={detalleMensual}
+                                columns={detalleCols}
+                                hide-checkbox-column
+                                column-widths-mode="auto">
+                            </lightning-datatable>
+                        </template>
+                    </div>
+                </template>
+
+                <div class="slds-m-top_medium slds-text-align_right">
+                    <lightning-button label="Volver" onclick={handleVolver} class="slds-m-right_small" disabled={procesando}></lightning-button>
+                    <lightning-button
+                        variant="brand"
+                        label="Procesar"
+                        icon-name="utility:check"
+                        onclick={handleProcesar}
+                        disabled={procesando}>
+                    </lightning-button>
+                </div>
+            </div>
+        </template>
+
+        <!-- Paso 3: Procesamiento -->
+        <template lwc:if={esPaso3}>
+            <div class="slds-p-around_xx-large slds-text-align_center">
+                <template lwc:if={jobCompletado}>
+                    <lightning-icon icon-name="utility:success" alternative-text="OK" size="large" variant="success"></lightning-icon>
+                    <div class="slds-text-heading_medium slds-p-top_medium">Amortización completada</div>
+                    <div class="slds-text-color_weak slds-p-top_x-small">
+                        Los asientos y apuntes se han creado correctamente.
+                    </div>
+                </template>
+                <template lwc:else>
+                    <lightning-spinner alternative-text="Procesando" size="medium"></lightning-spinner>
+                    <div class="slds-text-heading_medium slds-p-top_xx-large">Procesando...</div>
+                    <div class="slds-text-color_weak slds-p-top_x-small">
+                        Estado: {estadoJobTxt}
+                    </div>
+                </template>
+                <div class="slds-m-top_medium">
+                    <lightning-button label="Iniciar otra amortización" onclick={handleNuevo} disabled={procesando}></lightning-button>
+                </div>
+            </div>
+        </template>
+
+    </lightning-card>
+</template>

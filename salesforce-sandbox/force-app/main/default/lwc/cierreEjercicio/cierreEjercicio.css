@@ -1,0 +1,117 @@
+.ce-container { background: #ffffff; border-radius: 0.4rem; padding: 1rem 1.25rem 1.5rem; font-size: 0.85rem; color: #16325c; }
+
+/* Header */
+.ce-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.ce-header-left { display: flex; align-items: center; gap: 0.75rem; }
+.ce-title { font-size: 1.25rem; font-weight: 700; color: #0b1f3a; margin: 0; }
+
+/* Filtros */
+.ce-filtros { display: grid; grid-template-columns: minmax(260px, 420px) 160px; gap: 1rem; align-items: end;
+    background: #f7f8fb; border: 1px solid #e5eaf2; border-radius: 0.4rem; padding: 0.8rem 1rem 1rem; margin-bottom: 1rem;
+    --lwc-formLabelFontSize: 0.68rem; }
+
+/* Estados */
+.ce-loading { display: flex; justify-content: center; padding: 2.5rem; position: relative; min-height: 6rem; }
+.ce-error { display: flex; align-items: center; gap: 0.5rem; background: #fef1f1; border: 1px solid #ea001e;
+    color: #ba0517; border-radius: 0.35rem; padding: 0.6rem 0.9rem; margin-bottom: 0.9rem; font-weight: 600; }
+
+/* Bloqueos */
+.ce-bloqueo { background: #fef1f1; border: 1px solid #f3b0b5; border-left: 4px solid #ea001e;
+    border-radius: 0.35rem; padding: 0.75rem 1rem; margin-bottom: 0.9rem; }
+.ce-bloqueo-title { display: flex; align-items: center; gap: 0.45rem; font-weight: 700; color: #ba0517; }
+.ce-bloqueo-list { margin: 0.5rem 0 0.25rem 1.4rem; }
+.ce-bloqueo-list li { margin: 0.2rem 0; }
+.ce-bloqueo-list a { color: #0070d2; font-weight: 600; }
+.ce-bloqueo-help { color: #8a616a; font-size: 0.78rem; margin-top: 0.3rem; }
+
+/* Avisos */
+.ce-aviso { display: flex; align-items: center; gap: 0.5rem; background: #fdf6e3; border: 1px solid #f0d998;
+    color: #7a5a00; border-radius: 0.35rem; padding: 0.55rem 0.9rem; margin-bottom: 0.9rem; }
+
+/* Resultado del ejercicio */
+.ce-resultado { display: flex; align-items: baseline; gap: 0.7rem; border-radius: 0.35rem;
+    padding: 0.6rem 1rem; margin-bottom: 1rem; border: 1px solid #e5eaf2; }
+.ce-resultado-pos { background: #f0f8f2; border-color: #bfe0c8; }
+.ce-resultado-neg { background: #fef1f1; border-color: #f3b0b5; }
+.ce-resultado-lbl { font-weight: 700; color: #0b1f3a; }
+.ce-resultado-val { font-size: 1.15rem; font-weight: 700; }
+.ce-resultado-pos .ce-resultado-val { color: #1d6f42; }
+.ce-resultado-neg .ce-resultado-val { color: #ba0517; }
+.ce-resultado-help { color: #8a93a3; font-size: 0.75rem; }
+
+/* Cards de asientos */
+.ce-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.9rem; margin-bottom: 1rem; }
+.ce-card { border: 1px solid #dfe5ec; border-top: 3px solid #14395c; border-radius: 0.4rem; padding: 0.75rem 0.9rem; background: #ffffff; }
+.ce-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+.ce-card-tipo { font-weight: 700; color: #14395c; }
+.ce-card-fecha { color: #8a93a3; font-size: 0.76rem; margin-top: 0.1rem; }
+.ce-card-tot { text-align: right; font-size: 0.78rem; color: #5b6b7d; white-space: nowrap; }
+.ce-card-tot strong { color: #14395c; }
+.ce-card-toggle { background: transparent; border: 0; color: #0070d2; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; padding: 0.4rem 0 0 0; }
+.ce-card-toggle:hover { text-decoration: underline; }
+.ce-card-tabla-wrap { max-height: 300px; overflow: auto; margin-top: 0.5rem; border-top: 1px solid #eef0f4; }
+.ce-card-tabla { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+.ce-card-tabla th { text-align: left; color: #8a93a3; font-weight: 700; padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid #e5eaf2; position: sticky; top: 0; background: #ffffff; }
+.ce-card-tabla td { padding: 0.25rem 0.4rem; border-bottom: 1px solid #f3f3f3; }
+.ce-card-tabla .ce-num { text-align: right; white-space: nowrap; }
+.ce-codigo { color: #9a7b33; font-family: 'SF Mono', Consolas, monospace; font-size: 0.72rem; }
+
+/* Acciones y éxito */
+.ce-actions { display: flex; justify-content: flex-end; }
+.ce-exito { background: #f0f8f2; border: 1px solid #bfe0c8; border-left: 4px solid #2e844a;
+    border-radius: 0.35rem; padding: 0.9rem 1.1rem; }
+.ce-exito-title { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #1d6f42; }
+.ce-exito-list { margin: 0.6rem 0 0.9rem 1.4rem; }
+.ce-exito-list li { margin: 0.25rem 0; }
+.ce-exito-list a { color: #0070d2; font-weight: 600; }
+
+/* Histórico de cierres */
+.ce-hist { margin-top: 1.4rem; border-top: 1px solid #e5eaf2; padding-top: 0.9rem; }
+.ce-hist-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+.ce-hist-title { display: flex; align-items: center; gap: 0.45rem; font-weight: 700; color: #0b1f3a;
+    font-size: 0.9rem; }
+.ce-hist-tabla { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.ce-hist-tabla th { text-align: left; color: #5f6b7c; font-weight: 700; font-size: 0.72rem;
+    letter-spacing: 0.05em; text-transform: uppercase; padding: 0.45rem 0.6rem; border-bottom: 2px solid #c9d4e5; }
+.ce-hist-tabla td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #f0f2f6; vertical-align: middle; }
+.ce-hist-tabla tr:hover td { background: #fbfcfe; }
+.ce-hist-emp { color: #16325c; font-weight: 600; }
+.ce-hist-ej { font-weight: 700; color: #14395c; white-space: nowrap; }
+.ce-hist-flecha { color: #8a97a8; font-weight: 400; }
+.ce-hist-chip { display: inline-block; background: #eef4fd; border: 1px solid #c9dcf5; color: #0b5cab;
+    border-radius: 0.85rem; padding: 0.08rem 0.6rem; font-size: 0.76rem; font-weight: 600;
+    text-decoration: none; font-family: 'SF Mono', Consolas, monospace; }
+.ce-hist-chip:hover { background: #dcebfc; text-decoration: none; }
+.ce-hist-falta { color: #b3bcc9; }
+.ce-hist-fecha { color: #8a97a8; white-space: nowrap; font-size: 0.76rem; }
+.ce-hist-estado { display: inline-block; border-radius: 0.85rem; padding: 0.08rem 0.6rem;
+    font-size: 0.74rem; font-weight: 700; }
+.ce-hist-ok   { background: #eaf7ee; color: #1d6f42; border: 1px solid #bfe0c8; }
+.ce-hist-warn { background: #fdf6e3; color: #7a5a00; border: 1px solid #f0d998; }
+.ce-hist-pend { background: #f1f3f7; color: #5f6b7c; border: 1px solid #d6dae3; }
+.ce-hist-empty { color: #9aa5b5; font-size: 0.85rem; padding: 0.8rem 0.2rem; }
+.ce-hist-actions { display: flex; align-items: center; }
+.ce-hist-th-accion { width: 9rem; }
+.ce-hist-accion { text-align: right; }
+.ce-hist-btn { background: #ffffff; border: 1px solid #0b5cab; color: #0b5cab;
+    border-radius: 0.85rem; padding: 0.18rem 0.75rem; font-size: 0.76rem; font-weight: 700;
+    cursor: pointer; white-space: nowrap; transition: all 0.12s ease; }
+.ce-hist-btn:hover { background: #0b5cab; color: #ffffff; }
+
+/* Panel de empresas excluidas */
+.ce-excl-panel { border: 1px solid #dfe5ec; border-radius: 0.4rem; background: #f7f8fb;
+    padding: 0.8rem 1rem; margin-bottom: 0.8rem; }
+.ce-excl-title { font-weight: 700; color: #0b1f3a; margin-bottom: 0.15rem; }
+.ce-excl-help { font-size: 0.78rem; color: #6b7280; margin-bottom: 0.6rem; }
+.ce-excl-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.25rem 1rem; margin-bottom: 0.7rem; }
+.ce-excl-item { display: flex; align-items: center; gap: 0.45rem; font-size: 0.85rem;
+    color: #16325c; cursor: pointer; }
+.ce-excl-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+/* Modal confirmación */
+.ce-confirm-header { background: #14395c; }
+.ce-confirm-header .slds-modal__title { color: #ffffff; }
+.ce-confirm-body { padding: 1.25rem; font-size: 0.9rem; line-height: 1.5; }

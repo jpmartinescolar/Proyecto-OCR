@@ -1,0 +1,117 @@
+<template>
+    <div class="lms-container">
+
+        <!-- FILTROS -->
+        <div class="lms-filtros">
+            <div class="lms-filtro-empresa lms-dd-wrap">
+                <lightning-input type="search" label="Empresa"
+                                 placeholder="Busca por nombre o número"
+                                 value={textoEmpresa} onchange={handleTextoEmpresa}
+                                 onfocus={handleEmpresaFocus} autocomplete="off"></lightning-input>
+                <template if:true={empresaAbierta}>
+                    <div class="lms-dd-backdrop" onclick={cerrarEmpresas}></div>
+                    <div class="lms-dd-panel">
+                        <template if:true={empresaMuestraBuscador}>
+                            <div class="lms-dd-search-wrap">
+                                <input type="search" class="lms-dd-search"
+                                       placeholder="Buscar otra empresa por nombre o número..."
+                                       value={busquedaEmpresa} oninput={handleBusquedaEmpresa} />
+                            </div>
+                        </template>
+                        <template for:each={empresasFiltradas} for:item="e">
+                            <div key={e.codigo} class="lms-cuenta-item" data-codigo={e.codigo} onclick={handleEmpresaClick}>
+                                <span class="lms-cuenta-codigo">{e.codigo}</span>
+                                <span class="lms-cuenta-nombre">{e.nombre}</span>
+                            </div>
+                        </template>
+                        <template if:true={empresasCargando}>
+                            <div class="lms-dd-cargando">Cargando empresas…</div>
+                        </template>
+                        <template if:true={empresasVacias}>
+                            <div class="lms-dd-cargando">No hay empresas que casen con la búsqueda.</div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+            <div class="lms-filtro-buscador">
+                <lightning-input type="search" label="Buscar cuenta"
+                                 placeholder="Por número o nombre"
+                                 value={busqueda} onchange={handleBusqueda}
+                                 disabled={sinEmpresa}></lightning-input>
+            </div>
+            <div class="lms-filtro-btn">
+                <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar"
+                                       title="Refrescar" variant="border-filled"
+                                       onclick={handleRefresh}></lightning-button-icon>
+            </div>
+        </div>
+
+        <!-- ERROR -->
+        <template if:true={error}>
+            <div class="lms-error">
+                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- LOADING -->
+        <template if:true={loading}>
+            <div class="lms-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+        </template>
+
+        <!-- ESTADO INICIAL -->
+        <template if:true={showInicial}>
+            <div class="lms-empty">
+                <lightning-icon icon-name="utility:filterList" size="small"></lightning-icon>
+                <span>Selecciona una empresa para ver su plan general contable.</span>
+            </div>
+        </template>
+
+        <!-- TABLA -->
+        <template if:true={showContenido}>
+            <div class="lms-card pgc-card">
+                <template if:true={hayFilas}>
+                    <div class="pgc-listado">
+                        <table class="lms-tabla">
+                            <thead>
+                                <tr>
+                                    <th class="lms-th-num lms-th-idx">#</th>
+                                    <th class="lms-th-izq">Cuenta</th>
+                                    <th class="lms-th-izq">Título</th>
+                                    <th class="lms-th-izq">CIF</th>
+                                    <th class="lms-th-izq">Código postal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={filasView} for:item="c">
+                                    <tr key={c.key} class="lms-row">
+                                        <td class="lms-idx">{c.idx}</td>
+                                        <td>
+                                            <a href="javascript:void(0);" class="pgc-cuenta-link"
+                                               data-codigo={c.codigo} onclick={handleCuentaMayor}
+                                               title="Abrir el libro mayor de esta cuenta">{c.codigo}</a>
+                                        </td>
+                                        <td class="lms-desc" title={c.titulo}>{c.titulo}</td>
+                                        <td>{c.cif}</td>
+                                        <td>{c.codigoPostal}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                        <template if:true={cargandoMas}>
+                            <div class="lms-dd-cargando">Cargando más cuentas…</div>
+                        </template>
+                    </div>
+                    <div class="pgc-pie">{piePagina}</div>
+                </template>
+                <template if:false={hayFilas}>
+                    <div class="lms-empty">
+                        <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                        <span>No hay cuentas que casen con la búsqueda.</span>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+    </div>
+</template>

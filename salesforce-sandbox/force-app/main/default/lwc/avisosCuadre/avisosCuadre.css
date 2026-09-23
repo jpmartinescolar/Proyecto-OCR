@@ -1,0 +1,44 @@
+/* Chips de resumen de avisos */
+.ss-chips-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; background: #ffffff; border-bottom: 1px solid #eef0f4; }
+.ss-chip { display: inline-flex; align-items: center; padding: 0.1rem 0.5rem; border-radius: 1rem; font-size: 0.68rem; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.ss-chip:hover { filter: brightness(0.96); }
+.ss-chip-eye { margin-right: 0.3rem; --slds-c-icon-color-foreground-default: #8e0413; }
+.ss-chip-ok  { background: #d4f5dc; color: #1f6638; border: 1px solid #a3e0b5; }
+.ss-chip-bad { background: #fdd9dc; color: #8e0413; border: 1px solid #f3b3b9; }
+.ss-chip-warn { background: #fff4d6; color: #6b5300; border: 1px solid #e6c34a; }
+
+/* Botón cerrar avisos */
+.ss-aviso-x { margin-left: auto; background: transparent; border: 0; color: inherit; font-size: 0.95rem; cursor: pointer; line-height: 1; padding: 0 0.2rem; opacity: 0.7; }
+.ss-aviso-x:hover { opacity: 1; }
+
+/* Mensajes de aviso */
+.ss-incidencias {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    background: #fff4d6; border: 1px solid #e6c34a; color: #6b5300;
+    padding: 0.6rem 1rem; margin: 0.75rem 1rem; border-radius: 0.3rem; font-size: 0.88rem;
+}
+.ss-inc-def {
+    display: block; margin-top: 0.5rem; font-size: 0.82rem; line-height: 1.35;
+}
+.ss-inc-caso { display: block; margin-top: 0.35rem; }
+.ss-inc-item { display: block; margin-left: 0.9rem; }
+.ss-descuadrados {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: #fdecea; border: 1px solid #ea8a82; color: #8e0413;
+    padding: 0.6rem 1rem; margin: 0.75rem 1rem; border-radius: 0.3rem; font-size: 0.88rem;
+}
+.ss-extractos {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: #eaf3fb; border: 1px solid #8bbbe6; color: #0b3a66;
+    padding: 0.6rem 1rem; margin: 0.75rem 1rem; border-radius: 0.3rem; font-size: 0.88rem;
+}
+.ss-aviso-asientos { margin-left: 0.35rem; font-weight: 700; }
+.ss-aviso-link { color: inherit; text-decoration: underline; font-weight: 700; margin: 0 0.25rem; cursor: pointer; }
+.ss-aviso-link:hover { text-decoration: none; }
+
+/* Mensaje de cuadre OK (verde) */
+.ss-cuadre-ok {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: #eafaef; border: 1px solid #a3e0b5; color: #1f6638;
+    padding: 0.6rem 1rem; margin: 0.75rem 1rem; border-radius: 0.3rem; font-size: 0.88rem;
+}

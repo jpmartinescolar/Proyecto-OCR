@@ -1,0 +1,34 @@
+.seccion {
+    width: 100%;
+}
+
+.seccion-titulo {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #16325c;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.25rem 0;
+    margin-bottom: 0.5rem;
+    border-bottom: 2px solid #d8dde6;
+}
+
+.contenedor-empresas {
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+/* Si la lista de empresas es larga, lightning-checkbox-group permite mostrarse en columnas
+   distribuyendo los checkboxes verticalmente con CSS columns. */
+.contenedor-empresas lightning-checkbox-group .slds-form-element__control {
+    column-count: 2;
+    column-gap: 1.5rem;
+}
+
+@media (min-width: 64em) {
+    .contenedor-empresas lightning-checkbox-group .slds-form-element__control {
+        column-count: 3;
+    }
+}

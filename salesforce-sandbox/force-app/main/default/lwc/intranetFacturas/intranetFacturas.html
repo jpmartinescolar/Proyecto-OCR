@@ -1,0 +1,85 @@
+<template>
+  <div class="ix">
+
+    <!-- MENÚ SUPERIOR -->
+    <header class="ix-top">
+      <div class="ix-top-in">
+        <div class="ix-brand">
+          <span class="ix-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M10 2l1.6 4.9a4 4 0 0 0 2.5 2.5L19 11l-4.9 1.6a4 4 0 0 0-2.5 2.5L10 20l-1.6-4.9a4 4 0 0 0-2.5-2.5L1 11l4.9-1.6a4 4 0 0 0 2.5-2.5z"/><path d="M18.5 13l.7 2.1a2 2 0 0 0 1.2 1.2l2.1.7-2.1.7a2 2 0 0 0-1.2 1.2l-.7 2.1-.7-2.1a2 2 0 0 0-1.2-1.2L14.5 17l2.1-.7a2 2 0 0 0 1.2-1.2z"/></svg></span>
+          <div><b>Rosetta Advisor</b><span>INTRANET DE CLIENTES</span></div>
+        </div>
+        <nav class="ix-menu">
+          <a class="active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>Facturas despacho</a>
+        </nav>
+        <div class="ix-user">
+          <span>Bienvenido</span>
+          <span class="ix-avatar">N</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="ix-wrap">
+      <h1 class="ix-h1">Facturas del despacho</h1>
+      <p class="ix-sub">Todas las facturas emitidas, ordenadas de más reciente a más antigua.</p>
+
+      <div class="ix-kpis">
+        <div class="ix-kpi"><div class="k">Total emitidas</div><div class="v">{totalLabel}</div></div>
+        <div class="ix-kpi"><div class="k">Mostradas</div><div class="v">{countLabel}</div></div>
+        <div class="ix-kpi"><div class="k">Pendientes (en vista)</div><div class="v">{pendingCount}</div></div>
+      </div>
+
+      <form class="ix-tools" onsubmit={handleSubmit}>
+        <div class="ix-search">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9CA9BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" placeholder="Buscar por nº de factura o cliente…" />
+        </div>
+        <button class="ix-btn" type="submit">Buscar</button>
+        <span class="ix-count">{countLabel} de {totalLabel}</span>
+      </form>
+
+      <template lwc:if={error}>
+        <div class="ix-error">{error}</div>
+      </template>
+      <template lwc:else>
+        <div class="ix-tablewrap">
+          <template lwc:if={loading}>
+            <div class="ix-loading">Cargando facturas…</div>
+          </template>
+          <template lwc:elseif={showEmpty}>
+            <div class="ix-empty">No se han encontrado facturas con ese criterio.</div>
+          </template>
+          <template lwc:else>
+            <div class="ix-scroll">
+              <table class="ix-table">
+                <thead>
+                  <tr>
+                    <th>Nº factura</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th class="num">Importe</th>
+                    <th>Estado</th>
+                    <th class="num">Pendiente</th>
+                    <th>Vencimiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template for:each={rows} for:item="r">
+                    <tr key={r.id}>
+                      <td class="nfac">{r.numero}</td>
+                      <td>{r.fecha}</td>
+                      <td class="cli">{r.cliente}</td>
+                      <td class="num ix-imp">{r.importe}</td>
+                      <td><span class="ix-badge">{r.estado}</span></td>
+                      <td class={r.pendienteClass}>{r.pendiente}</td>
+                      <td>{r.vencimiento}</td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>

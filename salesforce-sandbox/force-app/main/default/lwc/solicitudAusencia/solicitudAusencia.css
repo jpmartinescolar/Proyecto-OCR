@@ -1,0 +1,102 @@
+/* Ventana a un ancho intermedio entre el modal estándar y la mitad */
+.sa-contenedor { width: 92%; max-width: 44rem; min-width: 0; }
+
+.sa-card { background: #ffffff; border-radius: 0.9rem; overflow: hidden; position: relative; }
+
+/* Velo de procesando sobre toda la ventana mientras se guarda */
+.sa-procesando { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.65);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3rem; z-index: 10; }
+.sa-procesando-texto { font-size: 0.85rem; font-weight: 800; color: #0b3a75; }
+
+/* Cabecera */
+.sa-head { display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 1.2rem 1.4rem 0.9rem; border-bottom: 1px solid #eef0f4; }
+.sa-sobre { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #5f6b7c; }
+.sa-titulo { font-size: 1.15rem; font-weight: 800; color: #0b3a75; margin-top: 0.15rem; }
+.sa-obligatorio { font-size: 0.72rem; color: #8a97a8; }
+.sa-ast { color: #ba0517; font-weight: 800; }
+
+/* Cuerpo */
+.sa-cuerpo { padding: 1.1rem 1.4rem; max-height: 70vh; overflow-y: auto; }
+.sa-cargando { display: flex; justify-content: center; padding: 2rem; position: relative; min-height: 5rem; }
+.sa-fila { display: flex; gap: 1rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+.sa-col { flex: 1; min-width: 12rem; }
+.sa-label { font-size: 0.75rem; color: #3e3e3c; margin-bottom: 0.35rem; }
+
+/* Botones de cómputo días/horas */
+.sa-toggles { display: flex; gap: 0.5rem; }
+.sa-toggle { background: #ffffff; border: 1px solid #c9d4e5; color: #16325c; border-radius: 0.5rem;
+    padding: 0.45rem 0.9rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.sa-toggle:hover { background: #eef4fd; }
+.sa-toggle-activo { background: #0070d2; border-color: #0070d2; color: #ffffff; }
+.sa-toggle-activo:hover { background: #005fb2; }
+
+/* Aviso inicial hasta elegir tipo y cómputo */
+.sa-placeholder { border: 1px dashed #c9d4e5; border-radius: 0.6rem; background: #fbfcfe;
+    text-align: center; padding: 1.6rem 1rem; color: #8a97a8; font-size: 0.8rem; }
+.sa-placeholder-titulo { font-weight: 800; color: #5f6b7c; font-size: 0.9rem; margin-bottom: 0.25rem; }
+
+/* Saldo de vacaciones */
+.sa-saldo { background: #f0faf6; border: 1px solid #cdeede; border-radius: 0.6rem;
+    padding: 0.9rem 1rem; margin-bottom: 0.9rem; }
+.sa-saldo-head { display: flex; justify-content: space-between; font-size: 0.66rem; font-weight: 800;
+    letter-spacing: 0.06em; text-transform: uppercase; color: #16325c; margin-bottom: 0.6rem; }
+.sa-saldo-ej { color: #5f6b7c; text-transform: none; letter-spacing: normal; font-weight: 700; }
+.sa-saldo-nums { display: flex; gap: 2.5rem; }
+.sa-saldo-num { font-size: 1.3rem; font-weight: 800; color: #16325c; }
+.sa-num-azul { color: #0070d2; }
+.sa-num-verde { color: #1d6f42; }
+.sa-num-rojo { color: #ba0517; }
+.sa-saldo-sub { font-size: 0.7rem; color: #5f6b7c; }
+.sa-barra { background: #dcebe3; border-radius: 0.5rem; height: 0.45rem; margin-top: 0.7rem; overflow: hidden; }
+.sa-barra-fill { background: #0070d2; height: 100%; border-radius: 0.5rem; }
+.sa-saldo-nota { font-size: 0.68rem; color: #8a97a8; margin-top: 0.4rem; }
+
+/* Tabla de tramos que se crearán */
+.sa-tramos { border: 1px solid #eef0f4; border-radius: 0.6rem; overflow: hidden; margin-bottom: 0.9rem; }
+.sa-tramos-head { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #16325c; padding: 0.55rem 0.9rem; border-bottom: 1px solid #eef0f4; background: #fbfcfe; }
+.sa-tabla { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.sa-tabla th { text-align: left; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.05em;
+    text-transform: uppercase; color: #5f6b7c; padding: 0.45rem 0.9rem; border-bottom: 1px solid #eef0f4; }
+.sa-tabla td { padding: 0.45rem 0.9rem; border-bottom: 1px solid #f4f6f9; color: #16325c; }
+.sa-td-num { text-align: right; font-weight: 700; }
+.sa-total td { font-weight: 800; background: #fbfcfe; }
+
+/* Días excluidos del rango */
+.sa-excluidos { background: #fdf6e8; padding: 0.6rem 0.9rem; }
+.sa-excluidos-titulo { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em;
+    text-transform: uppercase; color: #b26a00; margin-bottom: 0.35rem; }
+.sa-chip { display: inline-block; background: #ffffff; border: 1px solid #ecd3a2; color: #7a5a10;
+    border-radius: 0.85rem; padding: 0.1rem 0.6rem; font-size: 0.7rem; font-weight: 700;
+    margin: 0 0.35rem 0.25rem 0; }
+
+/* Duración por horas */
+.sa-duracion { background: #f3f5fa; border: 1px solid #eef0f4; border-radius: 0.5rem;
+    padding: 0.6rem 0.9rem; font-size: 0.8rem; color: #16325c; margin-bottom: 0.9rem; }
+
+.sa-nota { font-size: 0.68rem; color: #8a97a8; margin: 0.25rem 0 0.9rem; }
+
+/* Errores y confirmación */
+.sa-error { display: flex; align-items: center; gap: 0.5rem; background: #fef1f1;
+    border: 1px solid #f3b0b5; color: #ba0517; border-radius: 0.5rem; padding: 0.6rem 0.9rem;
+    font-size: 0.78rem; font-weight: 700; margin-top: 0.6rem; }
+.sa-ok { background: #eafaf1; border: 1px solid #bce8d2; color: #1d6f42; font-weight: 700;
+    border-radius: 0.5rem; padding: 0.9rem 1rem; text-align: center; }
+.sa-ok-links { margin-top: 0.6rem; display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; }
+.sa-ok-link { color: #0b5cab; font-weight: 800; text-decoration: underline; cursor: pointer; }
+.sa-ok-link:hover { color: #005fb2; }
+
+/* Pie */
+.sa-pie { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    padding: 0.9rem 1.4rem; border-top: 1px solid #eef0f4; }
+.sa-pie-texto { font-size: 0.74rem; color: #5f6b7c; }
+.sa-pie-botones { display: flex; gap: 0.5rem; }
+.sa-btn { background: #ffffff; border: 1px solid #c9d4e5; color: #16325c; border-radius: 0.5rem;
+    padding: 0.5rem 1.2rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+.sa-btn:hover { background: #f3f5fa; }
+.sa-btn-primario { background: #0070d2; border-color: #0070d2; color: #ffffff; }
+.sa-btn-primario:hover { background: #005fb2; }
+.sa-btn-primario:disabled { background: #c9d4e5; border-color: #c9d4e5; cursor: default; }

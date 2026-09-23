@@ -1,0 +1,85 @@
+:host {
+    --navy: #0E3A66;
+    --blue: #0078FF;
+    --amber: #F4A93C;
+    --teal: #2DC0D6;
+    --slate: #4A5B70;
+    --line: #E6ECF3;
+    display: block;
+    background: #fff;
+}
+
+.lg {
+    padding: 52px 24px 80px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+.lg-wrap {
+    max-width: 820px;
+    margin: 0 auto;
+}
+.lg-eyebrow {
+    margin: 0 0 10px;
+    font-weight: 700;
+    font-size: .8rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--teal);
+}
+.lg-title {
+    margin: 0 0 30px;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    line-height: 1.12;
+    color: var(--navy);
+}
+.lg h3 {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--navy);
+    margin: 28px 0 10px;
+}
+.lg p {
+    margin: 0 0 14px;
+    color: #33404f;
+    font-size: 1.05rem;
+    line-height: 1.75;
+}
+.ph {
+    background: #FFF3D6;
+    color: #8a5a00;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.lg-foot {
+    margin-top: 44px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+}
+.lg-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 26px;
+    border-radius: 999px;
+    border: 1px solid var(--navy);
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: .95rem;
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.lg-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(14, 58, 102, .22);
+    background: #0a2f54;
+}
+
+@media (max-width: 640px) {
+    .lg { padding: 32px 18px 60px; }
+}

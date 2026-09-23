@@ -1,0 +1,4 @@
+<apex:page standardController="Account" showheader="false" sidebar="false">
+  <apex:iframe src="https://dub01.online.tableau.com/t/inversionesfinariam/views/FacturacinporCliente/ListadodeFacturas?:embed=y&:showShareOptions=false&:toolbar=false&:display_count=no&:showVizHome=no&CifDni (CabeceraAlbaranCliente)={! Account.CIF__c }" width="1550" height="8000">
+  </apex:iframe>
+</apex:page>

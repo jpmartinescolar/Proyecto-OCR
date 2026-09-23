@@ -1,0 +1,528 @@
+.pyg-container {
+    background: #f3f4f6; border-radius: 0.5rem;
+    font-family: 'Salesforce Sans', Arial, sans-serif; color: #16325c;
+}
+
+/* ===== HEADER ===== */
+.pyg-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; background: #ffffff; border-radius: 0.5rem 0.5rem 0 0; border-bottom: 1px solid #e5e5e5; }
+.pyg-header-left { display: flex; align-items: center; gap: 0.75rem; }
+.pyg-icon { background: #eef4fd; border-radius: 0.4rem; padding: 0.5rem; }
+.pyg-title { font-size: 1.1rem; font-weight: 700; color: #0b1f3a; margin: 0; }
+.pyg-subtitle { font-size: 0.8rem; color: #5f6b7c; margin: 0; }
+.pyg-header-right { display: flex; align-items: center; gap: 0.4rem; }
+
+/* ===== SUBMENÚS ===== */
+.lm-subtabs { display: flex; gap: 0.4rem; border-bottom: 2px solid #c9d4e5; }
+.ts-tabs { padding: 0.75rem 1.25rem 0; background: #ffffff; }
+.lm-subtab { background: #f3f5fa; border: 1px solid #c9d4e5; border-bottom: none; color: #5f6b7c;
+    border-radius: 0.4rem 0.4rem 0 0; padding: 0.45rem 1.2rem; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; position: relative; top: 2px; }
+.lm-subtab-active { background: #ffffff; color: #0b1f3a; border-color: #c9d4e5;
+    border-bottom: 2px solid #ffffff; }
+.lm-subtab:hover { color: #0b1f3a; }
+
+/* ===== ESTADOS ===== */
+.pyg-loading { position: relative; min-height: 5rem; padding: 2rem; }
+.pyg-error { background: #fef1f1; border: 1px solid #ea001e; color: #ba0517; padding: 0.75rem 1rem; display: flex; gap: 0.5rem; align-items: center; margin: 1rem; border-radius: 0.25rem; }
+.pyg-empty { padding: 1.5rem; text-align: center; color: #5f6b7c; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+.pyg-placeholder { display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 3.5rem 1.5rem; color: #9aa5b5; font-size: 0.95rem; text-align: center; background: #ffffff; }
+.pyg-placeholder strong { color: #6b7686; font-weight: 700; }
+.pyg-placeholder-icon { --slds-c-icon-color-foreground-default: #b3bcc9; }
+
+/* Botón de refresco por apartado */
+.ts-tab-actions { display: flex; justify-content: flex-end; padding: 0.6rem 0.9rem 0; }
+.ts-tab-actions-in { padding: 0 0 0.25rem; }
+
+/* ===== TARJETAS / LAYOUT ===== */
+.ts-top { display: grid; grid-template-columns: minmax(380px, 5fr) minmax(380px, 6fr); gap: 0.9rem; padding: 0.9rem; }
+.ts-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.9rem; padding: 0 0.9rem 0.9rem; align-items: start; }
+.ts-card { background: #ffffff; border: 1px solid #e2e6ec; border-radius: 0.5rem; padding: 0.9rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.ts-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; margin-bottom: 0.7rem; }
+.ts-card-title { font-weight: 700; color: #0b1f3a; font-size: 0.9rem; }
+.ts-card-sub { font-weight: 400; color: #8a97a8; font-size: 0.75rem; margin-left: 0.4rem; }
+.ts-card-total { font-weight: 800; color: #0b1f3a; font-size: 0.78rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* ===== BARRAS POR EMPRESA ===== */
+/* Grid: la 1ª columna se ajusta al nombre de empresa más largo (una sola línea) */
+.ts-bars { display: grid; grid-template-columns: max-content minmax(3rem, 1fr) max-content;
+    column-gap: 0.6rem; row-gap: 0.3rem; align-items: center; }
+.ts-bar-row { display: contents; }
+.ts-grp { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin: 0.6rem 0 0.35rem;
+    font-size: 0.76rem; font-weight: 700; color: #5f6b7c; }
+.ts-grp-click { cursor: pointer; }
+.ts-grp-click:hover { color: #0b5cab; text-decoration: underline; }
+.ts-grp-sel { color: #0b5cab; text-decoration: underline; }
+.ts-grp-total { font-variant-numeric: tabular-nums; color: #0b1f3a; font-size: 0.8rem; text-transform: none; letter-spacing: normal; }
+/* Total del grupo: fondo azulado si es positivo, rojo si es negativo */
+.ts-grp-total-pos { background: #0070d2; color: #ffffff; padding: 0.12rem 0.55rem; border-radius: 0.3rem; }
+.ts-grp-total-neg { background: #ba0517; color: #ffffff; padding: 0.12rem 0.55rem; border-radius: 0.3rem; }
+.ts-bar-name { font-size: 0.72rem; color: #16325c; white-space: nowrap; cursor: pointer; }
+.ts-bar-name:hover { color: #0b5cab; text-decoration: underline; }
+.ts-bar-sel { color: #0b5cab; font-weight: 700; }
+.ts-bar-track { flex: 1; display: flex; background: #eef0f4; border-radius: 3px; height: 16px; overflow: hidden; }
+.ts-bar-seg { height: 100%; }
+.ts-bar-val { min-width: 6.4rem; text-align: right; font-size: 0.7rem; font-weight: 700; color: #0b1f3a; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.ts-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin-top: 0.8rem; font-size: 0.74rem; color: #5f6b7c; }
+.ts-legend-item { display: inline-flex; align-items: center; gap: 0.35rem; font-variant-numeric: tabular-nums; }
+.ts-legend-swatch { width: 0.7rem; height: 0.7rem; border-radius: 0.15rem; display: inline-block; }
+.ts-legend-imp { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ===== GRÁFICO DE LÍNEA ===== */
+.ts-line-wrap { display: flex; gap: 0.5rem; }
+.ts-line-eje { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end;
+    font-size: 0.7rem; color: #8a97a8; padding-bottom: 1.2rem; font-variant-numeric: tabular-nums; }
+.ts-line-chart { flex: 1; min-width: 0; }
+.ts-line-svg { width: 100%; height: 220px; display: block; }
+.ts-line-area { fill: #e3f0fc; stroke: none; }
+.ts-line-path { fill: none; stroke: #0070d2; stroke-width: 1.25; }
+.ts-line-dot { fill: #0070d2; }
+.ts-line-svgwrap { position: relative; }
+/* Punto de hace un año y su línea horizontal */
+.ts-line-anio { stroke: #0070d2; stroke-width: 0.75; stroke-dasharray: 2 3; opacity: 0.85; }
+.ts-line-anio-dot { fill: #0070d2; }
+.ts-line-anio-lbl { position: absolute; transform: translate(-50%, 8px);
+    display: flex; flex-direction: column; align-items: center; text-align: center; line-height: 1.25;
+    background: rgba(255,255,255,0.8); padding: 0 0.25rem; border-radius: 0.25rem; pointer-events: none; }
+.ts-line-anio-imp { font-size: 0.66rem; font-weight: 700; color: #0b5cab; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ts-line-anio-txt { font-size: 0.6rem; color: #5f6b7c; white-space: nowrap; }
+
+/* Líneas de referencia (500.000 € y 1.000.000 €) */
+.ts-line-ref { stroke: #9aa5b5; stroke-width: 0.75; stroke-dasharray: 4 3; }
+.ts-line-ref-lbl { position: absolute; right: 2px; transform: translateY(-110%);
+    font-size: 0.62rem; color: #8a97a8; font-variant-numeric: tabular-nums;
+    background: rgba(255,255,255,0.75); padding: 0 0.2rem; pointer-events: none; }
+/* Marcador de cierre de año (31/12) con su acumulado */
+.ts-line-marker { fill: #ffffff; stroke: #0b5cab; stroke-width: 1.5; }
+.ts-line-marker-lbl { position: absolute; transform: translate(-50%, -115%);
+    display: flex; flex-direction: column; align-items: center; text-align: center; line-height: 1.25;
+    background: rgba(255,255,255,0.9); border: 1px solid #c9d4e5; border-radius: 0.25rem;
+    padding: 0 0.3rem; pointer-events: none; }
+.ts-line-marker-imp { font-size: 0.66rem; font-weight: 700; color: #0b1f3a;
+    white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ts-line-marker-txt { font-size: 0.6rem; color: #5f6b7c; white-space: nowrap; }
+.ts-line-xlabels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #8a97a8; margin-top: 0.25rem; }
+
+/* ===== COLUMNAS DE LISTADOS ===== */
+.ts-col-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+.ts-col-title { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #0b1f3a;
+    font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; }
+.ts-col-icon { --slds-c-icon-color-foreground-default: #5f6b7c; }
+.ts-col-count { font-size: 0.72rem; color: #8a97a8; text-transform: none; letter-spacing: normal;
+    font-weight: 400; margin-left: 0.15rem; }
+.ts-col-right { display: flex; align-items: baseline; gap: 0.35rem; white-space: nowrap; }
+/* La palabra "Total" siempre en oscuro; solo el importe cambia de color */
+.ts-col-total-lbl { font-size: 0.78rem; font-weight: 800; color: #0b1f3a; }
+.ts-col-total-head { font-size: 0.78rem; font-weight: 800; color: #0b1f3a; font-variant-numeric: tabular-nums; }
+/* Buscador de cada columna */
+.ts-search-input { width: 100%; height: 1.8rem; background: #fbfcfe; border: 1px solid #c9d4e5;
+    border-radius: 0.35rem; padding: 0 0.6rem; font-size: 0.78rem; color: #16325c; }
+.ts-search-input:focus { outline: 2px solid #1589ee; outline-offset: 0; }
+.ts-search-input::placeholder { color: #9aa5b5; }
+.ts-col-search { margin-bottom: 0.35rem; }
+.ts-item { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+    padding: 0.5rem 0; border-bottom: 1px solid #f0f2f6; }
+.ts-item:last-of-type { border-bottom: none; }
+.ts-item-info { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.ts-item-line { display: flex; align-items: baseline; gap: 0.45rem; min-width: 0; }
+.ts-item-banco { font-size: 0.84rem; font-weight: 700; color: #0b5cab; text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ts-item-banco:hover { text-decoration: underline; }
+.ts-item-sub { font-size: 0.74rem; color: #5f6b7c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ts-item-iban { font-size: 0.72rem; color: #8a97a8; font-family: 'SF Mono', Consolas, monospace;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ts-item-meta { font-size: 0.68rem; color: #8a97a8; white-space: nowrap; flex-shrink: 0;
+    font-variant-numeric: tabular-nums; }
+.ts-item-saldo { font-size: 0.76rem; font-weight: 700; color: #0b1f3a; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ts-neg { color: #ba0517; }
+.ts-pos { color: #0070d2; }
+/* Cuadrado rojo con los movimientos no conciliados; verde si está todo conciliado */
+.ts-badge-pend { display: inline-block; text-align: center; background: #ba0517;
+    color: #ffffff; border-radius: 0.25rem; padding: 0.05rem 0.35rem; font-size: 0.62rem;
+    font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; line-height: 1.4;
+    white-space: nowrap; text-transform: none; letter-spacing: normal; }
+.ts-badge-ok { display: inline-block; text-align: center; background: #2e844a;
+    color: #ffffff; border-radius: 0.25rem; padding: 0.05rem 0.35rem; font-size: 0.62rem;
+    font-weight: 800; flex-shrink: 0; line-height: 1.4;
+    white-space: nowrap; text-transform: none; letter-spacing: normal; }
+
+/* ===== EFECTOS CLIENTES ===== */
+.ts-efc-wrap { padding: 0.25rem 0.9rem 0.9rem; }
+.ts-efc-tabs2 { margin-bottom: 0.9rem; }
+/* Subpestañas separadas de las pestañas superiores (Extraordinario y Efectos clientes) */
+.ts-extra-tabs { margin-top: 1.1rem; }
+/* Botón de refresco integrado a la derecha de las subpestañas */
+.ts-efc-tabs-right { margin-left: auto; align-self: center; position: relative; top: -2px; }
+.pyg-toggle { background: #ffffff; border: 1px solid #c9d4e5; color: #16325c; padding: 0.18rem 0.7rem;
+    border-radius: 0.25rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.1s ease; }
+.pyg-toggle:hover { background: #eef4fd; }
+.pyg-toggle-active { background: #0070d2; border-color: #005fb2; color: #ffffff; }
+/* La pestaña activa conserva el fondo azul aunque el ratón esté encima */
+.pyg-toggle-active:hover { background: #005fb2; color: #ffffff; }
+.ts-efc-filtros { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.75rem; align-items: end; }
+.ts-efc-filtros-btn { display: flex; align-items: flex-end; }
+.ts-efl-card { margin-top: 0.9rem; }
+/* Total de importes del listado generado, junto al título */
+.ts-efl-total { margin-left: 0.6rem; font-weight: 800; font-variant-numeric: tabular-nums; color: #0b1f3a; }
+.ts-efl-head-der { display: flex; align-items: center; gap: 0.75rem; }
+.ts-efl-vermas { display: flex; justify-content: center; padding: 0.6rem 0 0.2rem; }
+/* El listado ocupa todo el ancho: cabeceras en dos líneas (palabras apiladas),
+   celdas de datos en UNA línea con puntos suspensivos y columnas compactas */
+.ts-efl-tabla { table-layout: fixed; font-size: 0.68rem; }
+.ts-efl-tabla thead th { white-space: normal; font-size: 0.58rem; padding: 0.25rem 0.25rem; width: 7%;
+    vertical-align: bottom; line-height: 1.15; letter-spacing: 0.02em; }
+.ts-efl-tabla thead th:nth-child(1)  { width: 6.5%; }  /* nº efecto */
+.ts-efl-tabla thead th:nth-child(5)  { width: 15%; }   /* cliente */
+.ts-efl-tabla thead th:nth-child(7)  { width: 9%; }    /* grupo empresarial */
+.ts-efl-tabla thead th:nth-child(8)  { width: 15%; }   /* empresa titular */
+.ts-efl-tabla thead th:nth-child(9)  { width: 8.5%; }  /* estado */
+.ts-efl-tabla thead th:nth-child(10) { width: 9.5%; }  /* forma de pago */
+.ts-efl-tabla thead th:nth-child(11) { width: 9%; }    /* agrupación */
+.ts-efl-tabla tbody td { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding: 0.28rem 0.25rem; vertical-align: middle; }
+.ts-efl-th-izq { text-align: left !important; }
+.ts-efl-num { text-align: right !important; font-variant-numeric: tabular-nums; }
+.ts-efl-link { color: #0b5cab; font-weight: 600; text-decoration: none; }
+.ts-efl-link:hover { text-decoration: underline; }
+.ts-efl-iban { font-family: 'SF Mono', Consolas, monospace; font-size: 0.62rem; }
+/* Chips de estado */
+.ts-chip { display: inline-block; border-radius: 0.85rem; padding: 0.05rem 0.5rem; font-size: 0.62rem;
+    font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+.ts-chip-ok     { background: #eaf7ee; color: #1d6f42; border: 1px solid #bfe0c8; }
+.ts-chip-warn   { background: #fdf6e3; color: #7a5a00; border: 1px solid #f0d998; }
+.ts-chip-bad    { background: #fef1f1; color: #ba0517; border: 1px solid #f3b0b5; }
+.ts-chip-neutro { background: #f1f3f7; color: #5f6b7c; border: 1px solid #d6dae3; }
+.ts-chip-info   { background: #eef4fd; color: #0b5cab; border: 1px solid #c9d4e5; }
+.ts-efc-kpis { display: grid; grid-template-columns: minmax(11rem, max-content) minmax(11rem, max-content) 1fr;
+    gap: 0.9rem; margin-bottom: 0.9rem; align-items: stretch; }
+@media (max-width: 1100px) {
+    .ts-efc-kpis { grid-template-columns: 1fr 1fr; }
+    .ts-efc-kpi-ant { grid-column: 1 / -1; }
+}
+/* Los dos KPIs pequeños centran su contenido en vertical para no dejar hueco abajo */
+.ts-efc-kpi { display: flex; flex-direction: column; justify-content: center; }
+.ts-efc-kpi-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #5f6b7c; margin-bottom: 0.35rem; }
+.ts-efc-kpi-note { font-weight: 400; text-transform: none; letter-spacing: normal; color: #8a97a8;
+    font-size: 0.72rem; margin-left: 0.3rem; }
+.ts-efc-kpi-imp { font-size: 1.05rem; font-weight: 800; color: #0b1f3a; font-variant-numeric: tabular-nums; }
+.ts-efc-kpi-sub { font-size: 0.72rem; color: #8a97a8; margin-top: 0.15rem; }
+.ts-efc-tramos { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: 0.6rem; }
+.ts-efc-tramo { background: #fbfcfe; border: 1px solid #eef0f4; border-radius: 0.4rem; padding: 0.45rem 0.6rem;
+    cursor: pointer; transition: border-color 0.1s ease, background 0.1s ease; }
+.ts-efc-tramo:hover { background: #fffbe6; border-color: #e6d28a; }
+.ts-efc-tramo-rango { font-size: 0.68rem; font-weight: 700; color: #5f6b7c; }
+.ts-efc-tramo-imp { font-size: 0.8rem; font-weight: 800; color: #0b1f3a; font-variant-numeric: tabular-nums; margin-top: 0.1rem; }
+.ts-efc-tramo-num { font-size: 0.66rem; color: #8a97a8; margin: 0.05rem 0 0.3rem; }
+.ts-efc-tramo-track { background: #eef0f4; border-radius: 2px; height: 4px; overflow: hidden; }
+.ts-efc-tramo-bar { height: 100%; background: #0070d2; border-radius: 2px; }
+.ts-efc-tramo-vacio .ts-efc-tramo-imp { color: #b3bcc9; }
+.ts-efc-tramo-vacio .ts-efc-tramo-rango { color: #b3bcc9; }
+.ts-efc-scroll { overflow-x: auto; }
+.ts-efc-tabla { width: 100%; border-collapse: collapse; font-size: 0.76rem; font-variant-numeric: tabular-nums; }
+.ts-efc-tabla th { color: #5f6b7c; font-weight: 700; font-size: 0.66rem; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.35rem 0.5rem; text-align: right; border-bottom: 2px solid #c9d4e5; white-space: nowrap; }
+.ts-efc-th-emp { text-align: left !important; min-width: 15rem; }
+.ts-efc-suphead th { border-bottom: none; padding-bottom: 0; }
+/* Bandas de agrupación de columnas */
+.ts-efc-band { font-size: 0.62rem !important; letter-spacing: 0.08em !important;
+    padding: 0.35rem 0.75rem !important; border-radius: 0.35rem 0.35rem 0 0; }
+.ts-efc-band-cobro { background: #14395c; color: #ffffff !important; text-align: center !important; }
+.ts-efc-band-estados { background: #eef0f4; color: #5f6b7c !important; text-align: left !important; }
+/* Bloque "Situación de cobro": fondos por columna y separación con los estados */
+.ts-efc-col-total, .ts-efc-row .ts-efc-col-total { background: #f4f5f7; }
+.ts-efc-col-plazo, .ts-efc-row .ts-efc-col-plazo { background: #f0f8f2; }
+.ts-efc-col-venc,  .ts-efc-row .ts-efc-col-venc  { background: #fdf1f1; }
+.ts-efc-col-abonar, .ts-efc-row .ts-efc-col-abonar { background: #fff4ec; }
+.ts-efc-col-monit,  .ts-efc-row .ts-efc-col-monit  { background: #f3effc; }
+.ts-efc-gapr { border-right: 0.75rem solid #ffffff; }
+.ts-efc-row td { padding: 0.35rem 0.5rem; border-bottom: 1px solid #f0f2f6; white-space: nowrap; }
+.ts-efc-nombre { text-align: left; }
+.ts-efc-num { text-align: right; }
+.ts-efc-vacio { color: #b3bcc9; }
+.ts-efc-count { color: #8a97a8; font-weight: 400; font-size: 0.68rem; text-transform: none; letter-spacing: normal; }
+/* Cuadro de antigüedad: celda con el numero de efectos y tramos sin datos */
+.ts-efc-row td.ts-efc-count-cell { color: #5f6b7c; font-weight: 400; }
+.ts-efc-emp.ts-efc-ant-vacia .ts-efc-nombre { color: #b3bcc9; font-weight: 400; }
+.ts-efc-grupo td { background: #fbfcfe; font-weight: 800; color: #16325c; }
+.ts-efc-grupo .ts-efc-nombre { text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.05em; }
+.ts-efc-emp .ts-efc-nombre { font-weight: 700; color: #0b1f3a; }
+.ts-efc-forma td { font-size: 0.72rem; }
+.ts-efc-forma .ts-efc-nombre { padding-left: 1.4rem; color: #5f6b7c; }
+/* Celdas clicables: abren el listado de efectos prefiltrado */
+/* Filas más juntas en el cuadro de total pendiente por empresa titular */
+.ts-efc-tabla-compacta .ts-efc-row td { padding-top: 0.18rem; padding-bottom: 0.18rem; }
+
+/* Multiselección (filtro de estado del listado de efectos) */
+.ts-ms-wrap { position: relative; }
+.ts-ms-trigger { width: 100%; height: 1.9rem; display: flex; align-items: center; justify-content: space-between;
+    gap: 0.4rem; background: #ffffff; border: 1px solid #c9d4e5; border-radius: 0.35rem;
+    padding: 0 0.6rem; font-size: 0.8rem; color: #16325c; cursor: pointer; }
+.ts-ms-trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ts-ms-caret { color: #8a97a8; }
+.ts-ms-backdrop { position: fixed; inset: 0; z-index: 800; }
+.ts-ms-panel { position: absolute; z-index: 900; top: 100%; left: 0; min-width: 14rem; margin-top: 0.2rem;
+    background: #ffffff; border: 1px solid #c9d4e5; border-radius: 0.4rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18); padding: 0.4rem; }
+.ts-ms-actions { display: flex; gap: 0.4rem; align-items: center; padding: 0 0.3rem 0.35rem;
+    font-size: 0.72rem; color: #8a97a8; border-bottom: 1px solid #eef0f4; }
+.ts-ms-link { background: none; border: none; color: #0b5cab; font-size: 0.74rem; font-weight: 700;
+    cursor: pointer; padding: 0; }
+.ts-ms-link:hover { text-decoration: underline; }
+.ts-ms-list { max-height: 14rem; overflow-y: auto; padding: 0.25rem 0; }
+.ts-ms-option { display: flex; align-items: center; gap: 0.5rem; padding: 0.28rem 0.4rem;
+    font-size: 0.78rem; color: #16325c; cursor: pointer; border-radius: 0.25rem; }
+.ts-ms-option:hover { background: #eef4fd; }
+.ts-ms-check { width: 0.85rem; height: 0.85rem; border: 1px solid #b3bcc9; border-radius: 0.2rem;
+    flex-shrink: 0; background: #ffffff; }
+.ts-ms-option-selected .ts-ms-check { background: #0070d2; border-color: #005fb2;
+    box-shadow: inset 0 0 0 2px #ffffff; }
+.ts-ms-option-selected .ts-ms-label { font-weight: 700; }
+.ts-ms-foot { display: flex; justify-content: flex-end; padding: 0.35rem 0.3rem 0.1rem;
+    border-top: 1px solid #eef0f4; }
+.ts-ms-apply { font-size: 0.74rem; }
+
+/* Píldora azul/roja del total por empresa titular en la visión de efectos clientes */
+.ts-efc-pill { display: inline-block; color: #ffffff; border-radius: 0.3rem; padding: 0 0.4rem;
+    font-size: inherit; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.4; }
+.ts-efc-pill-pos { background: #0070d2; }
+.ts-efc-pill-neg { background: #ba0517; }
+.ts-efc-clickcell { cursor: pointer; }
+.ts-efc-clickcell:hover { background: #fffbe6 !important; }
+th.ts-efc-enplazo-h { color: #1d6f42 !important; }
+th.ts-efc-vencido-h { color: #ba0517 !important; }
+th.ts-efc-abonar-h  { color: #b3540d !important; }
+th.ts-efc-monit-h   { color: #6b3fc4 !important; }
+.ts-efc-totalrow td { border-top: 2px solid #0070d2; background: #eef4fd; font-weight: 800; }
+.ts-efc-totalrow .ts-efc-nombre { text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.05em; color: #0b1f3a; }
+
+/* El color por signo/columna debe ganar al color base de KPIs, tramos y filas de grupo/total */
+.ts-efc-kpi-imp.ts-neg, .ts-efc-tramo-imp.ts-neg,
+.ts-efc-grupo td.ts-neg, .ts-efc-totalrow td.ts-neg { color: #ba0517; }
+.ts-efc-kpi-imp.ts-pos, .ts-efc-tramo-imp.ts-pos,
+.ts-efc-grupo td.ts-pos, .ts-efc-totalrow td.ts-pos { color: #0070d2; }
+
+/* ===== CONCILIACIÓN BANCARIA ===== */
+/* Las líneas de medios de pago abren la pantalla de conciliación */
+.ts-item-click { cursor: pointer; margin: 0 -0.5rem; padding-left: 0.5rem; padding-right: 0.5rem; border-radius: 0.35rem; }
+.ts-item-click:hover { background: #eef4fd; }
+
+/* Cabecera: volver + pestañas + cuenta y saldo */
+.ts-conc-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    padding: 0.9rem 1.25rem; background: #ffffff; border-radius: 0.5rem 0.5rem 0 0; border-bottom: 1px solid #e5e5e5; }
+.ts-conc-top-left { display: flex; align-items: center; gap: 0.75rem; }
+.ts-conc-toggles { display: flex; gap: 0.4rem; }
+.ts-conc-top-right { display: flex; align-items: center; gap: 1.25rem; min-width: 0; }
+.ts-conc-cuenta { text-align: right; min-width: 0; }
+.ts-conc-banco { font-size: 0.86rem; font-weight: 800; color: #0b1f3a; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+.ts-conc-emp { font-weight: 400; color: #5f6b7c; }
+.ts-conc-iban { font-size: 0.7rem; color: #8a97a8; font-family: 'SF Mono', Consolas, monospace; }
+.ts-conc-saldo { text-align: right; border-left: 1px solid #e2e6ec; padding-left: 1.25rem; }
+.ts-conc-saldo-lbl { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #8a97a8; }
+.ts-conc-saldo-imp { font-size: 1rem; font-weight: 800; color: #0b1f3a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Dos paneles: movimientos y efectos */
+.ts-conc-grid { display: grid; grid-template-columns: minmax(380px, 1fr) minmax(380px, 1fr);
+    gap: 0.9rem; padding: 0.9rem; align-items: start; }
+@media (max-width: 1100px) { .ts-conc-grid { grid-template-columns: 1fr; } }
+.ts-conc-card-head { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+.ts-conc-card-head .ts-col-title { margin-right: auto; }
+/* Título + botón Nuevo movimiento agrupados a la izquierda; el resto queda a la derecha */
+.ts-conc-title-grp { display: inline-flex; align-items: center; gap: 0.75rem; margin-right: auto; }
+.ts-conc-title-grp .ts-col-title { margin-right: 0; }
+.ts-conc-pend { font-size: 0.72rem; color: #5f6b7c; white-space: nowrap; }
+.ts-conc-pend-badge { display: inline-block; min-width: 1.2rem; text-align: center; background: #fef1f1;
+    color: #ba0517; border: 1px solid #f3b0b5; border-radius: 0.85rem; padding: 0 0.35rem;
+    font-weight: 800; font-variant-numeric: tabular-nums; }
+.ts-conc-filtros { display: inline-flex; gap: 0.25rem; }
+.ts-conc-filtros .pyg-toggle { font-size: 0.72rem; padding: 0.12rem 0.55rem; }
+
+/* Las dos cajas tienen SIEMPRE la misma altura: cada una hace scroll por dentro */
+.ts-conc-panel { display: flex; flex-direction: column; height: 38rem; position: relative; overflow-y: auto; }
+/* Vista de propuesta: sin altura fija ni recorte, para que el desplegable
+   del buscador de cuentas (resultados, crear cuenta...) se muestre completo */
+.ts-conc-panel-libre { height: auto; min-height: 38rem; overflow: visible; }
+/* Velo "se está creando" sobre el panel mientras se guarda la conciliación */
+.ts-conc-guardando { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.85); z-index: 20;
+    display: flex; align-items: center; justify-content: center; border-radius: 0.5rem; }
+.ts-conc-guardando-box { position: relative; padding-top: 3rem; text-align: center; min-height: 5rem; }
+.ts-conc-guardando-txt { font-size: 0.82rem; color: #16325c; font-weight: 700; line-height: 1.5; }
+.ts-conc-panel .ts-conc-efc-foot, .ts-conc-panel .ts-conc-mov-foot { margin-top: auto; }
+.ts-conc-panel .pyg-placeholder { flex: 1 1 auto; }
+
+/* Tablas de la pantalla de conciliación: letra algo más pequeña para que quepa más */
+.ts-conc-tabla { font-size: 0.7rem; }
+.ts-conc-tabla th { font-size: 0.6rem; }
+.ts-conc-tabla tbody td { vertical-align: middle; }
+.ts-conc-mov { cursor: pointer; }
+.ts-conc-mov td { padding: 0.22rem 0.35rem; border-bottom: 1px solid #f0f2f6; white-space: nowrap; }
+.ts-conc-mov:hover td { background: #fffbe6; }
+.ts-conc-mov-sel td, .ts-conc-mov-sel:hover td { background: #eef4fd; }
+.ts-conc-mov-sel td:first-child { box-shadow: inset 3px 0 0 #0070d2; }
+/* Remesa marcada para conciliar un movimiento FATIR */
+.ts-conc-row-sel td, .ts-conc-row-sel:hover td { background: #eef4fd; }
+.ts-conc-row-sel td:first-child { box-shadow: inset 3px 0 0 #0070d2; }
+/* Filtros de la caja de movimientos: fechas, texto e importe */
+.ts-conc-mov-filtros { display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(7rem, 1fr) minmax(10rem, 2fr) minmax(6rem, 1fr);
+    gap: 0.6rem; margin-bottom: 0.6rem; align-items: end; }
+/* Para ver más movimientos se hace scroll dentro de la caja */
+.ts-conc-mov-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.ts-conc-mov-scroll thead th { position: sticky; top: 0; background: #ffffff; z-index: 1; }
+.ts-conc-td-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ts-conc-td-fecha { font-variant-numeric: tabular-nums; color: #16325c; }
+.ts-conc-td-concepto { max-width: 9rem; overflow: hidden; text-overflow: ellipsis; }
+.ts-conc-td-masdatos { max-width: 11rem; overflow: hidden; text-overflow: ellipsis; color: #5f6b7c; font-size: 0.66rem; }
+.ts-conc-imp { font-weight: 700; }
+.ts-conc-td-saldo { color: #5f6b7c; }
+.ts-conc-td-estado { text-align: left; }
+/* Icono PDF (documento con banda): rojo si el movimiento tiene un PDF adjunto, gris si no */
+.ts-conc-td-pdf { text-align: left; }
+.ts-conc-pdf-link { display: inline-block; line-height: 0; }
+.ts-conc-pdf-svg { width: 1.4rem; height: 1.4rem; display: inline-block; vertical-align: middle; }
+.ts-conc-pdf-on { color: #ba0517; }
+.ts-conc-pdf-link:hover .ts-conc-pdf-on { color: #8e0412; }
+.ts-conc-pdf-off { color: #c9d4e5; }
+.ts-conc-mov-foot { font-size: 0.7rem; color: #8a97a8; padding-top: 0.5rem; border-top: 1px solid #f0f2f6;
+    margin-top: 0.25rem; }
+
+/* Panel de efectos */
+.ts-conc-efc-filtros { display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(10rem, 2fr) minmax(8rem, 1fr);
+    gap: 0.6rem; margin-bottom: 0.6rem; align-items: end; }
+.ts-conc-ph { padding: 2rem 1rem; }
+.ts-conc-efc-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.ts-conc-efc-scroll thead th { position: sticky; top: 0; background: #ffffff; z-index: 1; }
+/* En la propuesta / conciliado los bloques van seguidos, sin hueco intermedio */
+.ts-conc-prop-scroll { max-height: 13rem; overflow-y: auto; }
+.ts-conc-prop-scroll thead th { position: sticky; top: 0; background: #ffffff; z-index: 1; }
+.ts-conc-panel .ts-conc-efc-foot.ts-conc-foot-compacto { margin-top: 0.6rem; }
+.ts-conc-th-check { width: 1.6rem; }
+.ts-conc-td-check input { cursor: pointer; }
+.ts-conc-td-emp { max-width: 13rem; }
+.ts-conc-emp-nombre { font-weight: 700; color: #0b1f3a; overflow: hidden; text-overflow: ellipsis; }
+.ts-conc-emp-sub { font-size: 0.62rem; color: #8a97a8; overflow: hidden; text-overflow: ellipsis;
+    display: flex; align-items: baseline; gap: 0.45rem; }
+.ts-conc-emp-cta { color: #5f6b7c; font-family: 'SF Mono', Consolas, monospace; white-space: nowrap; }
+.ts-conc-veref { color: #0b5cab; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.ts-conc-veref:hover { text-decoration: underline; }
+.ts-conc-efe-imp { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ts-conc-exacto { display: inline-block; background: #eaf7ee; color: #1d6f42; border: 1px solid #bfe0c8;
+    border-radius: 0.85rem; padding: 0 0.45rem; font-size: 0.6rem; font-weight: 700; }
+/* Efecto marcado en una búsqueda anterior: se mantiene fijado arriba */
+.ts-conc-efe-pin td { background: #eef4fd; }
+.ts-conc-td-dividir { text-align: right; }
+.ts-conc-efc-foot { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    padding-top: 0.6rem; border-top: 1px solid #f0f2f6; margin-top: 0.6rem; font-size: 0.74rem; color: #5f6b7c; }
+.ts-conc-tot { white-space: nowrap; }
+.ts-conc-tot-imp { font-weight: 800; color: #0b1f3a; font-variant-numeric: tabular-nums; }
+.ts-conc-tot-ok { color: #1d6f42; }
+.ts-conc-sel-lbl { margin-left: auto; font-size: 0.7rem; color: #8a97a8; white-space: nowrap; }
+
+/* Propuesta de asiento contable dentro del panel derecho (solo estructura) */
+.ts-conc-prop-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+    border-top: 2px solid #c9d4e5; padding-top: 0.6rem; margin-top: 0.6rem; }
+.ts-conc-cuadrado { background: #eaf7ee; color: #1d6f42; border: 1px solid #bfe0c8; border-radius: 0.85rem;
+    padding: 0.05rem 0.6rem; font-size: 0.68rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ts-conc-descuadre { background: #fef1f1; color: #ba0517; border-color: #f3b0b5; }
+/* Banda verde de un movimiento ya conciliado (solo consulta, sin volver atrás) */
+.ts-conc-banner-ok { display: flex; align-items: center; gap: 0.5rem; background: #2e844a; color: #ffffff;
+    border-radius: 0.4rem; padding: 0.5rem 0.75rem; margin-bottom: 0.6rem; }
+.ts-conc-banner-icon { --slds-c-icon-color-foreground-default: #ffffff; }
+.ts-conc-banner-txt { font-weight: 800; font-size: 0.8rem; letter-spacing: 0.03em; text-transform: uppercase; }
+.ts-conc-banner-count { margin-left: auto; font-size: 0.72rem; opacity: 0.9; }
+.ts-conc-prop-vacio { text-align: center; color: #9aa5b5; font-size: 0.78rem; padding: 1.25rem 1rem; }
+/* Listado de conciliaciones bancarias del extracto (solo lectura) */
+.ts-conc-conc-scroll { max-height: 9rem; overflow-y: auto; }
+.ts-conc-conc-scroll thead th { position: sticky; top: 0; background: #ffffff; z-index: 1; }
+/* Tabla de líneas del asiento editable: sin scroll propio para que el
+   desplegable del buscador de cuentas se vea entero (el panel hace el scroll) */
+.ts-conc-asiento-edit { overflow: visible; }
+/* Tabla de apuntes ya realizados (solo lectura) */
+.ts-conc-asiento-scroll { max-height: 12rem; overflow-y: auto; }
+.ts-conc-asiento-scroll thead th { position: sticky; top: 0; background: #ffffff; z-index: 1; }
+.ts-conc-asiento-row td { padding: 0.2rem 0.3rem; border-bottom: 1px solid #f0f2f6; vertical-align: middle; }
+.ts-conc-th-cta { min-width: 7rem; }
+/* Los importes del debe y el haber nunca parten en dos líneas */
+.ts-conc-tabla .ts-efc-num { white-space: nowrap; }
+/* El número de la remesa tampoco se parte */
+.ts-conc-td-rem { white-space: nowrap; }
+.ts-conc-cta-cell { display: flex; align-items: center; gap: 0.25rem; }
+.ts-conc-cta-cell lightning-record-picker { flex: 1; min-width: 0; }
+.ts-conc-td-imp { width: 7rem; }
+.ts-conc-td-imp lightning-input { text-align: right; }
+.ts-conc-td-desc { min-width: 10rem; }
+/* Cabecera verde del asiento contable ya realizado, con el nº de asiento a la derecha */
+.ts-conc-prop-head-ok { background: #2e844a; border-top: none; border-radius: 0.4rem; padding: 0.5rem 0.75rem; color: #ffffff; }
+.ts-conc-prop-head-ok .ts-conc-banner-txt { color: #ffffff; }
+.ts-conc-prop-head-ok .ts-conc-banner-count { color: #ffffff; opacity: 0.95; }
+.ts-conc-asiento-link { color: #ffffff; font-weight: 800; text-decoration: underline; font-variant-numeric: tabular-nums; }
+.ts-conc-apunte-desc { max-width: 12rem; overflow: hidden; text-overflow: ellipsis; }
+/* Apuntes del asiento realizado: columnas repartidas, debe y haber más centrados */
+.ts-conc-apuntes-tabla { table-layout: fixed; }
+.ts-conc-apuntes-tabla th:nth-child(1) { width: 13%; }
+.ts-conc-apuntes-tabla th:nth-child(2) { width: 15%; }
+.ts-conc-apuntes-tabla th:nth-child(3) { width: 20%; }
+.ts-conc-apuntes-tabla th:nth-child(4) { width: 13%; }
+.ts-conc-apuntes-tabla th:nth-child(5) { width: 13%; }
+.ts-conc-apuntes-tabla th:nth-child(6) { width: 26%; }
+.ts-conc-apuntes-tabla .ts-conc-th-cta { min-width: 0; }
+/* Título de la cuenta contable en conciliaciones y apuntes */
+.ts-conc-cta-titulo { max-width: 11rem; overflow: hidden; text-overflow: ellipsis; color: #5f6b7c; }
+/* Papelera roja para borrar una línea del asiento */
+.ts-conc-th-del { width: 2rem; }
+.ts-conc-td-del { text-align: center; }
+.ts-conc-del { --slds-c-icon-color-foreground-default: #ba0517; }
+.ts-conc-prop-foot { display: flex; align-items: center; flex-wrap: nowrap; gap: 0.45rem;
+    padding-top: 0.6rem; border-top: 1px solid #f0f2f6; }
+/* Botones del pie en una sola línea, con letra más pequeña y sin partirse */
+.ts-conc-prop-foot lightning-button { font-size: 0.66rem; white-space: nowrap; flex-shrink: 0;
+    --sds-c-button-spacing-inline-start: 0.55rem;
+    --sds-c-button-spacing-inline-end: 0.55rem;
+    --slds-c-button-spacing-inline-start: 0.55rem;
+    --slds-c-button-spacing-inline-end: 0.55rem; }
+.ts-conc-prop-lineas { font-size: 0.68rem; color: #8a97a8; white-space: nowrap; flex-shrink: 0; }
+.ts-conc-prop-sep { flex: 1; }
+
+/* ===== POP-UP NUEVO MOVIMIENTO ===== */
+.ts-modal-backdrop { position: fixed; inset: 0; background: rgba(8, 20, 40, 0.55); z-index: 9000;
+    display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.ts-modal { position: relative; background: #ffffff; border-radius: 0.6rem; width: 30rem; max-width: 94vw;
+    box-shadow: 0 12px 44px rgba(0, 0, 0, 0.35); overflow: hidden; }
+.ts-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;
+    padding: 1rem 1.25rem 0.75rem; border-bottom: 1px solid #e2e6ec; }
+.ts-modal-title { font-size: 1rem; font-weight: 800; color: #0b1f3a; }
+.ts-modal-sub { font-size: 0.72rem; color: #8a97a8; margin-top: 0.1rem; }
+.ts-modal-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.ts-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+/* Selector Ingreso / Pago */
+.ts-modal-tipo-lbl { font-size: 0.78rem; font-weight: 700; color: #5f6b7c; margin-bottom: -0.35rem; }
+.ts-modal-tipo { display: flex; gap: 0.5rem; }
+.ts-modal-tipo-btn { flex: 1; background: #f3f5fa; border: 1px solid #c9d4e5; color: #5f6b7c;
+    border-radius: 0.4rem; padding: 0.5rem 0.75rem; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+    transition: background 0.1s ease, color 0.1s ease; }
+.ts-modal-tipo-btn:hover { color: #0b1f3a; }
+.ts-modal-tipo-ingreso { background: #0070d2; border-color: #005fb2; color: #ffffff; }
+.ts-modal-tipo-ingreso:hover { background: #005fb2; color: #ffffff; }
+.ts-modal-tipo-pago { background: #ba0517; border-color: #8e0412; color: #ffffff; }
+.ts-modal-tipo-pago:hover { background: #8e0412; color: #ffffff; }
+.ts-modal-file { display: flex; align-items: center; gap: 0.4rem; font-size: 0.74rem; color: #16325c;
+    background: #eef4fd; border: 1px solid #c9d4e5; border-radius: 0.35rem; padding: 0.35rem 0.6rem; }
+/* Pop-up de aviso al proponer */
+.ts-modal-aviso { width: 26rem; }
+.ts-conc-aviso-warn { display: flex; align-items: center; gap: 0.6rem; background: #fdf6e3;
+    border: 1px solid #f0d998; color: #7a5a00; border-radius: 0.4rem; padding: 0.6rem 0.75rem;
+    font-size: 0.82rem; font-weight: 600; }
+.ts-conc-aviso-pregunta { font-size: 0.85rem; font-weight: 700; color: #0b1f3a; }
+.ts-modal-error { display: flex; align-items: center; gap: 0.4rem; background: #fef1f1;
+    border: 1px solid #f3b0b5; color: #ba0517; border-radius: 0.35rem; padding: 0.45rem 0.6rem; font-size: 0.76rem; }
+.ts-modal-foot { display: flex; justify-content: flex-end; gap: 0.6rem; padding: 0.75rem 1.25rem 1rem;
+    border-top: 1px solid #e2e6ec; background: #fbfcfe; }
+
+/* Barra inferior */
+.ts-conc-bottombar { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    padding: 0.5rem 1.25rem 0.9rem; font-size: 0.7rem; color: #8a97a8; }
+.ts-conc-bottombar-der { color: #0b5cab; font-weight: 700; }
+
+@media (max-width: 1100px) {
+    .ts-top { grid-template-columns: 1fr; }
+}

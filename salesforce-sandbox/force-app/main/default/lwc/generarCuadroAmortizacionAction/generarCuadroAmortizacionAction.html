@@ -1,0 +1,23 @@
+<template>
+    <div class="slds-p-around_medium">
+        <p>Se generarán los registros del cuadro de amortización a partir de los campos del inmovilizado:</p>
+        <ul class="slds-list_dotted slds-p-left_large slds-p-vertical_small">
+            <li><strong>Valor inicial</strong></li>
+            <li><strong>Coeficiente</strong></li>
+            <li><strong>Fecha de inicio de amortización</strong></li>
+        </ul>
+        <p class="slds-text-color_weak">
+            El primer año se prorratea por días desde la fecha de inicio de amortización hasta el 31 de diciembre.
+            El último año recoge el importe residual.
+        </p>
+        <template lwc:if={error}>
+            <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_small" role="alert">
+                {error}
+            </div>
+        </template>
+    </div>
+    <footer class="slds-modal__footer slds-p-around_small slds-text-align_right">
+        <lightning-button label="Cancelar" onclick={handleCancelar} class="slds-m-right_x-small" disabled={procesando}></lightning-button>
+        <lightning-button variant="brand" label="Generar" onclick={handleGenerar} disabled={procesando}></lightning-button>
+    </footer>
+</template>

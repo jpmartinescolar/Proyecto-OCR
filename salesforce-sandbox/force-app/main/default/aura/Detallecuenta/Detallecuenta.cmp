@@ -1,0 +1,12 @@
+<aura:component implements="flexipage:availableForRecordHome" access="global">
+    
+    <aura:attribute name="accRecId" type="String" required="true" access="public" default="" />
+    <lightning:recordViewForm recordId="{!v.accRecId}" objectApiName="Account">
+        <div class="slds-box">
+            <lightning:outputField fieldName="Name" />
+            <lightning:outputField fieldName="Industry" />
+        </div>
+    </lightning:recordViewForm>
+    
+    
+</aura:component>

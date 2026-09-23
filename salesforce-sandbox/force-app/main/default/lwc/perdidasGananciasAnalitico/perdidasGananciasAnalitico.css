@@ -1,0 +1,435 @@
+.pyg-container {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 4px rgba(0,0,0,0.08);
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+    color: #16325c;
+}
+
+/* HEADER */
+.pyg-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid #e5e5e5; }
+.pyg-header-left { display: flex; align-items: center; gap: 0.75rem; }
+.pyg-icon { background: #eef4fd; border-radius: 0.4rem; padding: 0.5rem; }
+.pyg-title { font-size: 1.1rem; font-weight: 700; color: #0b1f3a; margin: 0; }
+.pyg-subtitle { font-size: 0.8rem; color: #5f6b7c; margin: 0; }
+.pyg-header-right { display: flex; align-items: center; gap: 0.4rem; }
+
+/* FILTROS */
+.pyg-filtros { padding: 1rem 1.25rem; background: #fbfcfe; border-bottom: 1px solid #e5e5e5; }
+.pyg-filtros-titulo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.75rem; letter-spacing: 0.1em; color: #5f6b7c; font-weight: 700; }
+.pyg-toggles { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
+.pyg-toggle-label { font-size: 0.75rem; color: #16325c; font-weight: 700; margin-left: 0.6rem; margin-right: 0.15rem; letter-spacing: normal; }
+.pyg-toggle { background: #ffffff; border: 1px solid #c9d4e5; color: #16325c; padding: 0.15rem 0.6rem; border-radius: 0.25rem; font-size: 0.78rem; cursor: pointer; }
+.pyg-toggle:hover { background: #eef4fd; }
+.pyg-toggle-active { background: #0070d2; border-color: #005fb2; color: #ffffff; }
+.pyg-toggle:focus { outline: 2px solid #1589ee; outline-offset: 1px; }
+
+.pyg-vista-badge { display: inline-flex; align-items: center; height: 1.4rem; padding: 0 0.7rem; border-radius: 1rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em; color: #fff; margin-right: 0.4rem; box-shadow: 0 1px 2px rgba(0,0,0,0.12); cursor: default; user-select: none; }
+.pyg-vista-fiscal { background: #2e844a; border: 1px solid #1f6638; }
+.pyg-vista-analitico { background: #ba0517; border: 1px solid #8e0413; }
+
+.pyg-filtros-grid { display: grid; grid-template-columns: repeat(6, minmax(140px, 1fr)); gap: 0.75rem; align-items: end; }
+.pyg-req { color: #ba0517; font-weight: 700; margin-left: 0.15rem; }
+.pyg-required-empty :is(.slds-form-element__label, .pyg-ms-trigger) { color: #ba0517; }
+.pyg-required-empty .pyg-ms-trigger { border-color: #ba0517; }
+
+/* Multi-select */
+.pyg-ms-wrap { position: relative; }
+.pyg-ms-trigger { width: 100%; height: 1.875rem; background: #fff; border: 1px solid #c9d4e5; border-radius: 0.25rem; padding: 0 0.6rem; font-size: 0.85rem; color: #16325c; cursor: pointer; display: flex; align-items: center; justify-content: space-between; text-align: left; }
+.pyg-ms-trigger:hover { border-color: #1589ee; }
+.pyg-ms-trigger:focus { outline: none; border-color: #1589ee; box-shadow: 0 0 3px #0070d2; }
+.pyg-ms-trigger-filled .pyg-ms-trigger-text { color: #0b1f3a; font-weight: 500; }
+.pyg-ms-trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #80869b; }
+.pyg-ms-caret { color: #5f6b7c; font-size: 0.65rem; margin-left: 0.5rem; }
+.pyg-ms-backdrop { position: fixed; inset: 0; background: transparent; z-index: 8000; }
+.pyg-ms-panel { position: absolute; top: calc(100% + 4px); left: 0; width: min(420px, calc(100% + 100px)); background: #fff; border: 1px solid #c9d4e5; border-radius: 0.4rem; box-shadow: 0 6px 18px rgba(0,0,0,0.18); z-index: 8100; display: flex; flex-direction: column; overflow: hidden; }
+.pyg-ms-panel-head { padding: 0.5rem 0.6rem; border-bottom: 1px solid #eef0f4; display: flex; flex-direction: column; gap: 0.35rem; }
+.pyg-ms-search { width: 100%; height: 1.875rem; border: 1px solid #c9d4e5; border-radius: 0.25rem; padding: 0 0.5rem; font-size: 0.85rem; }
+.pyg-ms-actions { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #5f6b7c; }
+.pyg-ms-link { background: transparent; border: 0; color: #0070d2; cursor: pointer; padding: 0; font-size: 0.78rem; }
+.pyg-ms-link:hover { text-decoration: underline; }
+.pyg-ms-list { max-height: 260px; overflow-y: auto; }
+.pyg-ms-option { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.7rem; cursor: pointer; font-size: 0.85rem; color: #16325c; }
+.pyg-ms-option:hover { background: #eef4fd; }
+.pyg-ms-option-selected { background: #f1f9f3; }
+.pyg-ms-check { width: 1rem; height: 1rem; border: 1px solid #c9d4e5; border-radius: 0.18rem; background: #fff; flex-shrink: 0; }
+.pyg-ms-option-selected .pyg-ms-check { border-color: #04844b; background: #04844b; }
+.pyg-ms-label { flex: 1; }
+.pyg-ms-panel-foot { border-top: 1px solid #eef0f4; padding: 0.5rem 0.6rem; display: flex; align-items: center; justify-content: space-between; }
+.pyg-ms-count { font-size: 0.78rem; color: #5f6b7c; }
+.pyg-ms-apply { height: 1.875rem; padding: 0 0.9rem; }
+
+/* CONTEXT BAR */
+.pyg-contextbar { background: #eef4fd; padding: 0.5rem 1.25rem; font-size: 0.85rem; color: #16325c; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.pyg-divider { color: #c9d4e5; }
+
+/* LOADING/ERROR/EMPTY */
+.pyg-loading { position: relative; min-height: 5rem; padding: 2rem; }
+.pyg-error { background: #fef1f1; border: 1px solid #ea001e; color: #ba0517; padding: 0.75rem 1rem; display: flex; gap: 0.5rem; align-items: center; margin: 1rem; border-radius: 0.25rem; }
+.pyg-empty { padding: 2rem; text-align: center; color: #5f6b7c; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+
+/* TABLA — compactada para caber en una página */
+.pyg-tabla-wrap { overflow-x: auto; }
+.pyg-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.74rem;
+    table-layout: fixed;
+}
+.pyg-tabla thead th {
+    background: #ffffff; color: #5f6b7c; font-weight: 700;
+    font-size: 0.65rem; letter-spacing: 0.03em; text-align: right;
+    padding: 0.4rem 0.3rem; border-bottom: 2px solid #c9d4e5;
+    position: sticky; top: 0; z-index: 1;
+}
+.pyg-th-concepto { text-align: left !important; width: 18%; min-width: 170px; }
+.pyg-th-mes      { width: 6.1%; }
+.pyg-th-total    { width: 7.5%; background: #eef4fd !important; color: #0b1f3a !important; }
+
+.pyg-row { border-bottom: 1px solid #f3f3f3; }
+.pyg-row td {
+    padding: 0.28rem 0.32rem;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pyg-concepto { text-align: left !important; color: #16325c; }
+
+/* Grupo: fondo azul algo más oscuro */
+.pyg-grupo td {
+    background: #b8cce4;
+    color: #0b1f3a;
+    font-weight: 700;
+    border-top: 1px solid #8fa9c8;
+}
+.pyg-concepto-grupo { color: #0b1f3a !important; }
+.pyg-grupo td.pyg-pos { color: #0b3d80; }
+.pyg-grupo td.pyg-neg { color: #ba0517; }
+.pyg-grupo .pyg-amount-pct { color: #1f3a66; font-weight: 600; }
+
+/* Grupos destacados (Operaciones servicios y Operaciones distribución): fondo amarillo oscuro */
+.pyg-grupo-destacado td {
+    background: #2b5391 !important;   /* azul como "Margen bruto Operaciones" (#1a3a6d) pero un pelín más claro */
+    color: #ffffff !important;
+    border-top: 1px solid #1f3f70;
+    border-bottom: 1px solid #1f3f70;
+}
+.pyg-grupo-destacado td.pyg-pos { color: #cfe2ff !important; }
+.pyg-grupo-destacado td.pyg-neg { color: #ff9a93 !important; }
+.pyg-grupo-destacado td.pyg-zero { color: #ffffff !important; }
+.pyg-grupo-destacado .pyg-amount-pct {
+    color: #cfe2ff !important;
+    font-weight: 700;
+}
+.pyg-concepto-grupo-destacado { color: #ffffff !important; }
+
+/* Subgrupo (p.ej. distribuidor dentro de Operaciones distribución): azul intermedio, indentado */
+.pyg-subgrupo td {
+    background: #d6e3f1;
+    color: #16325c;
+    font-weight: 600;
+    font-style: italic;
+}
+.pyg-concepto-subgrupo {
+    color: #16325c !important;
+    padding-left: 1.1rem !important;
+    font-style: italic;
+}
+.pyg-concepto-subgrupo::before { content: '▸ '; color: #5f6b7c; font-style: normal; }
+.pyg-subgrupo td.pyg-pos { color: #0070d2; }
+.pyg-subgrupo td.pyg-neg { color: #ba0517; }
+.pyg-subgrupo .pyg-amount-pct { color: #4a5b73; font-weight: 600; font-style: normal; }
+
+/* Cuenta dentro de subgrupo (un nivel más de indentación) */
+.pyg-concepto-cuenta-nivel2 { padding-left: 2.2rem !important; }
+
+/* SUBTOTAL nombrado (azul corporativo, como en la imagen) */
+.pyg-subtotal td {
+    background: #1a3a6d;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    border-top: 2px solid #1a3a6d;
+    border-bottom: 2px solid #1a3a6d;
+    padding: 0.32rem 0.32rem;
+}
+.pyg-concepto-subtotal { color: #ffffff !important; text-transform: uppercase; }
+/* Sobre fondo azul oscuro: positivos en azul claro, negativos en rojo claro */
+.pyg-subtotal td.pyg-pos  { color: #c9deff; }
+.pyg-subtotal td.pyg-neg  { color: #ff9a93; }
+.pyg-subtotal td.pyg-zero { color: #ffffff; }
+.pyg-subtotal .pyg-total-col { background: #0b1f3a !important; }
+
+/* Línea de porcentaje bajo el importe en los subtotales con %CN */
+.pyg-amount-main { line-height: 1.1; }
+.pyg-amount-pct {
+    font-size: 0.62rem;
+    font-weight: 400;
+    color: #c9deff;
+    line-height: 1.1;
+    margin-top: 1px;
+    letter-spacing: 0.02em;
+}
+
+/* ===== % en rojo cuando el importe de la celda es negativo ===== */
+/* Subtotales (fondo azul oscuro) → rojo claro para contrastar */
+.pyg-subtotal td.pyg-neg .pyg-amount-pct { color: #ff9a93 !important; }
+/* Grupos estándar (fondo azul claro) → rojo más oscuro */
+.pyg-grupo td.pyg-neg .pyg-amount-pct { color: #ba0517 !important; }
+/* Grupos destacados (fondo azul oscuro) → rojo claro para contrastar */
+.pyg-grupo-destacado td.pyg-neg .pyg-amount-pct { color: #ff9a93 !important; }
+/* Subgrupos (azul intermedio) */
+.pyg-subgrupo td.pyg-neg .pyg-amount-pct { color: #ba0517 !important; }
+
+/* Sin clasificar */
+.pyg-sinclas td {
+    background: #fff3e0;
+    color: #8c5a00;
+    font-weight: 700;
+    border-top: 2px solid #c98a00;
+}
+.pyg-concepto-sinclas { color: #8c5a00 !important; font-style: italic; }
+.pyg-sinclas td.pyg-pos { color: #b85a00; }
+.pyg-sinclas td.pyg-neg { color: #ba0517; }
+
+/* Cuenta */
+.pyg-cuenta td { background: #ffffff; }
+.pyg-codigo {
+    color: #c98a00;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 0.78rem;
+    margin-right: 0.55rem;
+    text-decoration: none;
+}
+.pyg-codigo:hover { text-decoration: underline; color: #9a6900; }
+.pyg-concepto-cuenta {
+    padding-left: 1.5rem !important;
+    color: #16325c;
+}
+
+/* Total */
+.pyg-total td {
+    background: #c9a45c;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    border-top: 2px solid #8c6a1f;
+    border-bottom: 1px solid #8c6a1f;
+}
+.pyg-concepto-total { color: #ffffff !important; text-transform: uppercase; }
+.pyg-total td.pyg-pos,
+.pyg-total td.pyg-neg,
+.pyg-total td.pyg-zero { color: #ffffff; }
+
+/* Acumulado */
+.pyg-acumulado td {
+    background: #0b1f3a;
+    color: #ffffff;
+    font-weight: 700;
+    border-top: 2px solid #0b1f3a;
+}
+.pyg-acumulado td.pyg-pos  { color: #c9deff; }
+.pyg-acumulado td.pyg-neg  { color: #ff9a93; }
+.pyg-acumulado td.pyg-zero { color: #ffffff; }
+.pyg-concepto-acumulado { color: #ffffff !important; letter-spacing: 0.02em; }
+.pyg-concepto-acumulado::before { content: '∑ '; color: #6fd1ff; }
+.pyg-acumulado .pyg-total-col { background: #16325c !important; }
+
+/* Valores */
+.pyg-pos { color: #0070d2; }
+.pyg-neg { color: #ba0517; }
+.pyg-zero { color: #16325c; }
+.pyg-total-col { background: #eef4fd; }
+.pyg-clickable { cursor: pointer; user-select: none; }
+.pyg-clickable:hover { background: #fffbe6; }
+
+/* MODAL */
+.pyg-modal-container { max-width: 95vw; width: 95vw; }
+.pyg-modal-header { background: linear-gradient(180deg, #0b1f3a, #16325c); color: #ffffff; padding: 1rem 1.25rem; }
+.pyg-modal-header .slds-modal__title { color: #ffffff; margin: 0; }
+.pyg-modal-subtitle { margin-top: 0.35rem; font-size: 0.85rem; color: #d9e3f2; display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+.pyg-modal-content { padding: 0; max-height: 70vh; overflow: auto; }
+.pyg-modal-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+.pyg-modal-table thead th { background: #f3f7fc; color: #5f6b7c; text-align: left; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.55rem 0.65rem; border-bottom: 1px solid #c9d4e5; position: sticky; top: 0; z-index: 1; }
+.pyg-modal-table tbody td { padding: 0.45rem 0.65rem; border-bottom: 1px solid #f0f3f7; vertical-align: top; white-space: nowrap; }
+.pyg-modal-table tbody tr:hover td { background: #fbfcfe; }
+.pyg-modal-table .pyg-num, .pyg-modal-table .pyg-th-num { text-align: right; font-variant-numeric: tabular-nums; }
+.pyg-modal-table tbody td.pyg-desc,
+.pyg-modal-table tbody td.pyg-empresa {
+    white-space: normal;
+    vertical-align: top;
+}
+.pyg-modal-table .pyg-text-wrap {
+    max-width: 220px;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+}
+.pyg-modal-table .pyg-text-wrap-empresa {
+    max-width: 180px;
+    font-size: 0.78rem;
+}
+.pyg-link { color: #0070d2; text-decoration: none; }
+.pyg-link:hover { text-decoration: underline; }
+
+/* Celdas editables del modal */
+.pyg-th-edit { min-width: 140px; }
+.pyg-cell-edit { vertical-align: middle !important; min-width: 140px; padding: 0.3rem 0.4rem !important; }
+.pyg-cell-edit-wide { min-width: 180px; }
+.pyg-cell-edit lightning-combobox,
+.pyg-cell-edit lightning-record-picker { display: block; width: 100%; }
+
+/* Estado inicial (antes de Generar) */
+.pyg-placeholder { display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 3.5rem 1.5rem; color: #9aa5b5; font-size: 0.95rem; text-align: center; }
+.pyg-placeholder strong { color: #6b7686; font-weight: 700; }
+.pyg-placeholder-icon { --slds-c-icon-color-foreground-default: #b3bcc9; }
+
+/* ===== GRÁFICO COMPARATIVO Margen bruto Operaciones ===== */
+.ana-chart-card { margin: 0.75rem 1rem; padding: 0.75rem 1rem 0.5rem; border: 1px solid #e5e9f0;
+    border-radius: 0.4rem; background: #fff; }
+.ana-chart-title { font-weight: 700; color: #16325c; font-size: 0.85rem; margin-bottom: 0.6rem; }
+.ana-chart-sub { font-weight: 400; color: #80869b; font-size: 0.78rem; margin-left: 0.4rem; }
+.ana-chart { position: relative; display: flex; align-items: flex-start; gap: 0.4rem; padding: 0 0.75rem; }
+.ana-chart-zero { position: absolute; left: 0.5rem; right: 0.5rem; top: 70px; border-top: 1px dashed #c9d4e5; }
+/* Línea que une las cimas de las barras del año actual */
+.ana-chart-line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 2; }
+.ana-chart-line polyline { fill: none; stroke: #1b96ff; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.ana-chart-line-prev { z-index: 1; }
+.ana-chart-line-prev polyline { stroke: #c9a45c; }
+.ana-chart-zero-label { position: absolute; left: -0.6rem; top: -0.6rem; font-size: 0.65rem; color: #aab3c2; }
+.ana-chart-group { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.ana-chart-bars { display: flex; gap: 3px; }
+.ana-chart-col { display: flex; flex-direction: column; cursor: default; }
+.ana-chart-top { height: 70px; display: flex; align-items: flex-end; }
+.ana-chart-bot { height: 70px; display: flex; align-items: flex-start; }
+.ana-chart-bar { width: 14px; transition: filter 0.1s ease; }
+.ana-chart-top .ana-chart-bar { border-radius: 2px 2px 0 0; }
+.ana-chart-bot .ana-chart-bar { border-radius: 0 0 2px 2px; }
+.ana-chart-col:hover .ana-chart-bar { filter: brightness(0.88); }
+.ana-chart-label { font-size: 0.7rem; color: #5f6b7c; margin-top: 0.3rem; }
+.ana-chart-legend { display: flex; gap: 1.2rem; margin-top: 0.6rem; padding-left: 0.75rem;
+    font-size: 0.75rem; color: #5f6b7c; }
+.ana-legend-item { display: inline-flex; align-items: center; gap: 0.35rem; }
+.ana-legend-swatch { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+
+/* ===== 3 gráficos en fila ===== */
+.ana-charts-row { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; margin: 0.75rem 1rem; }
+.ana-charts-row .ana-chart-card { flex: 1 1 300px; min-width: 290px; margin: 0; }
+
+/* Eje izquierdo con el máximo y el cero */
+.ana-chart-wrap { display: flex; align-items: flex-start; }
+.ana-chart-axis { display: flex; flex-direction: column; justify-content: space-between; height: 160px;
+    font-size: 0.6rem; color: #aab3c2; text-align: right; padding-right: 0.35rem; white-space: nowrap; }
+.ana-axis-max { font-weight: 700; color: #8a94a6; }
+
+/* Gráfico mensual: barras más anchas, mes pinchable/resaltable */
+.ana-chart-top, .ana-chart-bot { height: 80px; }
+.ana-chart-zero { top: 80px; }
+.ana-chart-bar { width: 18px; }
+.ana-chart-group { cursor: pointer; padding: 0 1px; border-radius: 4px; }
+.ana-chart-group:hover { background: #f3f6fb; }
+.ana-chart-group-sel { background: #e4eefb; box-shadow: inset 0 0 0 1px #b9d3f2; }
+
+/* ===== Barras horizontales (mariposa): anterior izq · actual der ===== */
+.ana-h-head { display: flex; justify-content: space-between; font-size: 0.7rem; color: #80869b;
+    margin: 0.1rem 0 0.45rem; }
+.ana-h-row { display: grid; grid-template-columns: auto 1fr auto 1fr auto; align-items: center; gap: 6px; margin-bottom: 5px; }
+.ana-h-amt { font-size: 0.6rem; color: #5f6b7c; text-align: right; white-space: nowrap; overflow: hidden; }
+.ana-h-amt-r { text-align: left; }
+.ana-h-left  { display: flex; justify-content: flex-end; }
+.ana-h-right { display: flex; justify-content: flex-start; }
+.ana-h-bar { height: 16px; border-radius: 2px; min-width: 1px; }
+.ana-h-bar-prev { background: #c9a45c; }
+.ana-h-bar-curr { background: #1b96ff; }
+.ana-h-name { font-size: 0.8rem; color: #16325c; text-align: center; white-space: nowrap;
+    line-height: 1.1; }
+.ana-h-empty { color: #9aa5b5; font-size: 0.8rem; padding: 1.5rem 1rem; text-align: center; }
+
+/* Barra de drill por mes */
+.ana-drill-bar { margin: 0 1rem 0.75rem; font-size: 0.8rem; color: #0b3a66; background: #eaf3fb;
+    border: 1px solid #8bbbe6; border-radius: 0.3rem; padding: 0.4rem 0.8rem; display: flex; align-items: center; gap: 0.6rem; }
+.ana-drill-reset { background: #fff; border: 1px solid #8bbbe6; border-radius: 0.25rem; padding: 0.15rem 0.55rem;
+    cursor: pointer; color: #0b3a66; font-size: 0.75rem; }
+.ana-drill-reset:hover { background: #f3f6fb; }
+
+/* Cuando no hay valores negativos: aprovechar todo el alto (barras más altas) */
+.ana-chart-noneg .ana-chart-top { height: 150px; }
+.ana-chart-noneg .ana-chart-bot { height: 0; }
+.ana-chart-noneg .ana-chart-zero { top: 150px; }
+
+/* Filas horizontales clicables y seleccionables */
+.ana-h-row { cursor: pointer; border-radius: 3px; }
+.ana-h-row:hover { background: #f3f6fb; }
+.ana-h-row-sel { background: #e4eefb; box-shadow: inset 0 0 0 1px #b9d3f2; }
+
+/* Línea inferior fija de los gráficos horizontales (alineada con la base del gráfico mensual) */
+.ana-h-list { min-height: 150px; border-bottom: 1px dashed #c9d4e5; }
+
+/* Icono de tendencia (sube/baja) junto al % actual */
+.ana-h-trend { font-size: 0.64rem; white-space: nowrap; }
+.ana-h-trend-up { color: #2e844a; }
+.ana-h-trend-down { color: #ba0517; }
+
+/* Color del % de margen: < 40% rojo · >= 40% verde (solo gráficos de Margen bruto) */
+/* Selector combinado para ganar en especificidad a la regla .ana-h-pct posterior */
+.ana-h-pct.ana-pct-good { color: #2e844a; font-weight: 600; }
+.ana-h-pct.ana-pct-bad  { color: #ba0517; font-weight: 600; }
+
+/* (2) Importe + % apilados en las barras horizontales (anterior izq · actual der) */
+.ana-h-amt { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; overflow: visible; }
+.ana-h-amt-r { align-items: flex-start; }
+.ana-h-val { font-size: 0.72rem; color: #5f6b7c; white-space: nowrap; }
+.ana-h-pct { font-size: 0.64rem; color: #9aa5b5; white-space: nowrap; }
+
+/* % año anterior y diferencia en la fila Margen bruto Operaciones (total) */
+.ana-mbo-prev { color: #cdd6e4; font-weight: 400; margin-left: 0.3rem; }
+.ana-mbo-delta { font-weight: 700; margin-left: 0.3rem; padding: 0 0.25rem; border-radius: 0.2rem; }
+.ana-mbo-up   { color: #b9f6c8; }
+.ana-mbo-down { color: #ffc4c4; }
+
+/* Resumen Margen bruto Operaciones en la barra de contexto (fondo claro) */
+.ana-ctx-mbo { color: #16325c; }
+.ana-ctx-mbo .ana-mbo-up   { color: #2e844a; font-weight: 700; }
+.ana-ctx-mbo .ana-mbo-down { color: #ba0517; font-weight: 700; }
+
+/* Pill del primer % de Margen bruto en la barra de contexto: fondo verde/rojo + texto blanco */
+.ana-ctx-pct { display: inline-block; line-height: 1; padding: 0.32rem 0.5rem 0.22rem; border-radius: 0.35rem;
+    color: #fff; font-weight: 700; vertical-align: middle; }
+.ana-ctx-pct-good { background: #15723a; }  /* verde más oscuro */
+.ana-ctx-pct-bad  { background: #9a0a0f; }  /* rojo más oscuro */
+
+/* Botón "ampliar" del gráfico por Director */
+.ana-card-rel { position: relative; }
+.ana-expand-btn { position: absolute; top: 6px; right: 6px; z-index: 3; background: #fff;
+    border: 1px solid #d8e0ec; border-radius: 0.25rem; padding: 0.1rem 0.3rem; cursor: pointer; color: #5f6b7c; line-height: 1; }
+.ana-expand-btn:hover { background: #eef4fd; color: #0070d2; }
+
+/* Gráfico ampliado dentro del modal */
+.ana-modal-chart { padding: 1.25rem 1.75rem; }
+.ana-h-head-big { font-size: 0.8rem; margin-bottom: 0.7rem; }
+.ana-h-row-big { grid-template-columns: 130px 0.7fr 190px 0.7fr 170px; gap: 8px; margin-bottom: 8px; }
+.ana-h-row-big .ana-h-bar { height: 20px; }
+.ana-h-row-big .ana-h-val { font-size: 0.8rem; }
+.ana-h-row-big .ana-h-pct { font-size: 0.72rem; }
+.ana-h-row-big .ana-h-name { font-size: 0.85rem; white-space: normal; }
+
+/* Gráfico mensual ampliado (modal) */
+.ana-chart-big .ana-chart-top, .ana-chart-big .ana-chart-bot { height: 150px; }
+.ana-chart-big .ana-chart-zero { top: 150px; }
+.ana-chart-noneg-big .ana-chart-top { height: 300px; }
+.ana-chart-noneg-big .ana-chart-bot { height: 0; }
+.ana-chart-noneg-big .ana-chart-zero { top: 300px; }
+.ana-chart-big .ana-chart-bar, .ana-chart-noneg-big .ana-chart-bar { width: 30px; }
+.ana-chart-big .ana-chart-label, .ana-chart-noneg-big .ana-chart-label { font-size: 0.8rem; margin-top: 0.5rem; }
+
+/* Modales de gráfico ampliado: más estrechos */
+.ana-modal-box { width: min(720px, 92vw) !important; max-width: 720px !important; }
+
+/* Cuadro de contexto: tamaño de texto ajustado para aprovechar el ancho disponible */
+.pyg-contextbar { font-size: 0.8rem; gap: 0.5rem; }
+.ana-ctx-mbo { white-space: nowrap; }

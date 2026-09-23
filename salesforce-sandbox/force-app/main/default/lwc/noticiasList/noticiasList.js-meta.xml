@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>66.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Noticias - Listado</masterLabel>
+    <targets>
+        <target>lightningCommunity__Page</target>
+        <target>lightningCommunity__Default</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightningCommunity__Default">
+            <property name="heading" type="String" label="Título" default="Noticias y novedades"/>
+            <property name="subheading" type="String" label="Subtítulo" default="Avisos y análisis fiscales, laborales y jurídicos de nuestro equipo."/>
+            <property name="eyebrow" type="String" label="Antetítulo" default="Actualidad"/>
+            <property name="maxItems" type="Integer" label="Máximo de noticias (0 = todas)" default="0"/>
+            <property name="paging" type="Boolean" label="Paginación (botón Ver más)" default="false"/>
+            <property name="pageSize" type="Integer" label="Noticias por página" default="9"/>
+            <property name="showViewAll" type="Boolean" label="Mostrar botón Ver todas" default="false"/>
+            <property name="viewAllLabel" type="String" label="Texto botón Ver todas" default="Ver todas las noticias"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

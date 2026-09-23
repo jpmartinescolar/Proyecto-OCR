@@ -1,0 +1,92 @@
+:host {
+    display: block;
+}
+
+.profile-page {
+    max-width: 760px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.profile-page__title {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 800;
+    font-size: 20.5px;
+    letter-spacing: -0.01em;
+    color: #0F1B2D;
+    margin: 0 0 4px;
+}
+
+.profile-page__subtitle {
+    font-size: 12px;
+    color: #6B7A8F;
+    margin: 0 0 18px;
+}
+
+.profile-card {
+    background: #ffffff;
+    border: 1px solid #E2EAF2;
+    border-radius: 14px;
+}
+
+.profile-card_identity {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.profile-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(150deg, rgb(14, 58, 102), rgb(29, 81, 137));
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.profile-identity-info {
+    min-width: 0;
+}
+
+.profile-identity-name {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: #0F1B2D;
+}
+
+.profile-card_details {
+    overflow: hidden;
+}
+
+.profile-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 13px 20px;
+    border-bottom: 1px solid #F2F6FA;
+}
+
+.profile-row_last {
+    border-bottom: none;
+}
+
+.profile-row__label {
+    font-size: 12px;
+    color: #6B7A8F;
+}
+
+.profile-row__value {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #0F1B2D;
+}

@@ -1,0 +1,4 @@
+<apex:page standardController="Contrato_Contabilidad_y_Fiscal__c" showheader="false" sidebar="false">
+  <apex:iframe src="https://dub01.online.tableau.com/t/inversionesfinariam/views/Nuevoprecierrecontable/Dashboard3?:embed=y&:showShareOptions=false&:toolbar=false&:display_count=no&:showVizHome=no&CodigoEmpresa (Empresas)={! Contrato_Contabilidad_y_Fiscal__c.C_digo_ERP__c}" width="1400" height="800">
+  </apex:iframe>
+</apex:page>

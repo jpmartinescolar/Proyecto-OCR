@@ -1,0 +1,75 @@
+.lms-container { font-family: 'Salesforce Sans', Arial, sans-serif; color: #16325c; }
+
+/* ===== FILTROS ===== */
+/* Filtros en una sola línea; la cuenta contable no necesita estirarse */
+.lms-filtros { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: nowrap; margin-bottom: 0.9rem; }
+.lms-filtro-empresa { min-width: 20rem; }
+.lms-filtro-cuenta { width: 20rem; flex-shrink: 0; }
+.lms-filtro-btn { padding-bottom: 0.1rem; }
+/* Check "Solo cuentas con movimientos", alineado con los campos */
+.lms-filtro-check { padding-bottom: 0.35rem; white-space: nowrap; flex-shrink: 0; }
+
+.lms-error { background: #fef1f1; border: 1px solid #ea001e; color: #ba0517; padding: 0.6rem 0.9rem;
+    display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.9rem; border-radius: 0.25rem; }
+.lms-loading { position: relative; min-height: 4rem; }
+.lms-empty { padding: 1.2rem; text-align: center; color: #5f6b7c; }
+
+/* Con tan pocas columnas la caja no debe estirarse: ancho limitado y centrada */
+.lms-card { background: #ffffff; border: 1px solid #e2e6ec; border-radius: 0.5rem; padding: 0.9rem 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin: 0 auto 0.9rem; max-width: 58rem; }
+/* Ruleta pequeña junto al botón Anterior mientras se navega entre cuentas */
+.lms-mini-spinner { position: relative; width: 1.6rem; height: 1.6rem; align-self: center; }
+
+/* ===== DESPLEGABLE DE CUENTA CONTABLE ===== */
+.lms-dd-wrap { position: relative; }
+.lms-dd-backdrop { position: fixed; inset: 0; z-index: 800; }
+.lms-dd-panel { position: absolute; z-index: 900; top: 100%; left: 0; right: 0; margin-top: 0.2rem;
+    background: #ffffff; border: 1px solid #c9d4e5; border-radius: 0.4rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18); padding: 0.3rem; max-height: 20rem; overflow-y: auto; }
+.lms-dd-cargando { padding: 0.5rem; font-size: 0.78rem; color: #8a97a8; }
+/* Buscador dentro del desplegable cuando ya hay una selección hecha */
+.lms-dd-search-wrap { position: sticky; top: -0.3rem; background: #ffffff; z-index: 1;
+    padding: 0.35rem 0.2rem 0.3rem; border-bottom: 1px solid #eef0f4; margin-bottom: 0.2rem; }
+.lms-dd-search { width: 100%; box-sizing: border-box; border: 1px solid #c9d4e5;
+    border-radius: 0.35rem; padding: 0.35rem 0.6rem; font-size: 0.8rem; color: #16325c; }
+.lms-dd-search:focus { outline: none; border-color: #1589ee; box-shadow: 0 0 3px #0070d2; }
+.lms-cuenta-item { display: flex; gap: 0.75rem; padding: 0.32rem 0.5rem; font-size: 0.8rem;
+    cursor: pointer; border-radius: 0.3rem; }
+.lms-cuenta-item:hover { background: #eef4fd; }
+.lms-cuenta-codigo { font-weight: 700; color: #0b5cab; min-width: 7rem; }
+/* En el buscador de empresa los códigos son cortos: el nombre va pegado al número */
+.lms-filtro-empresa .lms-cuenta-codigo { min-width: 3.2rem; }
+.lms-cuenta-nombre { color: #16325c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ===== CABECERA Y PIE DE LA CUENTA ===== */
+/* Los botones Anterior/Siguiente nunca bajan de línea: el título se recorta si hace falta */
+.lms-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 0.9rem;
+    padding-bottom: 0.7rem; border-bottom: 1px solid #e2e6ec; margin-bottom: 0.6rem; flex-wrap: nowrap; }
+.lms-cabecera-izq { display: flex; align-items: baseline; gap: 1rem; flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; }
+.lms-cabecera-btns { display: flex; gap: 0.5rem; flex-shrink: 0; align-items: center; }
+.lms-cuenta-actual { font-size: 0.95rem; font-weight: 800; color: #0b1f3a;
+    overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.lms-cuenta-datos { flex-shrink: 0; }
+.lms-cuenta-datos { font-size: 0.76rem; color: #5f6b7c; }
+.lms-pie { display: flex; align-items: center; justify-content: space-between; gap: 0.9rem;
+    padding-top: 0.7rem; border-top: 1px solid #e2e6ec; margin-top: 0.6rem; }
+.lms-pie-texto { font-size: 0.76rem; color: #5f6b7c; }
+
+/* ===== TABLA ===== */
+.lms-tabla { width: 100%; border-collapse: collapse; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.lms-tabla th { color: #5f6b7c; font-weight: 700; font-size: 0.64rem; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 0.35rem 0.5rem; border-bottom: 2px solid #c9d4e5; }
+.lms-th-izq { text-align: left; }
+.lms-th-num { text-align: right; }
+.lms-th-idx { width: 2.2rem; }
+.lms-row td { padding: 0.3rem 0.5rem; border-bottom: 1px solid #f0f2f6; white-space: nowrap; }
+.lms-row:hover td { background: #f4f5f7; }
+.lms-idx { color: #8a97a8; text-align: right; }
+.lms-fecha { color: #16325c; }
+.lms-desc { white-space: nowrap; max-width: 30rem; overflow: hidden; text-overflow: ellipsis; }
+.lms-num { text-align: right; }
+.lms-saldo { font-weight: 700; color: #0b5cab; }
+.lms-neg { color: #ba0517; }
+.lms-row-anterior td { color: #8a97a8; font-style: italic; }
+.lms-totalrow td { border-top: 2px solid #0070d2; font-weight: 800; padding: 0.35rem 0.5rem; }

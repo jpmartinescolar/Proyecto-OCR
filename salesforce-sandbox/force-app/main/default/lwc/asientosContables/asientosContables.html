@@ -1,0 +1,294 @@
+<template>
+    <div class="ac-container">
+
+        <!-- ======================= VISTA LISTADO ======================= -->
+        <template if:true={esLista}>
+            <div class="ac-header">
+                <div class="ac-header-left">
+                    <div class="ac-icon"><lightning-icon icon-name="standard:record" size="medium"></lightning-icon></div>
+                    <div>
+                        <h1 class="ac-title">Asientos contables</h1>
+                        <p class="ac-subtitle">Listado y buscador sobre los apuntes · alta y modificación con control de cuadre</p>
+                    </div>
+                </div>
+                <div class="ac-header-right">
+                    <lightning-button label="Nuevo asiento contable" icon-name="utility:add" variant="brand"
+                                      onclick={hNuevo}></lightning-button>
+                </div>
+            </div>
+
+            <!-- FILTROS -->
+            <div class="ac-filtros">
+                <div class="ac-filtros-top">
+                    <span class="ac-filtros-titulo">FILTROS</span>
+                    <div class="ac-modo">
+                        <span class="ac-modo-lbl">Coincidencia importe</span>
+                        <button class={modoExactoCls}  data-value="Exacto"  onclick={setModoImporte}>Exacto</button>
+                        <button class={modoSimilarCls} data-value="Similar" onclick={setModoImporte}>Similar (±)</button>
+                        <button class={modoMayorCls}   data-value="Mayor"   onclick={setModoImporte}>Mayor que</button>
+                        <button class={modoMenorCls}   data-value="Menor"   onclick={setModoImporte}>Menor que</button>
+                        <label class="ac-check">
+                            <input type="checkbox" checked={verTodasLineas} onchange={hVerTodas}/>
+                            Ver líneas de todos los asientos
+                        </label>
+                    </div>
+                </div>
+                <div class="ac-filtros-grid">
+                    <lightning-combobox label="Empresa titular" value={fEmpresa} options={empresaOptions}
+                                        placeholder="Selecciona empresa..." onchange={hEmpresa}></lightning-combobox>
+                    <lightning-input type="date" label="Desde" value={fDesde} onchange={hDesde}></lightning-input>
+                    <lightning-input type="date" label="Hasta" value={fHasta} onchange={hHasta}></lightning-input>
+                    <lightning-combobox label="Buscar por importe" value={fCampoImporte} options={campoImporteOptions}
+                                        onchange={hCampoImporte}></lightning-combobox>
+                    <lightning-input type="number" step="0.01" label="Importe" value={fImporte}
+                                     placeholder="15.125,00" onchange={hImporte}></lightning-input>
+                    <lightning-input type="search" label="Nº asiento o descripción" value={fTexto}
+                                     placeholder="A-2026/0034 · texto..." onchange={hTexto}></lightning-input>
+                    <lightning-combobox label="Tipo de asiento" value={fTipo} options={tipoFiltroOptions}
+                                        onchange={hTipo}></lightning-combobox>
+                </div>
+                <div class="ac-filtros-acciones">
+                    <button class="ac-link" onclick={limpiarFiltros}>Limpiar</button>
+                    <lightning-button label="Generar filtro" variant="brand" onclick={hBuscar}></lightning-button>
+                </div>
+            </div>
+
+            <!-- ERROR -->
+            <template if:true={hasError}>
+                <div class="ac-error">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span>{error}</span>
+                </div>
+            </template>
+
+            <!-- LOADING -->
+            <template if:true={loading}>
+                <div class="ac-loading"><lightning-spinner alternative-text="Buscando" size="medium"></lightning-spinner></div>
+            </template>
+
+            <!-- INICIAL -->
+            <template if:true={showInicial}>
+                <div class="ac-placeholder">
+                    <lightning-icon icon-name="utility:filterList" size="small" class="ac-placeholder-icon"></lightning-icon>
+                    <span>Selecciona la empresa titular y pulsa <strong>Generar filtro</strong>. El buscador rastrea los apuntes: importe en Debe, Haber o Saldo y texto en nº de asiento o descripción.</span>
+                </div>
+            </template>
+
+            <!-- TABLA -->
+            <template if:true={hasRows}>
+                <div class="ac-tabla-wrap">
+                    <table class="ac-tabla">
+                        <thead>
+                            <tr>
+                                <th class="ac-th-chevron"></th>
+                                <th>FECHA</th>
+                                <th>Nº ASIENTO</th>
+                                <th>ACCIONES</th>
+                                <th>TIPO</th>
+                                <th>EMPRESA TITULAR</th>
+                                <th class="ac-num">DEBE</th>
+                                <th class="ac-num">HABER</th>
+                                <th class="ac-num">DIF.</th>
+                                <th>CANAL</th>
+                                <th class="ac-center">CUADRE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={rows} for:item="row">
+                                <tr key={row.key} class="ac-row">
+                                    <td class="ac-chevron" data-key={row.key} onclick={toggleRow}>{row.chevron}</td>
+                                    <td class="ac-fecha">{row.fecha}</td>
+                                    <td>
+                                        <a href="javascript:void(0);" class="ac-numero" data-recordid={row.id}
+                                           onclick={navigateToRecordNewTab} title="Abrir el asiento en una pestaña nueva">{row.numero}</a>
+                                    </td>
+                                    <td>
+                                        <button class="ac-btn-mod" data-key={row.key} onclick={hModificar}>✎ Modificar</button>
+                                    </td>
+                                    <td><span class={row.tipoCls}>{row.tipo}</span></td>
+                                    <td class="ac-desc" title={row.empresa}>{row.empresa}</td>
+                                    <td class="ac-num">{row.totalDebe}</td>
+                                    <td class="ac-num">{row.totalHaber}</td>
+                                    <td class="ac-num">{row.diferencia}</td>
+                                    <td class="ac-canal">{row.canal}</td>
+                                    <td class="ac-center">
+                                        <template if:true={row.cuadrado}><span class="ac-ok">✓</span></template>
+                                        <template if:false={row.cuadrado}><span class="ac-ko">✗</span></template>
+                                    </td>
+                                </tr>
+                                <template if:true={row.expanded}>
+                                    <tr key={row.key} class="ac-row-lineas">
+                                        <td></td>
+                                        <td colspan="10">
+                                            <table class="ac-sub">
+                                                <thead>
+                                                    <tr><th>CUENTA</th><th>DENOMINACIÓN</th><th>COMENTARIO</th><th class="ac-num">DEBE</th><th class="ac-num">HABER</th></tr>
+                                                </thead>
+                                                <tbody>
+                                                    <template for:each={row.lineas} for:item="l">
+                                                        <tr key={l.key} class={l.cls}>
+                                                            <td class="ac-codigo">
+                                                                <template if:true={l.cuentaId}>
+                                                                    <a href="javascript:void(0);" class="ac-cta-link"
+                                                                       data-recordid={l.cuentaId} onclick={navigateToCuentaNewTab}
+                                                                       title="Abrir cuenta contable en una pestaña nueva">{l.numero}</a>
+                                                                </template>
+                                                                <template if:false={l.cuentaId}>{l.numero}</template>
+                                                            </td>
+                                                            <td>{l.titulo}</td>
+                                                            <td class="ac-desc">{l.comentario}</td>
+                                                            <td class="ac-num">{l.debe}</td>
+                                                            <td class="ac-num">{l.haber}</td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="ac-vermas">
+                    <span class="ac-vermas-info">Mostrando {numMostrados} asientos (de más reciente a más antiguo)</span>
+                    <template if:true={hayMas}>
+                        <lightning-button label="Ver más" icon-name="utility:chevrondown" variant="neutral"
+                                          disabled={cargandoMas} onclick={hVerMas}></lightning-button>
+                    </template>
+                </div>
+            </template>
+
+            <!-- EMPTY -->
+            <template if:true={emptyState}>
+                <div class="ac-placeholder">
+                    <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                    <span>No se han encontrado asientos con esos criterios.</span>
+                </div>
+            </template>
+        </template>
+
+        <!-- ======================= VISTA EDITOR ======================= -->
+        <template if:true={esEditor}>
+            <div class="ac-header">
+                <div class="ac-header-left">
+                    <lightning-button-icon icon-name="utility:chevronleft" alternative-text="Volver"
+                                           variant="border-filled" onclick={hVolver} class="slds-m-right_small"></lightning-button-icon>
+                    <div>
+                        <h1 class="ac-title">{tituloEditor}</h1>
+                        <p class="ac-subtitle">Borrador sin guardar · el asiento solo se puede guardar cuadrado</p>
+                    </div>
+                </div>
+                <template if:false={eAsientoId}>
+                    <div class="ac-prov">Nº provisional: <strong>BORRADOR</strong></div>
+                </template>
+            </div>
+
+            <!-- ERROR -->
+            <template if:true={hasError}>
+                <div class="ac-error">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span>{error}</span>
+                </div>
+            </template>
+
+            <!-- CABECERA DEL ASIENTO -->
+            <div class="ac-card">
+                <div class="ac-card-title">Cabecera del asiento</div>
+                <div class="ac-cab-grid">
+                    <lightning-input type="date" label="Fecha contable" value={eFecha} onchange={heFecha}></lightning-input>
+                    <lightning-combobox label="Empresa titular" value={eEmpresa} options={empresaOptions}
+                                        placeholder="Selecciona empresa..." onchange={heEmpresa}></lightning-combobox>
+                    <lightning-combobox label="Canal" value={eCanal} options={canalOptions} onchange={heCanal}></lightning-combobox>
+                    <lightning-combobox label="Tipo de asiento" value={eTipo} options={tipoOptions} onchange={heTipo}></lightning-combobox>
+                </div>
+                <div class="ac-cab-grid2">
+                    <lightning-input type="text" label="Descripción del asiento" value={eDescripcion}
+                                     placeholder="Ej. Fra. emit. 2026/046 — Cliente..." onchange={heDescripcion}></lightning-input>
+                </div>
+            </div>
+
+            <!-- LÍNEAS -->
+            <div class="ac-card">
+                <div class="ac-lineas-head">
+                    <div class="ac-card-title">Líneas del asiento</div>
+                    <div>
+                        <lightning-button label="Añadir línea" icon-name="utility:add" variant="neutral"
+                                          onclick={hAddLinea} class="slds-m-right_x-small"></lightning-button>
+                        <button class="ac-link" onclick={hCuadrar}>Cuadrar automáticamente</button>
+                    </div>
+                </div>
+                <table class="ac-editor-tabla">
+                    <thead>
+                        <tr>
+                            <th class="ac-th-n">#</th>
+                            <th class="ac-th-cuenta">CUENTA CONTABLE</th>
+                            <th>DENOMINACIÓN</th>
+                            <th>COMENTARIO</th>
+                            <th class="ac-th-imp">DEBE</th>
+                            <th class="ac-th-imp">HABER</th>
+                            <th class="ac-th-x"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={eLineas} for:item="l" for:index="idx">
+                            <tr key={l.key}>
+                                <td class="ac-n">{idx}</td>
+                                <td class="ac-cuenta-cell">
+                                    <input type="text" class="ac-input ac-input-cuenta" value={l.busqueda}
+                                           placeholder="Buscar cuenta..." data-key={l.key}
+                                           oninput={heBusquedaCuenta} onblur={heCerrarDropdown}/>
+                                    <template if:true={l.showDropdown}>
+                                        <div class="ac-dropdown">
+                                            <template for:each={l.opciones} for:item="o">
+                                                <div key={o.id} class="ac-dropdown-item" data-key={l.key} data-id={o.id}
+                                                     onmousedown={hePickCuenta}>{o.label}</div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </td>
+                                <td class="ac-denom">{l.titulo}</td>
+                                <td>
+                                    <input type="text" class="ac-input" value={l.comentario}
+                                           placeholder="Comentario de la línea" data-key={l.key} oninput={heComentario}/>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" min="0" class="ac-input ac-input-num" value={l.debe}
+                                           data-key={l.key} data-campo="debe" oninput={heImporte}/>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" min="0" class="ac-input ac-input-num" value={l.haber}
+                                           data-key={l.key} data-campo="haber" oninput={heImporte}/>
+                                </td>
+                                <td class="ac-x" data-key={l.key} onclick={hQuitarLinea} title="Quitar línea">✕</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                    <tfoot>
+                        <tr class="ac-totales">
+                            <td colspan="4">TOTALES</td>
+                            <td class="ac-num"><strong>{totalDebeFmt}</strong></td>
+                            <td class="ac-num"><strong>{totalHaberFmt}</strong></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- PIE: estado + acciones -->
+            <div class="ac-footer">
+                <div class="ac-footer-left">
+                    <span class={estadoCuadreCls}>● {estadoCuadreTxt}</span>
+                    <span class="ac-nlineas">{numLineasTxt}</span>
+                </div>
+                <div>
+                    <lightning-button label="Descartar" variant="neutral" onclick={hVolver}
+                                      class="slds-m-right_x-small"></lightning-button>
+                    <lightning-button label="Guardar asiento" icon-name="utility:save" variant="brand"
+                                      disabled={guardarDisabled} onclick={hGuardar}></lightning-button>
+                </div>
+            </div>
+        </template>
+
+    </div>
+</template>

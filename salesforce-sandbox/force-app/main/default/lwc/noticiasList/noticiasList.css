@@ -1,0 +1,335 @@
+:host {
+    --navy: #0E3A66;
+    --blue: #0078FF;
+    --amber: #F4A93C;
+    --teal: #2DC0D6;
+    --ink: #0E3A66;
+    --slate: #4A5B70;
+    --line: #E6ECF3;
+    --bg: #F6F8FB;
+    display: block;
+}
+
+.nvn {
+    background: var(--bg);
+    padding: 84px 24px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+/* Página de listado: pegada a la cabecera, menos hueco superior */
+.nvn-compact {
+    padding-top: 28px;
+}
+.nvn-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+.nvn-eyebrow {
+    margin: 0 0 8px;
+    font-weight: 700;
+    font-size: .8rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--teal);
+}
+.nvn-title {
+    margin: 0 0 10px;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    line-height: 1.1;
+    color: var(--navy);
+}
+.nvn-sub {
+    margin: 0 0 40px;
+    max-width: 640px;
+    color: var(--slate);
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+/* ---- Buscador ---- */
+.nvn-search {
+    position: relative;
+    max-width: 520px;
+    margin: 0 0 14px;
+}
+.nvn-search-ic {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--slate);
+    pointer-events: none;
+}
+.nvn-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 44px 14px 46px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 1rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+.nvn-search-input::placeholder { color: #9aa8b8; }
+.nvn-search-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgba(0, 120, 255, .12);
+}
+.nvn-search-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+.nvn-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: #eef2f7;
+    color: var(--navy);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.nvn-search-clear:hover { background: #e0e7ef; }
+.nvn-search-count {
+    margin: 0 0 26px;
+    font-size: .9rem;
+    color: var(--slate);
+}
+.nvn-empty {
+    text-align: center;
+    padding: 30px 0 10px;
+}
+.nvn-empty p {
+    margin: 0 0 22px;
+    color: var(--slate);
+    font-size: 1.05rem;
+}
+
+.nvn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 26px;
+}
+
+.nvn-card {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.nvn-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(14, 58, 102, .14);
+    border-color: transparent;
+}
+
+.nvn-media {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, #0E3A66, #0078FF);
+    overflow: hidden;
+}
+.nvn-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .4s ease;
+}
+.nvn-card:hover .nvn-media img {
+    transform: scale(1.05);
+}
+.nvn-noimg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0E3A66, #2DC0D6);
+}
+.nvn-noimg span {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 800;
+    color: rgba(255, 255, 255, .85);
+    letter-spacing: .04em;
+}
+
+.nvn-cardbody {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 22px 22px 24px;
+}
+.nvn-date {
+    margin: 0 0 8px;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--blue);
+}
+.nvn-headline {
+    margin: 0 0 10px;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 1.12rem;
+    line-height: 1.32;
+    color: var(--navy);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.nvn-excerpt {
+    margin: 0 0 16px;
+    color: var(--slate);
+    font-size: .95rem;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.nvn-more {
+    margin-top: auto;
+    font-weight: 700;
+    font-size: .92rem;
+    color: var(--amber);
+}
+
+/* ---- Acciones (Ver más / Ver todas) ---- */
+.nvn-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 44px;
+}
+.nvn-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border: 1px solid var(--navy);
+    border-radius: 999px;
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: .98rem;
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.nvn-btn:hover {
+    background: #0a2f54;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(14, 58, 102, .22);
+}
+
+/* ---- Modal artículo ---- */
+.nvn-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(8, 25, 45, .62);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 18px;
+    overflow-y: auto;
+}
+.nvn-modal {
+    position: relative;
+    width: 100%;
+    max-width: 760px;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
+}
+.nvn-modal-img {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    display: block;
+}
+.nvn-modal-pad {
+    padding: 30px 36px 40px;
+}
+.nvn-modal-date {
+    margin: 0 0 8px;
+    font-size: .8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--blue);
+}
+.nvn-modal-title {
+    margin: 0 0 20px;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    line-height: 1.18;
+    color: var(--navy);
+}
+.nvn-modal-body {
+    color: #33404f;
+    font-size: 1.02rem;
+    line-height: 1.75;
+}
+.nvn-modal-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin: 16px 0;
+}
+.nvn-modal-body p {
+    margin: 0 0 14px;
+}
+.nvn-modal-body a {
+    color: var(--blue);
+}
+.nvn-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .92);
+    color: var(--navy);
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+    transition: transform .15s ease;
+}
+.nvn-close:hover {
+    transform: scale(1.08);
+}
+
+@media (max-width: 640px) {
+    .nvn {
+        padding: 60px 18px;
+    }
+    .nvn-modal-pad {
+        padding: 24px 22px 32px;
+    }
+}

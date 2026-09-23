@@ -1,0 +1,8 @@
+<apex:page showHeader="false" standardController="Task" tabStyle="Task">
+    <apex:canvasApp applicationName="ResinFiles"
+        parameters="{recordName: '{!JSENCODE(Task.Subject)}',
+          actualHeight: document.documentElement.clientHeight}"
+        width="100%"
+        height="800px"
+        scrolling="no" />
+</apex:page>

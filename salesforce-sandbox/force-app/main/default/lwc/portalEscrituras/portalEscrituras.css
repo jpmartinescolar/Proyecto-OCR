@@ -1,0 +1,378 @@
+/* Mismo lenguaje visual que portalDataTable / portalPrivateLayout del portal:
+   tipografía del sistema, tarjetas blancas redondeadas, bordes #E2EAF2,
+   textos #0F1B2D / #3A4A60 / #6B7A8F / #9CA9BC y azul corporativo #0E3A66. */
+.portal-wrapper {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: #0F1B2D;
+}
+
+/* ---- Cabecera ---- */
+.portal-header { margin-bottom: 16px; }
+.portal-title { font-weight: 800; font-size: 20.5px; letter-spacing: -0.01em; color: #0F1B2D; margin: 0; }
+.portal-subtitle { font-size: 12px; color: #6B7A8F; margin: 4px 0 0; }
+
+/* ---- Filtros ---- */
+.portal-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+
+.portal-search {
+    display: flex; align-items: center; gap: 9px;
+    background: #fff; border: 1px solid #E2EAF2; border-radius: 10px;
+    padding: 10px 14px; box-sizing: border-box;
+}
+.portal-search:focus-within { border-color: #9CB8D6; box-shadow: 0 0 0 3px rgba(14, 58, 102, 0.06); }
+.portal-search-texto { flex: 1 1 300px; max-width: 420px; }
+.portal-search-fecha { flex: 0 0 auto; padding-top: 6px; padding-bottom: 6px; }
+.portal-search-icon { color: #9CA9BC; flex-shrink: 0; }
+.portal-search-input {
+    border: none; outline: none; background: none;
+    font-family: inherit; font-size: 12px; color: #0F1B2D; width: 100%; min-width: 0;
+}
+.portal-search-input::placeholder { color: #9CA9BC; overflow: hidden; white-space: nowrap; }
+.portal-search-input::-webkit-search-cancel-button { cursor: pointer; }
+.portal-fecha-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #9CA9BC; white-space: nowrap;
+}
+.portal-fecha-input { width: auto; font-size: 12px; color: #3A4A60; cursor: pointer; }
+.portal-fecha-input::-webkit-calendar-picker-indicator { opacity: 0.55; cursor: pointer; }
+
+.portal-limpiar {
+    background: none; border: none; padding: 6px 4px; font-family: inherit;
+    font-size: 12px; font-weight: 600; color: #0E3A66; cursor: pointer; white-space: nowrap;
+}
+.portal-limpiar:hover { text-decoration: underline; }
+
+.portal-aviso {
+    background: #FDF6E8; border: 1px solid #ECD3A2; color: #7A5A10; border-radius: 10px;
+    padding: 9px 14px; font-size: 12px; margin: 0 0 12px;
+}
+
+.portal-visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* ---- Filtro de empresas (botón + panel) ---- */
+.portal-empresas { position: relative; flex: 0 1 auto; min-width: 0; }
+.portal-empresas-btn {
+    cursor: pointer; font-family: inherit; color: #9CA9BC; padding-top: 9px; padding-bottom: 9px;
+    min-width: 150px; max-width: 280px; text-align: left;
+}
+.portal-empresas-btn:hover { border-color: #C9D6E3; }
+.portal-empresas-btn-activo { color: #0F1B2D; border-color: #9CB8D6; }
+.portal-empresas-btn-activo .portal-search-icon { color: #0E3A66; }
+.portal-empresas-btn-abierto { border-color: #9CB8D6; box-shadow: 0 0 0 3px rgba(14, 58, 102, 0.06); }
+.portal-empresas-texto {
+    flex: 1 1 auto; font-size: 12px; font-weight: 600; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.portal-chevron { color: #9CA9BC; flex-shrink: 0; transition: transform 0.15s ease; }
+.portal-chevron-abierto { transform: rotate(180deg); }
+
+/* Capa transparente para cerrar el panel al pinchar fuera */
+.portal-backdrop { position: fixed; inset: 0; z-index: 40; background: transparent; }
+
+.portal-panel {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 41;
+    width: 340px; max-width: calc(100vw - 32px);
+    background: #fff; border: 1px solid #E2EAF2; border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 27, 45, 0.12), 0 2px 6px rgba(15, 27, 45, 0.06);
+    display: flex; flex-direction: column; overflow: hidden;
+}
+.portal-panel-buscador {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #EEF3F8;
+}
+.portal-panel-lista {
+    list-style: none; margin: 0; padding: 6px; max-height: 300px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: #C9D6E3 transparent;
+}
+.portal-panel-lista::-webkit-scrollbar { width: 8px; }
+.portal-panel-lista::-webkit-scrollbar-thumb { background-color: #C9D6E3; border-radius: 999px; }
+.portal-opcion {
+    display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px;
+    cursor: pointer; font-size: 12.5px; color: #3A4A60;
+}
+.portal-opcion:hover { background: #F7FAFD; }
+.portal-opcion-activa { color: #0F1B2D; font-weight: 600; background: #F2F6FA; }
+.portal-opcion-check { margin: 0; width: 15px; height: 15px; accent-color: #0E3A66; flex-shrink: 0; cursor: pointer; }
+.portal-opcion-nombre { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.portal-opcion-n { font-size: 11px; color: #9CA9BC; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.portal-panel-vacio { padding: 22px 14px; text-align: center; font-size: 12px; color: #9CA9BC; }
+.portal-panel-pie {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 14px; border-top: 1px solid #EEF3F8; background: #FBFCFE;
+}
+.portal-panel-info { font-size: 11px; color: #9CA9BC; }
+.portal-panel-acciones { display: flex; gap: 6px; }
+.portal-panel-btn {
+    background: none; border: 1px solid transparent; border-radius: 7px; padding: 5px 10px;
+    font-family: inherit; font-size: 11.5px; font-weight: 600; color: #6B7A8F; cursor: pointer;
+}
+.portal-panel-btn:hover { color: #0E3A66; background: #EEF3F8; }
+.portal-panel-btn-primario { color: #fff; background: #0E3A66; border-color: #0E3A66; }
+.portal-panel-btn-primario:hover { color: #fff; background: #1d5189; }
+
+/* Empresas elegidas, como etiquetas */
+.portal-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 12px; }
+.portal-chip {
+    display: inline-flex; align-items: center; gap: 4px; max-width: 320px;
+    background: #EEF3F8; color: #0E3A66; border-radius: 999px; padding: 4px 6px 4px 11px;
+    font-size: 11.5px; font-weight: 600;
+}
+.portal-chip-texto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.portal-chip-x {
+    background: none; border: none; width: 18px; height: 18px; border-radius: 50%; padding: 0;
+    font-family: inherit; font-size: 14px; line-height: 1; color: #6B7A8F; cursor: pointer; flex-shrink: 0;
+}
+.portal-chip-x:hover { background: #ccddff; color: #0E3A66; }
+
+/* ---- Tarjeta ---- */
+.portal-card { background: #fff; border: 1px solid #E2EAF2; border-radius: 14px; overflow: hidden; }
+.portal-card-relative { position: relative; }
+
+/* La tabla crece con las filas (25 por página): solo scroll horizontal si no cabe */
+.portal-table-scroll { overflow-x: auto; }
+
+.portal-loading-overlay {
+    position: absolute; inset: 0; background: rgba(255, 255, 255, 0.65);
+    display: flex; align-items: center; justify-content: center; z-index: 1;
+}
+
+/* ---- Tabla (filas compactas) ---- */
+.portal-table { width: 100%; border-collapse: collapse; }
+.portal-table thead th {
+    text-align: left; padding: 10px 16px; border-bottom: 1px solid #EEF3F8;
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #9CA9BC; font-weight: 700;
+    white-space: nowrap;
+}
+.portal-table tbody td {
+    padding: 8px 16px; border-bottom: 1px solid #F2F6FA;
+    font-size: 12.5px; color: #3A4A60; white-space: nowrap; vertical-align: middle; line-height: 1.35;
+}
+.portal-table tbody tr:last-child td { border-bottom: none; }
+.portal-table tbody tr:hover td { background: #F7FAFD; }
+
+.portal-td-fecha { font-variant-numeric: tabular-nums; color: #6B7A8F; }
+/* Empresa y notario: ancho tope y puntos suspensivos (el texto completo va en el title) */
+.portal-td-empresa, .portal-td-notario { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+/* Título: ocupa el ancho que sobra y se recorta con puntos suspensivos; max-width: 0
+   hace que su contenido no ensanche la tabla y width: 100% que absorba el hueco libre */
+.portal-th-titulo { min-width: 220px; }
+.portal-td-titulo { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.portal-th-num, .portal-td-num { text-align: right; }
+
+/* Nº de escritura como enlace azul */
+.portal-link {
+    background: none; border: none; padding: 0; margin: 0; font: inherit; cursor: pointer;
+    font-size: 12.5px; font-weight: 700; color: #0B6BCB; font-variant-numeric: tabular-nums;
+    text-decoration: none;
+}
+.portal-link:hover { text-decoration: underline; color: #084E96; }
+
+/* Píldora con el nº de adjuntos */
+.portal-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #EEF3F8; color: #0E3A66; border-radius: 999px;
+    padding: 3px 9px; font-size: 11px; font-weight: 700; white-space: nowrap; line-height: 1.2;
+}
+.portal-pill-btn { border: none; font-family: inherit; cursor: pointer; transition: background 0.15s ease; }
+.portal-pill-btn:hover { background: #ccddff; }
+.portal-pill-icon {
+    --slds-c-icon-color-foreground-default: #0E3A66;
+    --slds-c-icon-color-foreground: #0E3A66;
+}
+.portal-sin-adjuntos { color: #C9D6E3; }
+
+/* ---- Estados ---- */
+.portal-state { padding: 40px 22px; text-align: center; font-size: 12px; color: #9CA9BC; }
+.portal-state-spinner { position: relative; min-height: 70px; }
+.portal-state-error { color: #C93A3A; text-align: left; padding: 0 0 12px; }
+
+/* ---- Paginación ---- */
+.portal-pagination {
+    display: flex; justify-content: flex-end; align-items: center; gap: 14px;
+    padding: 10px 20px; border-top: 1px solid #EEF3F8;
+}
+.portal-pagination-label { font-size: 11px; color: #9CA9BC; }
+.portal-showmore-btn {
+    background: none; border: none; padding: 0; font-family: inherit;
+    font-size: 12px; font-weight: 700; color: #0B6BCB; cursor: pointer;
+}
+.portal-showmore-btn:hover { text-decoration: underline; color: #084E96; }
+.portal-showmore-btn:disabled { cursor: default; opacity: 0.6; text-decoration: none; }
+
+/* =====================================================================
+   DETALLE
+   ===================================================================== */
+.det-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+.det-volver {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: none; border: none; padding: 4px 0; font-family: inherit;
+    font-size: 12.5px; font-weight: 600; color: #0E3A66; cursor: pointer;
+}
+.det-volver:hover { text-decoration: underline; }
+
+.det-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    border-radius: 9px; padding: 8px 14px; font-size: 12px; font-weight: 700;
+    text-decoration: none; white-space: nowrap; cursor: pointer; font-family: inherit;
+    transition: background 0.15s ease;
+}
+.det-btn-primario { background: #0E3A66; color: #fff; border: 1px solid #0E3A66; }
+.det-btn-primario:hover { background: #1d5189; text-decoration: none; color: #fff; }
+.det-btn-icon {
+    --slds-c-icon-color-foreground-default: #fff;
+    --slds-c-icon-color-foreground: #fff;
+}
+.det-btn-secundario { background: #fff; color: #0E3A66; border: 1px solid #C9D6E3; }
+.det-btn-secundario:hover { background: #EEF3F8; border-color: #9CB8D6; color: #0E3A66; text-decoration: none; }
+
+/* Franja de datos: una línea con los campos y otra con observaciones */
+.det-franja { padding: 10px 20px 8px; margin-bottom: 14px; }
+.det-linea { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 28px; }
+.det-linea-obs { border-top: 1px solid #F2F6FA; margin-top: 8px; padding-top: 8px; }
+.det-dato { min-width: 0; padding: 2px 0; }
+.det-dato-empresa { flex: 0 1 260px; }
+.det-dato-notario { flex: 0 1 220px; }
+.det-dato-titulo { flex: 1 1 320px; }
+.det-dato-ancho { flex: 1 1 100%; }
+.det-dato-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA9BC;
+    margin-bottom: 2px; white-space: nowrap;
+}
+.det-dato-valor { font-size: 13px; color: #0F1B2D; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.det-dato-empresa .det-dato-valor,
+.det-dato-notario .det-dato-valor { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.det-dato-numero { font-variant-numeric: tabular-nums; }
+.det-empresa { color: #0E3A66; }
+.det-observaciones { font-weight: 500; color: #3A4A60; font-size: 12.5px; white-space: pre-wrap; }
+
+/* Dos columnas: adjuntos a la izquierda, visor a la derecha */
+.det-grid { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); gap: 14px; align-items: start; }
+.det-col-izq { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.det-col-der { min-width: 0; }
+
+.det-card { padding: 0; }
+.det-card-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 12px 18px; border-bottom: 1px solid #EEF3F8;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #9CA9BC;
+}
+
+/* Lista de adjuntos */
+.det-adjuntos { list-style: none; margin: 0; padding: 6px 8px; }
+.det-adjunto {
+    display: flex; align-items: center; gap: 4px; border-radius: 10px; padding: 4px 6px 4px 4px;
+    transition: background 0.15s ease;
+}
+.det-adjunto:hover { background: #F7FAFD; }
+.det-adjunto-activo { background: #EEF3F8; }
+.det-adjunto-btn {
+    flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px;
+    background: none; border: none; padding: 6px 6px; font: inherit; text-align: left; cursor: pointer;
+}
+.portal-icon-box {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; flex-shrink: 0; border-radius: 9px; background: #E9F1F8;
+    transition: background 0.15s ease;
+}
+.portal-attachment-icon {
+    --slds-c-icon-color-foreground-default: #0E3A66;
+    --slds-c-icon-color-foreground: #0E3A66;
+}
+.det-adjunto-activo .det-adjunto-icono { background: #0E3A66; }
+.det-adjunto-activo .det-adjunto-icono .portal-attachment-icon {
+    --slds-c-icon-color-foreground-default: #fff;
+    --slds-c-icon-color-foreground: #fff;
+}
+.det-adjunto-textos { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.det-adjunto-titulo {
+    font-size: 12.5px; font-weight: 700; color: #0F1B2D;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.det-adjunto-meta { font-size: 11px; color: #9CA9BC; }
+.det-adjunto-descarga {
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 30px; height: 30px; border-radius: 8px; text-decoration: none;
+    --slds-c-icon-color-foreground-default: #9CA9BC;
+    --slds-c-icon-color-foreground: #9CA9BC;
+}
+.det-adjunto-descarga:hover {
+    background: #E9F1F8;
+    --slds-c-icon-color-foreground-default: #0E3A66;
+    --slds-c-icon-color-foreground: #0E3A66;
+}
+.det-state { padding: 26px 20px; }
+
+/* ---- Visor de documento ---- */
+.visor { display: flex; flex-direction: column; height: calc(100vh - 90px); min-height: 680px; }
+.visor-toolbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 9px 16px; border-bottom: 1px solid #EEF3F8; background: #fff; flex-shrink: 0;
+}
+.visor-nombre {
+    font-size: 12.5px; font-weight: 700; color: #0F1B2D; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.visor-controles { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.visor-paginas { font-size: 11.5px; color: #6B7A8F; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.visor-sep { width: 1px; height: 18px; background: #E2EAF2; margin: 0 6px; }
+.visor-btn {
+    background: #fff; border: 1px solid #E2EAF2; color: #3A4A60; border-radius: 7px;
+    min-width: 28px; height: 28px; padding: 0 8px; font-family: inherit; font-size: 13px; font-weight: 700;
+    cursor: pointer; line-height: 1;
+}
+.visor-btn:hover { background: #F7FAFD; border-color: #C9D6E3; }
+.visor-btn:disabled { opacity: 0.4; cursor: default; }
+.visor-btn-zoom { font-size: 11.5px; font-weight: 600; min-width: 52px; font-variant-numeric: tabular-nums; }
+
+.visor-scroll {
+    flex: 1 1 auto; overflow: auto; background: #E9EEF4; padding: 18px;
+    scrollbar-width: thin; scrollbar-color: #C9D6E3 transparent;
+}
+.visor-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.visor-scroll::-webkit-scrollbar-thumb { background-color: #C9D6E3; border-radius: 999px; }
+.visor-paginas-lista { display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 100%; }
+.visor-pagina {
+    background: #fff; box-shadow: 0 1px 2px rgba(15, 27, 45, 0.08), 0 6px 18px rgba(15, 27, 45, 0.08);
+    border-radius: 3px; overflow: hidden; flex-shrink: 0; min-height: 120px;
+}
+.visor-pagina img { display: block; width: 100%; height: auto; user-select: none; }
+
+.visor-cargando {
+    position: relative; display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 18px 0 6px; font-size: 11.5px; color: #6B7A8F; min-height: 40px;
+}
+.visor-cargando lightning-spinner { position: relative; width: 24px; height: 24px; flex-shrink: 0; }
+
+.visor-mensaje {
+    height: 100%; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: 6px; font-size: 12.5px; color: #6B7A8F; padding: 24px; max-width: 420px; margin: 0 auto;
+}
+.visor-mensaje-icono {
+    --slds-c-icon-color-foreground-default: #9CA9BC;
+    --slds-c-icon-color-foreground: #9CA9BC;
+    margin-bottom: 6px;
+}
+.visor-mensaje-titulo { font-size: 14px; font-weight: 800; color: #0F1B2D; }
+.visor-mensaje-btn { margin-top: 14px; }
+.visor-mensaje-botones { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+
+/* Aviso mientras Salesforce genera la vista previa del documento */
+.visor-preparando { min-height: 260px; }
+.visor-preparando-spinner { position: relative; width: 40px; height: 40px; margin-bottom: 8px; }
+
+/* Imágenes invisibles que precalientan la vista previa de los demás documentos */
+.visor-precarga { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+/* ---- Responsive ---- */
+@media (max-width: 1000px) {
+    .det-grid { grid-template-columns: 1fr; }
+    .visor { height: 80vh; min-height: 420px; }
+}
+@media (max-width: 640px) {
+    .portal-search-texto { max-width: none; flex-basis: 100%; }
+    .portal-empresas-btn { max-width: none; }
+    .portal-table tbody td, .portal-table thead th { padding-left: 12px; padding-right: 12px; }
+    .det-dato-empresa, .det-dato-notario { flex-basis: 100%; }
+}

@@ -1,0 +1,13 @@
+.celda-maximo {
+    color: #c23934;
+    font-weight: 600;
+}
+
+.celda-residual {
+    color: #0070d2;
+    font-weight: 600;
+}
+
+.celda-forzada {
+    background-color: #fffaf0;
+}

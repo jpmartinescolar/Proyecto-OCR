@@ -1,0 +1,32 @@
+<template>
+    <lightning-card title="Tabla de amortización" icon-name="standard:account_score">
+        <div slot="actions">
+            <span>{valorInicialFormateado}</span>
+            <span class="slds-text-color_weak slds-m-left_x-small slds-m-right_small">Valor inicial</span>
+        </div>
+
+        <template lwc:if={hayFilas}>
+            <lightning-datatable
+                key-field="id"
+                data={filas}
+                columns={columns}
+                draft-values={draftValues}
+                onsave={handleSave}
+                hide-checkbox-column
+                column-widths-mode="auto">
+            </lightning-datatable>
+        </template>
+
+        <template lwc:if={sinDatos}>
+            <div class="slds-p-around_medium slds-text-color_weak slds-text-align_center">
+                No hay registros de amortización para este inmovilizado.
+            </div>
+        </template>
+
+        <template lwc:if={error}>
+            <div class="slds-p-around_medium slds-text-color_destructive">
+                {error}
+            </div>
+        </template>
+    </lightning-card>
+</template>

@@ -1,0 +1,140 @@
+<template>
+    <div class="portal-wrapper">
+
+        <template if:true={hasHeader}>
+            <div class="portal-header">
+                <template if:true={hasTitle}>
+                    <h1 class="portal-title">{title}</h1>
+                </template>
+                <template if:true={hasSubtitle}>
+                    <p class="portal-subtitle">{subtitle}</p>
+                </template>
+            </div>
+        </template>
+
+        <div class="portal-search">
+            <svg class="portal-search-icon" aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <label for="portal-search-input" class="portal-visually-hidden">{searchLabel}</label>
+            <input
+                id="portal-search-input"
+                type="search"
+                class="portal-search-input"
+                placeholder={searchPlaceholder}
+                title={searchLabel}
+                value={searchTerm}
+                oninput={handleSearchChange} />
+        </div>
+
+        <template if:true={showInitialLoading}>
+            <div class="portal-state">
+                <lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={errorMessage}>
+            <div class="portal-state portal-state-error">{errorMessage}</div>
+        </template>
+
+        <template if:true={showEmptyState}>
+            <div class="portal-card">
+                <div class="portal-state">No se han encontrado resultados.</div>
+            </div>
+        </template>
+
+        <template if:true={hasRecords}>
+            <div class="portal-card portal-card-relative">
+                <template if:true={isLoading}>
+                    <div class="portal-loading-overlay">
+                        <lightning-spinner alternative-text="Actualizando" size="small"></lightning-spinner>
+                    </div>
+                </template>
+                <div class="portal-table-scroll">
+                    <table class="portal-table">
+                        <thead>
+                            <tr>
+                                <template for:each={displayColumns} for:item="col">
+                                    <th
+                                        key={col.fieldName}
+                                        scope="col"
+                                        aria-sort={col.ariaSort}
+                                        class="portal-th-sortable"
+                                        data-field={col.fieldName}
+                                        onclick={handleSortClick}>
+                                        <span class="portal-th-inner">
+                                            <span>{col.label}</span>
+                                            <template if:true={col.isSortedField}>
+                                                <lightning-icon
+                                                    icon-name={col.sortIcon}
+                                                    size="xx-small"
+                                                    alternative-text=""
+                                                    class="portal-sort-icon">
+                                                </lightning-icon>
+                                            </template>
+                                        </span>
+                                    </th>
+                                </template>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={displayedRows} for:item="row">
+                                <tr key={row.key}>
+                                    <template for:each={row.cells} for:item="cell">
+                                        <td key={cell.key}>
+                                            <template if:true={cell.isIconButton}>
+                                                <button
+                                                    class="portal-name-cell portal-name-clickable"
+                                                    title="Ver más"
+                                                    aria-label="Ver más"
+                                                    data-record-id={row.key}
+                                                    onclick={handleIconClick}>
+                                                    <span class="portal-icon-box">
+                                                        <lightning-icon
+                                                            icon-name={cell.iconName}
+                                                            size="x-small"
+                                                            alternative-text=""
+                                                            class="portal-attachment-icon">
+                                                        </lightning-icon>
+                                                    </span>
+                                                    <span class="portal-name-text portal-name-link">{cell.value}</span>
+                                                </button>
+                                            </template>
+                                            <template if:true={cell.isIconStatic}>
+                                                <div class="portal-name-cell">
+                                                    <div class="portal-icon-box portal-icon-static">
+                                                        <lightning-icon
+                                                            icon-name={cell.iconName}
+                                                            size="x-small"
+                                                            alternative-text=""
+                                                            class="portal-attachment-icon">
+                                                        </lightning-icon>
+                                                    </div>
+                                                    <span class="portal-name-text">{cell.value}</span>
+                                                </div>
+                                            </template>
+                                            <template if:true={cell.isBadge}>
+                                                <span class="portal-badge" style={cell.badgeStyle}>{cell.value}</span>
+                                            </template>
+                                            <template if:true={cell.isPlainText}>{cell.value}</template>
+                                        </td>
+                                    </template>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <template if:true={showPagination}>
+                    <div class="portal-pagination">
+                        <span class="portal-pagination-label">{paginationLabel}</span>
+                        <template if:true={canShowMore}>
+                            <button class="portal-showmore-btn" aria-label="Mostrar más filas" onclick={handleShowMore}>Mostrar más</button>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+    </div>
+</template>

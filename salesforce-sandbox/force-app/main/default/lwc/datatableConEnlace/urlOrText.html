@@ -1,0 +1,8 @@
+<template>
+    <template lwc:if={typeAttributes.url}>
+        <a href={typeAttributes.url} target={typeAttributes.target}>{typeAttributes.label}</a>
+    </template>
+    <template lwc:else>
+        <span>{typeAttributes.label}</span>
+    </template>
+</template>

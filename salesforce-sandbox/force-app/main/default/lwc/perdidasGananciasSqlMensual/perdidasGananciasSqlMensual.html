@@ -1,0 +1,184 @@
+<template>
+    <div class="pyg-container">
+
+        <!-- HEADER -->
+        <div class="pyg-header">
+            <div class="pyg-header-left">
+                <div class="pyg-icon">
+                    <lightning-icon icon-name="standard:report" size="medium"></lightning-icon>
+                </div>
+                <div>
+                    <h1 class="pyg-title">Pérdidas y Ganancias mensual</h1>
+                    <p class="pyg-subtitle">Un ejercicio desglosado por meses</p>
+                </div>
+            </div>
+            <div class="pyg-header-right">
+                <lightning-button-icon icon-name="utility:refresh"
+                                       alternative-text="Refrescar"
+                                       variant="border-filled"
+                                       onclick={handleRefresh}></lightning-button-icon>
+            </div>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="pyg-filtros">
+            <div class="pyg-filtros-titulo">
+                <div class="pyg-filtros-izq">
+                    <span>FILTROS</span>
+                    <lightning-button label="Limpiar" icon-name="utility:clear" variant="neutral"
+                                      title="Borra filtros y resultados para empezar de cero"
+                                      onclick={handleLimpiar}></lightning-button>
+                    <lightning-button label="Generar"
+                                      icon-name="utility:apex"
+                                      variant="brand"
+                                      onclick={handleGenerar}></lightning-button>
+                </div>
+                <div class="pyg-toggles">
+                    <span class="pyg-toggle-label">Acumulado</span>
+                    <button class={acumSiCls} data-value="Si" onclick={setAcumulado}
+                            title="Cada mes muestra el acumulado desde enero">Sí</button>
+                    <button class={acumNoCls} data-value="No" onclick={setAcumulado}
+                            title="Cada mes muestra solo su importe">No</button>
+
+                    <span class="pyg-toggle-label">Desplegado</span>
+                    <button class={despSiCls} data-value="Si" onclick={setDesplegado}>Sí</button>
+                    <button class={despNoCls} data-value="No" onclick={setDesplegado}>No</button>
+                </div>
+            </div>
+
+            <!-- Filtros en una línea: empresa + ejercicio -->
+            <div class="pygsql-filtros-linea">
+                <div class={empresaDropdownClass}>
+                    <label class="slds-form-element__label">
+                        Empresa <span class="pyg-req">*</span>
+                    </label>
+                    <button class={empresaTriggerClass} type="button" onclick={toggleEmpresaDropdown}>
+                        <span class="pyg-ms-trigger-text">{empresaTriggerLabel}</span>
+                        <span class="pyg-ms-caret">▾</span>
+                    </button>
+
+                    <template if:true={showEmpresaDropdown}>
+                        <div class="pyg-ms-backdrop" onclick={closeEmpresaDropdown}></div>
+                        <div class="pyg-ms-panel" onclick={stopProp}>
+                            <div class="pyg-ms-panel-head">
+                                <input type="search"
+                                       class="pyg-ms-search"
+                                       placeholder="Buscar por nombre..."
+                                       value={empresaFiltroBusqueda}
+                                       oninput={handleEmpresaBusqueda} />
+                                <div class="pyg-ms-actions">
+                                    <button type="button" class="pyg-ms-link" onclick={handleEmpresaSelectAll}>Todas</button>
+                                    <span>·</span>
+                                    <button type="button" class="pyg-ms-link" onclick={handleEmpresaClearAll}>Ninguna</button>
+                                    <span>·</span>
+                                    <button type="button" class={empresaSeleccionadasCls}
+                                            title="Ver únicamente las empresas marcadas"
+                                            onclick={toggleEmpresaSoloSeleccionadas}>Seleccionadas</button>
+                                </div>
+                            </div>
+                            <div class="pyg-ms-list">
+                                <template if:true={cargandoEmpresas}>
+                                    <div class="pyg-ms-cargando">
+                                        <span class="pyg-ms-cargando-spinner">
+                                            <lightning-spinner size="x-small" alternative-text="Buscando empresas"></lightning-spinner>
+                                        </span>
+                                        <span>Buscando empresas...</span>
+                                    </div>
+                                </template>
+                                <template for:each={empresaOptionsFiltradas} for:item="opt">
+                                    <div key={opt.value}
+                                         class={opt.optionClass}
+                                         data-value={opt.value}
+                                         onclick={handleEmpresaToggle}>
+                                        <span class="pyg-ms-check"></span>
+                                        <span class="pyg-ms-label">{opt.label}</span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="pyg-ms-panel-foot">
+                                <span class="pyg-ms-count">{empresaCount}</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <lightning-combobox label="Ejercicio" class="pygm-ejercicio"
+                                    value={ejercicio} options={ejercicioOpciones}
+                                    onchange={handleEjercicio}></lightning-combobox>
+            </div>
+        </div>
+
+        <!-- BARRA DE CONTEXTO -->
+        <div class="pyg-contextbar">
+            <span><strong>Empresa:</strong> {empresaLabel}</span>
+            <span class="pyg-divider">·</span>
+            <span><strong>Ejercicio:</strong> {ejercicio}</span>
+            <span class="pyg-divider">·</span>
+            <span><strong>Meses:</strong> {acumuladoLabel}</span>
+            <span class="pyg-divider">·</span>
+            <span><strong>Moneda:</strong> {currencySimbolo}</span>
+        </div>
+
+        <!-- LOADING -->
+        <template if:true={loading}>
+            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+        </template>
+
+        <!-- ERROR -->
+        <template if:true={hasError}>
+            <div class="pyg-error">
+                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- ESTADO INICIAL -->
+        <template if:true={showInicial}>
+            <div class="pyg-placeholder">
+                <lightning-icon icon-name="utility:filterList" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                <span>{textoInicial} <strong>Generar</strong>.</span>
+            </div>
+        </template>
+
+        <!-- TABLA -->
+        <template if:true={hasRows}>
+            <div class="pyg-tabla-wrap pygm-tabla-wrap">
+                <table class="pyg-tabla pygm-tabla">
+                    <thead>
+                        <tr>
+                            <th class="pyg-th-concepto">CONCEPTO</th>
+                            <template for:each={mesesHeader} for:item="m">
+                                <th key={m} class="pygm-th-mes">{m}</th>
+                            </template>
+                            <th class="pygm-th-total">TOTAL {ejercicio}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={filasView} for:item="row">
+                            <tr key={row.key} class={row.rowClass}>
+                                <td class={row.conceptoClass} data-seckey={row.seccionKey} onclick={handleConceptoClick}>
+                                    <template if:true={row.showCodigo}>
+                                        <span class="pyg-codigo">{row.codigo}</span>
+                                    </template>
+                                    <span>{row.concepto}</span>
+                                </td>
+                                <template for:each={row.meses} for:item="mes">
+                                    <td key={mes.key} class={mes.cls}>{mes.valor}</td>
+                                </template>
+                                <td class={row.totalClass}>{row.totalValue}</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+
+        <!-- EMPTY -->
+        <template if:true={emptyState}>
+            <div class="pyg-empty">
+                <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                <span>No se han encontrado movimientos que cumplan los filtros seleccionados.</span>
+            </div>
+        </template>
+
+    </div>
+</template>

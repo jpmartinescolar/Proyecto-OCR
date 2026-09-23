@@ -1,0 +1,28 @@
+<template>
+    <div class="profile-page">
+        <h1 class="profile-page__title">Mi perfil</h1>
+        <p class="profile-page__subtitle">Datos de tu usuario y acceso al portal.</p>
+
+        <div class="profile-card profile-card_identity">
+            <div class="profile-avatar">{displayInitials}</div>
+            <div class="profile-identity-info">
+                <div class="profile-identity-name">{displayName}</div>
+            </div>
+        </div>
+
+        <div class="profile-card profile-card_details">
+            <div class="profile-row">
+                <span class="profile-row__label">Email</span>
+                <span class="profile-row__value">{displayEmail}</span>
+            </div>
+            <div class="profile-row">
+                <span class="profile-row__label">Teléfono</span>
+                <span class="profile-row__value">{displayPhone}</span>
+            </div>
+            <div class="profile-row profile-row_last">
+                <span class="profile-row__label">Idioma</span>
+                <span class="profile-row__value">{displayLanguageLabel}</span>
+            </div>
+        </div>
+    </div>
+</template>

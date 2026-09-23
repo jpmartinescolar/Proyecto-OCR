@@ -1,0 +1,71 @@
+<apex:page controller="CatalogoModelosPdfController"
+           renderAs="pdf"
+           applyHtmlTag="false"
+           applyBodyTag="false"
+           showHeader="false"
+           sidebar="false"
+           standardStylesheets="false"
+           language="es">
+<html>
+<head>
+<title>Reglas de incidencias</title>
+<style type="text/css">
+    @page {
+        size: A4 portrait;
+        margin: 1.4cm 1.4cm 1.9cm 1.4cm;
+        @bottom-left {
+            content: "Reglas de incidencias · Obligaciones tributarias";
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 7.5pt;
+            color: #9aa7b5;
+        }
+        @bottom-right {
+            content: "Página " counter(page) " de " counter(pages);
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 7.5pt;
+            color: #9aa7b5;
+        }
+    }
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 8.8pt; color: #16325c; line-height: 1.35; margin: 0; }
+
+    /* ===== CABECERA (mismo diseño que los demás PDF del área) ===== */
+    .topbar { height: 5pt; background: #14395c; margin-bottom: 0.35cm; }
+    .kicker { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.22em; color: #2878a8; font-weight: 700; }
+    .title { font-size: 18pt; font-weight: 700; color: #14395c; letter-spacing: -0.2pt; margin: 0.15cm 0 0.1cm 0; }
+    .sub { font-size: 8pt; color: #6b7a90; margin-bottom: 0.35cm; }
+    .error { color: #c0392b; font-weight: 700; padding: 0.4cm 0; }
+
+    /* ===== RESUMEN (la caja ámbar de la pantalla) ===== */
+    .resumen { background: #fdf6d8; border: 1px solid #ecdba4; padding: 6pt 9pt; margin-bottom: 0.4cm;
+        font-size: 8pt; color: #6b5900; line-height: 1.35; }
+    .resumen b { display: block; font-size: 10.5pt; color: #8a5a00; margin-bottom: 2pt; }
+
+    /* ===== BLOQUES DE REGLAS (misma estructura y colores que la pestaña) ===== */
+    .obl-info-bloque { border: 1px solid #e2e6ec; background: #fbfcfe; padding: 7pt 9pt; margin-bottom: 8pt;
+        page-break-inside: avoid; }
+    .obl-info-titulo { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+        color: #0b5cab; margin-bottom: 3pt; }
+    .obl-info-bloque p { margin: 3pt 0 0 0; }
+    .obl-info-bloque ul { margin: 3pt 0 0 0; padding-left: 0; list-style: none; }
+    .obl-info-bloque li { margin-top: 2pt; }
+    .obl-info-bloque b { color: #16325c; }
+    .obl-info-tabla { width: 100%; border-collapse: collapse; margin-top: 4pt; font-size: 8.2pt; }
+    .obl-info-tabla th { text-align: left; font-size: 6.8pt; text-transform: uppercase; letter-spacing: 0.05em;
+        color: #5f6b7c; padding: 2pt 4pt; border-bottom: 1px solid #c9d4e5; }
+    .obl-info-tabla td { padding: 2.5pt 4pt; border-bottom: 1px solid #eef0f4; vertical-align: top; }
+    .obl-info-tabla td:first-child, .obl-info-tabla td:first-child + td { font-weight: 700; color: #0b5cab; }
+    .obl-info-ejemplo { margin-top: 4pt; font-size: 7.8pt; color: #5f6b7c; font-style: italic; }
+</style>
+</head>
+<body>
+    <apex:outputPanel layout="none" rendered="{!ISBLANK(error)}">
+        <apex:outputText value="{!cuerpo}" escape="false"/>
+    </apex:outputPanel>
+    <apex:outputPanel layout="none" rendered="{!NOT(ISBLANK(error))}">
+        <div class="topbar"></div>
+        <div class="title">Reglas de incidencias</div>
+        <div class="error">No se pudo generar el PDF: <apex:outputText value="{!error}"/></div>
+    </apex:outputPanel>
+</body>
+</html>
+</apex:page>

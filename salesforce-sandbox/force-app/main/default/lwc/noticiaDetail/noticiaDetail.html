@@ -1,0 +1,40 @@
+<template>
+    <c-site-header></c-site-header>
+    <article class="nvd">
+        <div class="nvd-wrap">
+            <button class="nvd-back" type="button" onclick={goBack}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                Volver a noticias
+            </button>
+
+            <template lwc:if={loading}>
+                <div class="nvd-state">Cargando…</div>
+            </template>
+
+            <template lwc:elseif={notFound}>
+                <div class="nvd-state">
+                    <h1>No encontramos esta noticia</h1>
+                    <p>Es posible que se haya movido o ya no esté disponible.</p>
+                    <button class="nvd-btn" type="button" onclick={goBack}>Ver todas las noticias</button>
+                </div>
+            </template>
+
+            <template lwc:elseif={noticia}>
+                <p class="nvd-eyebrow">Actualidad</p>
+                <h1 class="nvd-title">{noticia.title}</h1>
+                <p class="nvd-date">{noticia.fechaLabel}</p>
+
+                <template lwc:if={noticia.hasImg}>
+                    <div class="nvd-hero"><img src={noticia.imageUrl} alt={noticia.title} /></div>
+                </template>
+
+                <div class="nvd-body"></div>
+
+                <div class="nvd-foot">
+                    <button class="nvd-btn" type="button" onclick={goBack}>&larr; Todas las noticias</button>
+                    <button class="nvd-btn ghost" type="button" onclick={goHome}>Ir al inicio</button>
+                </div>
+            </template>
+        </div>
+    </article>
+</template>

@@ -1,0 +1,23 @@
+.ase-wrap { position: relative; display: inline-flex; }
+.ase-chip {
+    display: inline-flex; align-items: center; padding: 0.12rem 0.6rem; border-radius: 1rem;
+    font-size: 0.78rem; font-weight: 700; white-space: nowrap; cursor: pointer;
+}
+.ase-chip:hover { filter: brightness(0.96); }
+.ase-chip-ok  { background: #d4f5dc; color: #1f6638; border: 1px solid #a3e0b5; }
+.ase-chip-bad { background: #fdd9dc; color: #8e0413; border: 1px solid #f3b3b9; }
+.ase-eye { margin-right: 0.3rem; --slds-c-icon-color-foreground-default: #8e0413; }
+
+.ase-pop {
+    position: absolute; top: calc(100% + 4px); left: 0; z-index: 9000;
+    background: #ffffff; border: 1px solid #c9d4e5; border-radius: 0.4rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18); padding: 0.6rem 0.8rem;
+    width: max-content; max-width: 360px; font-size: 0.82rem; color: #16325c;
+}
+.ase-x { position: absolute; top: 0.2rem; right: 0.35rem; background: transparent; border: 0; cursor: pointer; color: #5f6b7c; font-size: 0.9rem; }
+.ase-pop-title { font-weight: 700; color: #0b1f3a; margin: 0 1rem 0.4rem 0; }
+.ase-pop-line { margin: 0.15rem 0; }
+.ase-pop-total { margin-top: 0.4rem; padding-top: 0.35rem; border-top: 1px solid #eef0f4; font-weight: 700; }
+.ase-dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; margin-right: 0.3rem; }
+.ase-dot-prov { background: #c2410c; }
+.ase-dot-cli { background: #2e6da4; }

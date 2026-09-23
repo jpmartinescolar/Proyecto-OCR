@@ -1,0 +1,81 @@
+:host {
+    --navy: #0E3A66;
+    --navy-deep: #0a2d52;
+    --amber: #F4A93C;
+    --display: 'Montserrat', 'Segoe UI', system-ui, sans-serif;
+    --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    display: block;
+    font-family: var(--body);
+}
+
+.nv-footer {
+    background: var(--navy-deep);
+    color: #9cc0e0;
+    padding: 60px 0 28px;
+}
+.nv-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+.nv-footer a { text-decoration: none !important; }
+
+.nv-foot-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+.nv-foot-grid h5 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    margin: 0 0 16px;
+    letter-spacing: .02em;
+}
+.nv-foot-col { display: flex; flex-direction: column; gap: 11px; }
+.nv-foot-col a { font-size: 14px; color: #9cc0e0; cursor: pointer; }
+.nv-foot-col a:hover { color: #fff; }
+.nv-foot-col span { font-size: 14px; color: #9cc0e0; }
+
+.nv-foot-desc {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #9cc0e0;
+    margin: 0;
+    max-width: 310px;
+}
+
+.nv-brand { display: flex; align-items: center; gap: 13px; margin-bottom: 16px; cursor: pointer; }
+.nv-mark {
+    width: 40px; height: 40px; border-radius: 9px;
+    background: linear-gradient(160deg, #0E3A66, #15406f);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .25);
+    border-bottom: 2px solid var(--amber); flex: none;
+}
+.nv-brand-name { font-family: var(--display); font-weight: 800; font-size: 19px; color: #fff; line-height: 1; }
+.nv-brand-sub { font-weight: 600; font-size: 9px; letter-spacing: .26em; color: #6f97bf; margin-top: 4px; }
+
+.nv-foot-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 24px;
+    font-size: 13px;
+    color: #6f97bf;
+}
+.nv-foot-legal { display: flex; gap: 22px; }
+.nv-foot-bottom a { color: #6f97bf; cursor: pointer; }
+.nv-foot-bottom a:hover { color: #fff; }
+
+@media (max-width: 900px) {
+    .nv-foot-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+    .nv-foot-grid { grid-template-columns: 1fr; }
+}

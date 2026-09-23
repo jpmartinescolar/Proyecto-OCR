@@ -1,0 +1,396 @@
+<template>
+    <div class="portal-wrapper">
+
+        <!-- ================= LISTADO ================= -->
+        <template lwc:if={enListado}>
+            <div class="portal-header">
+                <h1 class="portal-title">{titulo}</h1>
+                <template lwc:if={subtitulo}>
+                    <p class="portal-subtitle">{subtitulo}</p>
+                </template>
+            </div>
+
+            <!-- Filtros: buscador único, rango de fechas y empresas -->
+            <div class="portal-filtros">
+                <div class="portal-search portal-search-texto">
+                    <svg class="portal-search-icon" aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                    <label for="filtro-texto" class="portal-visually-hidden">Buscar por título, notario o nº de escritura</label>
+                    <input id="filtro-texto" type="search" class="portal-search-input"
+                           placeholder="Buscar por título, notario o nº de escritura…" value={texto}
+                           oninput={handleTexto} />
+                </div>
+
+                <div class="portal-search portal-search-fecha">
+                    <label for="filtro-desde" class="portal-fecha-label">Desde</label>
+                    <input id="filtro-desde" type="date" class="portal-search-input portal-fecha-input"
+                           value={desde} onchange={handleDesde} />
+                </div>
+
+                <div class="portal-search portal-search-fecha">
+                    <label for="filtro-hasta" class="portal-fecha-label">Hasta</label>
+                    <input id="filtro-hasta" type="date" class="portal-search-input portal-fecha-input"
+                           value={hasta} onchange={handleHasta} />
+                </div>
+
+                <!-- Filtro de empresas: botón + panel desplegable con buscador y casillas -->
+                <div class="portal-empresas">
+                    <button type="button" class={claseBotonEmpresas} onclick={handleToggleEmpresas}
+                            aria-haspopup="listbox" aria-expanded={empresasAbierto}>
+                        <svg class="portal-search-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 21h18"></path>
+                            <path d="M5 21V7l7-4 7 4v14"></path>
+                            <path d="M9 21v-4h6v4"></path>
+                            <path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01"></path>
+                        </svg>
+                        <span class="portal-empresas-texto">{etiquetaEmpresas}</span>
+                        <svg class={claseChevronEmpresas} aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </button>
+
+                    <template lwc:if={empresasAbierto}>
+                        <div class="portal-backdrop" onclick={handleCerrarEmpresas}></div>
+                        <div class="portal-panel" role="listbox" aria-multiselectable="true">
+                            <div class="portal-panel-buscador">
+                                <svg class="portal-search-icon" aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.3-4.3"></path>
+                                </svg>
+                                <input type="search" class="portal-search-input" placeholder="Buscar empresa…"
+                                       value={filtroEmpresas} oninput={handleFiltroEmpresas} />
+                            </div>
+                            <template lwc:if={cargandoEmpresas}>
+                                <div class="portal-panel-vacio">Cargando empresas…</div>
+                            </template>
+                            <template lwc:elseif={sinEmpresasFiltradas}>
+                                <div class="portal-panel-vacio">Ninguna empresa coincide.</div>
+                            </template>
+                            <template lwc:else>
+                                <ul class="portal-panel-lista">
+                                    <template for:each={empresasVista} for:item="emp">
+                                        <li key={emp.id}>
+                                            <label class={emp.clase}>
+                                                <input type="checkbox" class="portal-opcion-check" data-id={emp.id}
+                                                       checked={emp.seleccionada} onchange={handleEmpresaCheck} />
+                                                <span class="portal-opcion-nombre" title={emp.nombre}>{emp.nombre}</span>
+                                                <span class="portal-opcion-n">{emp.escrituras}</span>
+                                            </label>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </template>
+                            <div class="portal-panel-pie">
+                                <span class="portal-panel-info">{resumenEmpresas}</span>
+                                <span class="portal-panel-acciones">
+                                    <template lwc:if={hayEmpresasSeleccionadas}>
+                                        <button type="button" class="portal-panel-btn" onclick={handleLimpiarEmpresas}>Quitar selección</button>
+                                    </template>
+                                    <button type="button" class="portal-panel-btn portal-panel-btn-primario"
+                                            onclick={handleCerrarEmpresas}>Cerrar</button>
+                                </span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <template lwc:if={hayFiltros}>
+                    <button type="button" class="portal-limpiar" onclick={handleLimpiar}>Limpiar filtros</button>
+                </template>
+            </div>
+
+            <!-- Empresas elegidas, como etiquetas quitables -->
+            <template lwc:if={hayEmpresasSeleccionadas}>
+                <div class="portal-chips">
+                    <template for:each={empresasSeleccionadasVista} for:item="emp">
+                        <span key={emp.id} class="portal-chip">
+                            <span class="portal-chip-texto" title={emp.nombre}>{emp.nombre}</span>
+                            <button type="button" class="portal-chip-x" data-id={emp.id} onclick={handleQuitarEmpresa}
+                                    title="Quitar" aria-label="Quitar empresa">×</button>
+                        </span>
+                    </template>
+                </div>
+            </template>
+
+            <template lwc:if={fechasInvertidas}>
+                <div class="portal-aviso">La fecha "Desde" es posterior a la fecha "Hasta": no habrá resultados.</div>
+            </template>
+
+            <template lwc:if={mostrarCargaInicial}>
+                <div class="portal-card">
+                    <div class="portal-state portal-state-spinner">
+                        <lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner>
+                    </div>
+                </div>
+            </template>
+
+            <template lwc:if={error}>
+                <div class="portal-state portal-state-error">{error}</div>
+            </template>
+
+            <template lwc:if={mostrarVacio}>
+                <div class="portal-card">
+                    <div class="portal-state">No se han encontrado escrituras con esos criterios.</div>
+                </div>
+            </template>
+
+            <template lwc:if={hayFilas}>
+                <div class="portal-card portal-card-relative">
+                    <template lwc:if={cargando}>
+                        <div class="portal-loading-overlay">
+                            <lightning-spinner alternative-text="Actualizando" size="small"></lightning-spinner>
+                        </div>
+                    </template>
+                    <div class="portal-table-scroll">
+                        <table class="portal-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Fecha escritura</th>
+                                    <th scope="col">Nº Escritura</th>
+                                    <th scope="col">Nº Protocolo</th>
+                                    <th scope="col">Empresa</th>
+                                    <th scope="col">Notario</th>
+                                    <th scope="col" class="portal-th-titulo">Título escritura</th>
+                                    <th scope="col" class="portal-th-num">Adjuntos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={filasVista} for:item="fila">
+                                    <tr key={fila.id}>
+                                        <td class="portal-td-fecha">{fila.fechaTexto}</td>
+                                        <td>
+                                            <button type="button" class="portal-link" title="Ver la escritura y sus documentos"
+                                                    data-id={fila.id} onclick={handleAbrir}>{fila.numero}</button>
+                                        </td>
+                                        <td>{fila.protocolo}</td>
+                                        <td class="portal-td-empresa" title={fila.empresa}>{fila.empresa}</td>
+                                        <td class="portal-td-notario" title={fila.notario}>{fila.notario}</td>
+                                        <td class="portal-td-titulo" title={fila.titulo}>{fila.titulo}</td>
+                                        <td class="portal-td-num">
+                                            <template lwc:if={fila.tieneAdjuntos}>
+                                                <button type="button" class="portal-pill portal-pill-btn"
+                                                        title="Ver documentos" data-id={fila.id} onclick={handleAbrir}>
+                                                    <lightning-icon icon-name="utility:attach" size="xx-small"
+                                                                    alternative-text="" class="portal-pill-icon">
+                                                    </lightning-icon>
+                                                    <span>{fila.adjuntos}</span>
+                                                </button>
+                                            </template>
+                                            <template lwc:else>
+                                                <span class="portal-sin-adjuntos">—</span>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="portal-pagination">
+                        <span class="portal-pagination-label">{etiquetaPaginacion}</span>
+                        <template lwc:if={hayMas}>
+                            <button type="button" class="portal-showmore-btn" onclick={handleMostrarMas}
+                                    disabled={cargando}>{etiquetaVerMas}</button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </template>
+
+        <!-- ================= DETALLE ================= -->
+        <template lwc:if={enDetalle}>
+            <div class="det-top">
+                <button type="button" class="det-volver" onclick={handleVolver}>
+                    <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m15 18-6-6 6-6"></path>
+                    </svg>
+                    <span>Volver al listado</span>
+                </button>
+                <template lwc:if={adjuntoActivo}>
+                    <a class="det-btn det-btn-primario" href={urlDescargaActiva} target="_blank" rel="noopener">
+                        <lightning-icon icon-name="utility:download" size="xx-small" alternative-text=""
+                                        class="det-btn-icon"></lightning-icon>
+                        <span>Descargar</span>
+                    </a>
+                </template>
+            </div>
+
+            <template lwc:if={cargandoDetalle}>
+                <div class="portal-card">
+                    <div class="portal-state portal-state-spinner">
+                        <lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner>
+                    </div>
+                </div>
+            </template>
+
+            <template lwc:if={errorDetalle}>
+                <div class="portal-state portal-state-error">{errorDetalle}</div>
+            </template>
+
+            <template lwc:if={detalle}>
+                <!-- Franja de datos: todo en una línea, observaciones debajo -->
+                <div class="portal-card det-franja">
+                    <div class="det-linea">
+                        <div class="det-dato">
+                            <div class="det-dato-label">Fecha escritura</div>
+                            <div class="det-dato-valor">{fechaDetalleTexto}</div>
+                        </div>
+                        <div class="det-dato">
+                            <div class="det-dato-label">Nº Escritura</div>
+                            <div class="det-dato-valor det-dato-numero">{detalle.numero}</div>
+                        </div>
+                        <div class="det-dato">
+                            <div class="det-dato-label">Nº Protocolo</div>
+                            <div class="det-dato-valor">{protocoloTexto}</div>
+                        </div>
+                        <div class="det-dato det-dato-empresa">
+                            <div class="det-dato-label">Empresa</div>
+                            <div class="det-dato-valor det-empresa" title={empresaTexto}>{empresaTexto}</div>
+                        </div>
+                        <div class="det-dato det-dato-notario">
+                            <div class="det-dato-label">Notario</div>
+                            <div class="det-dato-valor" title={notarioTexto}>{notarioTexto}</div>
+                        </div>
+                        <div class="det-dato det-dato-titulo">
+                            <div class="det-dato-label">Título escritura</div>
+                            <div class="det-dato-valor">{tituloTexto}</div>
+                        </div>
+                    </div>
+                    <div class="det-linea det-linea-obs">
+                        <div class="det-dato det-dato-ancho">
+                            <div class="det-dato-label">Observaciones</div>
+                            <div class="det-dato-valor det-observaciones">{observacionesTexto}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="det-grid">
+                    <!-- Columna izquierda: solo los documentos adjuntos -->
+                    <aside class="det-col-izq">
+                        <div class="portal-card det-card">
+                            <div class="det-card-head">
+                                <span>Documentos adjuntos</span>
+                                <span class="portal-pill">{numAdjuntos}</span>
+                            </div>
+                            <template lwc:if={hayAdjuntos}>
+                                <ul class="det-adjuntos">
+                                    <template for:each={adjuntosVista} for:item="adj">
+                                        <li key={adj.documentoId} class={adj.clase}>
+                                            <button type="button" class="det-adjunto-btn" data-id={adj.documentoId}
+                                                    onclick={handleSeleccionarAdjunto} title="Previsualizar">
+                                                <span class="portal-icon-box det-adjunto-icono">
+                                                    <lightning-icon icon-name={adj.icono} size="x-small" alternative-text=""
+                                                                    class="portal-attachment-icon"></lightning-icon>
+                                                </span>
+                                                <span class="det-adjunto-textos">
+                                                    <span class="det-adjunto-titulo">{adj.titulo}</span>
+                                                    <span class="det-adjunto-meta">{adj.meta}</span>
+                                                </span>
+                                            </button>
+                                            <a class="det-adjunto-descarga" href={adj.urlDescarga} target="_blank"
+                                               rel="noopener" title="Descargar">
+                                                <lightning-icon icon-name="utility:download" size="xx-small"
+                                                                alternative-text="Descargar"></lightning-icon>
+                                            </a>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </template>
+                            <template lwc:else>
+                                <div class="portal-state det-state">Esta escritura no tiene documentos adjuntos.</div>
+                            </template>
+                        </div>
+                    </aside>
+
+                    <!-- Columna derecha: visor del documento -->
+                    <section class="det-col-der">
+                        <div class="portal-card visor">
+                            <div class="visor-toolbar">
+                                <div class="visor-nombre" title={nombreAdjuntoActivo}>{nombreAdjuntoActivo}</div>
+                                <template lwc:if={mostrarControlesVisor}>
+                                    <div class="visor-controles">
+                                        <span class="visor-paginas">{etiquetaPaginas}</span>
+                                        <span class="visor-sep"></span>
+                                        <button type="button" class="visor-btn" title="Reducir" onclick={handleZoomMenos}
+                                                disabled={zoomMinimo}>−</button>
+                                        <button type="button" class="visor-btn visor-btn-zoom" title="Volver al tamaño por defecto"
+                                                onclick={handleZoomAjustar}>{zoomTexto}</button>
+                                        <button type="button" class="visor-btn" title="Ampliar" onclick={handleZoomMas}
+                                                disabled={zoomMaximo}>+</button>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div class="visor-scroll" onscroll={handleScrollVisor}>
+                                <template lwc:if={visorSinAdjuntos}>
+                                    <div class="visor-mensaje">
+                                        <lightning-icon icon-name="utility:file" size="medium" alternative-text=""
+                                                        class="visor-mensaje-icono"></lightning-icon>
+                                        <div class="visor-mensaje-titulo">Sin documento</div>
+                                        <div>Esta escritura no tiene ningún archivo adjunto.</div>
+                                    </div>
+                                </template>
+                                <template lwc:elseif={visorSinPrevisualizacion}>
+                                    <div class="visor-mensaje">
+                                        <lightning-icon icon-name="utility:preview" size="medium" alternative-text=""
+                                                        class="visor-mensaje-icono"></lightning-icon>
+                                        <div class="visor-mensaje-titulo">Previsualización no disponible</div>
+                                        <div>{motivoSinPrevisualizacion}</div>
+                                        <div class="visor-mensaje-botones">
+                                            <template lwc:if={previsualizacionFallida}>
+                                                <button type="button" class="det-btn det-btn-secundario" onclick={handleReintentar}>Reintentar</button>
+                                            </template>
+                                            <a class="det-btn det-btn-primario" href={urlDescargaActiva}
+                                               target="_blank" rel="noopener">Descargar el documento</a>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template lwc:else>
+                                    <template lwc:if={mostrarPreparando}>
+                                        <div class="visor-mensaje visor-preparando">
+                                            <div class="visor-preparando-spinner">
+                                                <lightning-spinner alternative-text="Preparando la vista previa" size="small"
+                                                                   variant="brand"></lightning-spinner>
+                                            </div>
+                                            <div class="visor-mensaje-titulo">Preparando la vista previa</div>
+                                            <div>{textoPreparando}</div>
+                                            <a class="det-btn det-btn-secundario visor-mensaje-btn" href={urlDescargaActiva}
+                                               target="_blank" rel="noopener">Descargar mientras tanto</a>
+                                        </div>
+                                    </template>
+                                    <div class="visor-paginas-lista">
+                                        <template for:each={paginas} for:item="pag">
+                                            <div key={pag.id} class="visor-pagina" data-n={pag.n} style={estiloPagina}>
+                                                <img src={pag.url} alt={pag.alt} data-id={pag.id} draggable="false"
+                                                     onload={handlePaginaCargada} onerror={handlePaginaError} />
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <template lwc:if={mostrarCargandoPaginas}>
+                                        <div class="visor-cargando">
+                                            <lightning-spinner alternative-text="Cargando páginas" size="x-small"
+                                                               variant="brand"></lightning-spinner>
+                                            <span>Cargando páginas…</span>
+                                        </div>
+                                    </template>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Primera página de los otros documentos, invisible: dispara la generación de su vista previa -->
+                <template for:each={precargas} for:item="pre">
+                    <img key={pre.id} src={pre.url} alt="" class="visor-precarga" aria-hidden="true" />
+                </template>
+            </template>
+        </template>
+
+    </div>
+</template>

@@ -1,0 +1,407 @@
+.pyg-container {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 4px rgba(0,0,0,0.08);
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+    color: #16325c;
+}
+
+/* ===== HEADER ===== */
+.pyg-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem; border-bottom: 1px solid #e5e5e5;
+}
+.pyg-header-left { display: flex; align-items: center; gap: 0.75rem; }
+.pyg-icon { background: #eef4fd; border-radius: 0.4rem; padding: 0.5rem; }
+.pyg-title { font-size: 1.1rem; font-weight: 700; color: #0b1f3a; margin: 0; }
+.pyg-subtitle { font-size: 0.8rem; color: #5f6b7c; margin: 0; }
+.pyg-header-right { display: flex; align-items: center; gap: 0.4rem; }
+
+/* ===== FILTROS ===== */
+.pyg-filtros {
+    padding: 1rem 1.25rem; background: #fbfcfe; border-bottom: 1px solid #e5e5e5;
+}
+.pyg-filtros-titulo {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.75rem; font-size: 0.75rem; letter-spacing: 0.1em;
+    color: #5f6b7c; font-weight: 700;
+}
+.pyg-toggles { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
+.pyg-toggle-label {
+    font-size: 0.75rem; color: #16325c; font-weight: 700;
+    margin-left: 0.6rem; margin-right: 0.15rem; letter-spacing: normal;
+}
+.pyg-toggle {
+    background: #ffffff; border: 1px solid #c9d4e5; color: #16325c;
+    padding: 0.15rem 0.6rem; border-radius: 0.25rem;
+    font-size: 0.78rem; cursor: pointer; transition: background 0.1s ease;
+}
+.pyg-toggle:hover { background: #eef4fd; }
+.pyg-toggle-active { background: #0070d2; border-color: #005fb2; color: #ffffff; }
+.pyg-toggle:focus { outline: 2px solid #1589ee; outline-offset: 1px; }
+
+.pyg-filtros-grid {
+    display: grid; grid-template-columns: repeat(5, minmax(170px, 1fr));
+    gap: 0.75rem; align-items: end;
+}
+.pyg-req { color: #ba0517; font-weight: 700; margin-left: 0.15rem; }
+
+/* ===== MULTI-SELECT (empresa titular) ===== */
+.pyg-ms-wrap { position: relative; }
+.pyg-ms-trigger {
+    width: 100%; height: 1.875rem; background: #ffffff;
+    border: 1px solid #c9d4e5; border-radius: 0.25rem;
+    padding: 0 0.6rem; font-size: 0.85rem; color: #16325c;
+    cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    text-align: left;
+}
+.pyg-ms-trigger:hover { border-color: #1589ee; }
+.pyg-ms-trigger:focus { outline: none; border-color: #1589ee; box-shadow: 0 0 3px #0070d2; }
+.pyg-ms-trigger-filled .pyg-ms-trigger-text { color: #0b1f3a; font-weight: 500; }
+.pyg-ms-trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #80869b; }
+.pyg-ms-caret { color: #5f6b7c; font-size: 0.65rem; margin-left: 0.5rem; }
+
+.pyg-ms-backdrop { position: fixed; inset: 0; background: transparent; z-index: 8000; }
+.pyg-ms-panel {
+    position: absolute; top: calc(100% + 4px); left: 0;
+    width: min(420px, calc(100% + 100px));
+    background: #ffffff; border: 1px solid #c9d4e5;
+    border-radius: 0.4rem; box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    z-index: 8100; display: flex; flex-direction: column; overflow: hidden;
+}
+.pyg-ms-panel-head {
+    padding: 0.5rem 0.6rem; border-bottom: 1px solid #eef0f4;
+    display: flex; flex-direction: column; gap: 0.35rem;
+}
+.pyg-ms-search {
+    width: 100%; height: 1.875rem; border: 1px solid #c9d4e5;
+    border-radius: 0.25rem; padding: 0 0.5rem; font-size: 0.85rem;
+}
+.pyg-ms-actions { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #5f6b7c; }
+.pyg-ms-link {
+    background: transparent; border: 0; color: #0070d2;
+    cursor: pointer; padding: 0; font-size: 0.78rem;
+}
+.pyg-ms-link:hover { text-decoration: underline; }
+.pyg-ms-list { max-height: 260px; overflow-y: auto; }
+.lm-ms-hint { padding: 0.7rem 0.8rem; font-size: 0.82rem; color: #8a6d00; background: #fff8e1; }
+.lm-ms-num {
+    margin-left: auto; padding-left: 0.6rem;
+    color: #c98a00; font-family: 'SF Mono', Consolas, monospace; font-size: 0.78rem;
+    white-space: nowrap;
+}
+.pyg-ms-option {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.45rem 0.7rem; cursor: pointer; font-size: 0.85rem; color: #16325c;
+}
+.pyg-ms-option:hover { background: #eef4fd; }
+.pyg-ms-option-selected { background: #f1f9f3; }
+.pyg-ms-check {
+    width: 1rem; height: 1rem; border: 1px solid #c9d4e5;
+    border-radius: 0.18rem; background: #ffffff; flex-shrink: 0;
+}
+.pyg-ms-option-selected .pyg-ms-check { border-color: #04844b; background: #04844b; }
+.pyg-ms-label { flex: 1; }
+.pyg-ms-panel-foot {
+    border-top: 1px solid #eef0f4; padding: 0.5rem 0.6rem;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.pyg-ms-count { font-size: 0.78rem; color: #5f6b7c; }
+.pyg-ms-apply { height: 1.875rem; padding: 0 0.9rem; }
+
+/* ===== CONTEXT BAR ===== */
+.pyg-contextbar {
+    background: #eef4fd; padding: 0.5rem 1.25rem;
+    font-size: 0.85rem; color: #16325c;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+}
+.pyg-divider { color: #c9d4e5; }
+
+/* ===== LOADING / ERROR / EMPTY ===== */
+.pyg-loading { position: relative; min-height: 5rem; padding: 2rem; }
+.pyg-error {
+    background: #fef1f1; border: 1px solid #ea001e; color: #ba0517;
+    padding: 0.75rem 1rem; display: flex; gap: 0.5rem; align-items: center;
+    margin: 1rem; border-radius: 0.25rem;
+}
+.pyg-empty {
+    padding: 2rem; text-align: center; color: #5f6b7c;
+    display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+}
+
+/* ===== BARRA DE CUENTA + NAVEGACIÓN ===== */
+.lm-cuentabar {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.6rem 1.25rem; background: #f3f8ff;
+    border-bottom: 1px solid #d6e4f7;
+}
+.lm-nav { display: flex; gap: 0.4rem; }
+.lm-cuenta-info { display: flex; align-items: center; gap: 0.6rem; }
+.lm-cuenta-badge {
+    display: inline-block; background: #0b1f3a; color: #ffffff;
+    font-family: 'SF Mono', Consolas, monospace; font-weight: 700;
+    padding: 0.25rem 0.6rem; border-radius: 0.3rem; text-decoration: none;
+    letter-spacing: 0.03em;
+}
+.lm-cuenta-badge:hover { background: #16325c; text-decoration: none; }
+.lm-cuenta-titulo { font-weight: 700; color: #0b1f3a; font-size: 0.95rem; }
+.lm-analitica { display: flex; flex-direction: row; align-items: center; gap: 0.4rem; padding-left: 0.6rem; border-left: 2px solid #d6e4f7; }
+.lm-anal-texts { display: flex; flex-direction: column; gap: 0.1rem; }
+.lm-anal-warn {
+    flex-shrink: 0;
+    /* Más amarillo e intenso, fijo (sin parpadeo) */
+    filter: saturate(1.8) brightness(1.12) hue-rotate(-8deg);
+}
+.lm-anal-item { font-size: 0.76rem; color: #16325c; white-space: nowrap; }
+.lm-anal-label { color: #5f6b7c; font-weight: 700; }
+.lm-saldo-box {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    border: 1px solid transparent; border-radius: 0.35rem;
+    padding: 0.2rem 0.7rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.lm-saldo-label {
+    font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+}
+.lm-saldo-val { color: #ffffff; }
+/* Cero → verde · Negativo → rojo oscuro · Positivo → azul */
+.lm-saldo-zero { background: #2e844a; border-color: #1f6638; }
+.lm-saldo-neg  { background: #7a040f; border-color: #5a0309; }
+.lm-saldo-pos  { background: #0070d2; border-color: #005fb2; }
+/* Diferencia movimientos vs efectos: amarillo con texto blanco */
+.lm-saldo-dif  { background: #d9a300; border-color: #b58900; }
+
+/* Pestañas Movimientos / Efectos clientes (cuentas 430) */
+.lm-subtabs { display: flex; gap: 0.4rem; margin: 0.6rem 0 0.7rem; border-bottom: 2px solid #c9d4e5; }
+.lm-subtab { background: #f3f5fa; border: 1px solid #c9d4e5; border-bottom: none; color: #5f6b7c;
+    border-radius: 0.4rem 0.4rem 0 0; padding: 0.4rem 1.1rem; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; position: relative; top: 2px; }
+.lm-subtab-active { background: #ffffff; color: #0b1f3a; border-color: #c9d4e5;
+    border-bottom: 2px solid #ffffff; }
+.lm-subtab:hover { color: #0b1f3a; }
+
+/* Tabla de efectos clientes */
+.lm-ef-tabla td { padding: 0.35rem 0.65rem; }
+.lm-ef-link { color: #0b5cab; font-weight: 700; font-family: 'SF Mono', Consolas, monospace;
+    font-size: 0.78rem; text-decoration: none; }
+.lm-ef-link:hover { text-decoration: underline; }
+.lm-ef-vacio { color: #b3bcc9; }
+/* Efecto abierto (estado distinto de En remesa/Conciliado/Tarjeta/Compensado/Incobrable/Pagado): fila en rojo */
+.lm-ef-abierto td { background: #c62828 !important; color: #ffffff; }
+.lm-ef-abierto:hover td { background: #b71c1c !important; }
+.lm-ef-abierto .lm-ef-link { color: #ffd54f; }
+.lm-ef-abierto .lm-ef-link:hover { color: #ffe082; }
+.lm-ef-abierto .lm-ef-vacio { color: #ffebee; }
+.lm-drill {
+    display: flex; align-items: center; gap: 0.6rem; margin-left: auto;
+    background: #fff8e1; border: 1px solid #e6d28a; border-radius: 0.3rem;
+    padding: 0.2rem 0.5rem;
+}
+.lm-drill-label { font-size: 0.82rem; color: #5a4a00; }
+
+/* ===== LAYOUT: filtros (izq) + gráfico (der) ===== */
+.lm-top {
+    display: flex; align-items: stretch; gap: 1rem;
+    border-bottom: 1px solid #e5e5e5;
+}
+.lm-filtros {
+    flex: 1 1 58%; min-width: 0; border-bottom: 0;
+}
+.lm-generar-row {
+    display: flex; justify-content: flex-start; margin-top: 0.85rem;
+}
+
+/* ===== TARJETA DEL GRÁFICO (arriba a la derecha) ===== */
+.lm-chart-card {
+    flex: 1 1 42%; min-width: 320px;
+    background: #ffffff; border: 1px solid #e5e5e5; border-radius: 0.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    margin: 0.75rem 1rem 0.75rem 0; padding: 0.6rem 0.85rem;
+    display: flex; flex-direction: column;
+}
+.lm-chart-card-title {
+    font-size: 0.95rem; font-weight: 700; color: #0b1f3a; margin-bottom: 0.5rem;
+}
+.lm-chart-card-sub { font-weight: 400; font-size: 0.8rem; color: #5f6b7c; margin-left: 0.35rem; }
+
+/* ===== GRÁFICO Haber − Debe por mes ===== */
+.lm-chart {
+    position: relative;
+    flex: 1; display: flex; align-items: stretch; gap: 10px;
+    overflow-x: auto; min-width: 0; padding-bottom: 2px; padding-left: 16px;
+}
+/* Línea de cero continua (centro del gráfico) con etiqueta "0" a la izquierda */
+.lm-chart-zero {
+    position: absolute; left: 0; right: 0; top: 70px;
+    border-top: 1px solid #8a93a6; z-index: 1; pointer-events: none;
+}
+.lm-chart-zero-label {
+    position: absolute; left: 0; top: 0; transform: translateY(-50%);
+    font-size: 0.62rem; color: #8a93a6; background: #ffffff; padding-right: 2px; line-height: 1;
+}
+.lm-chart-group {
+    display: flex; flex-direction: column; align-items: center; flex: 1 0 auto;
+}
+.lm-chart-bars { display: flex; align-items: stretch; gap: 3px; }
+/* Barra ancha por defecto (un año); en comparativo se adapta (más fina) */
+.lm-chart-col {
+    display: flex; flex-direction: column; align-items: center; width: 34px;
+    cursor: pointer;
+}
+.lm-chart-col:hover { opacity: 0.8; }
+.lm-chart-multi .lm-chart-col { width: 15px; }
+.lm-chart-top {
+    height: 70px; width: 100%;
+    display: flex; align-items: flex-end; justify-content: center;
+}
+.lm-chart-bot {
+    height: 70px; width: 100%;
+    display: flex; align-items: flex-start; justify-content: center;
+}
+.lm-chart-bar { width: 100%; }
+.lm-bar-top { border-radius: 3px 3px 0 0; }
+.lm-bar-bot { border-radius: 0 0 3px 3px; }
+.lm-chart-label {
+    font-size: 0.62rem; color: #5f6b7c; margin-top: 3px;
+    white-space: nowrap; line-height: 1;
+}
+
+/* Leyenda de años */
+.lm-chart-legend {
+    display: flex; flex-wrap: wrap; gap: 0.75rem;
+    margin-top: 0.5rem; padding-top: 0.4rem; border-top: 1px solid #eef0f4;
+    font-size: 0.72rem; color: #5f6b7c;
+}
+.lm-legend-item { display: inline-flex; align-items: center; gap: 0.3rem; }
+.lm-legend-swatch { width: 0.7rem; height: 0.7rem; border-radius: 0.15rem; display: inline-block; }
+
+/* ===== TABLA ===== */
+/* min-height para que los desplegables (combobox/record-picker) no se recorten
+   cuando hay muy pocas filas (el overflow-x fuerza recorte vertical) */
+.pyg-tabla-wrap { overflow-x: auto; min-height: 320px; }
+.pyg-tabla { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.pyg-tabla thead th {
+    background: #ffffff; color: #5f6b7c; font-weight: 700;
+    font-size: 0.68rem; letter-spacing: 0.04em; text-align: left;
+    padding: 0.45rem 0.5rem; border-bottom: 2px solid #c9d4e5;
+    position: sticky; top: 0; z-index: 1; white-space: nowrap;
+}
+.pyg-th-num { text-align: right !important; }
+.lm-th-saldo { background: #eef4fd !important; color: #0b1f3a !important; }
+.pyg-th-edit { min-width: 140px; }
+.lm-th-fecha   { width: 88px; }
+.lm-th-inc     { width: 44px; text-align: center !important; }
+.lm-inc        { text-align: center; white-space: nowrap; }
+/* Incidencia Sí: círculo verde con check blanco */
+.lm-inc-ok {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%; background: #2e844a;
+}
+.lm-inc-ok lightning-icon { --slds-c-icon-color-foreground-default: #ffffff; }
+.lm-th-apunte  { width: 80px; }
+.lm-th-asiento { width: 100px; }
+.lm-th-desc    { min-width: 220px; }
+.lm-th-empresa { min-width: 160px; }
+
+.pyg-row { border-bottom: 1px solid #f3f3f3; }
+.pyg-row td { padding: 0.28rem 0.5rem; vertical-align: middle; }
+.pyg-row:hover td { background: #fbfcfe; }
+
+.lm-fecha   { font-family: 'SF Mono', Consolas, monospace; white-space: nowrap; }
+.lm-asiento { font-family: 'SF Mono', Consolas, monospace; color: #5f6b7c; white-space: nowrap; }
+
+.pyg-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pyg-pos  { color: #0070d2; }
+.pyg-neg  { color: #ba0517; }
+.pyg-zero { color: #16325c; }
+
+.pyg-link { color: #0070d2; text-decoration: none; font-family: 'SF Mono', Consolas, monospace; }
+.pyg-link:hover { text-decoration: underline; }
+.lm-desc-link { color: #0070d2; text-decoration: none; display: block; }
+.lm-desc-link:hover { text-decoration: underline; }
+
+.pyg-desc { vertical-align: top; }
+.pyg-text-wrap {
+    max-width: 280px; white-space: normal; word-break: break-word;
+    overflow-wrap: anywhere; line-height: 1.25;
+}
+.pyg-text-wrap-empresa { max-width: 180px; font-size: 0.76rem; }
+.pyg-empresa { vertical-align: top; }
+
+/* Celdas editables */
+.pyg-cell-edit { vertical-align: middle !important; min-width: 140px; padding: 0.2rem 0.35rem !important; }
+.pyg-cell-edit-wide { min-width: 180px; }
+/* Columna Simulación (Sí/No) estrecha */
+.lm-th-sim {
+    background: #ffffff; color: #5f6b7c; font-weight: 700;
+    font-size: 0.68rem; letter-spacing: 0.04em; text-align: left;
+    padding: 0.45rem 0.4rem; border-bottom: 2px solid #c9d4e5;
+    position: sticky; top: 0; z-index: 1; white-space: nowrap;
+    width: 1%;
+}
+.lm-cell-sim { min-width: 130px; padding: 0.2rem 0.35rem !important; }
+
+/* Resaltado de fila por simulación */
+.lm-row-sim-rojo td { background: #fbdcdc !important; }
+.lm-row-sim-rojo:hover td { background: #f6c5c5 !important; }
+.lm-row-sim-amarillo td { background: #fdf6c9 !important; }
+.lm-row-sim-amarillo:hover td { background: #f8edab !important; }
+.pyg-cell-edit lightning-combobox,
+.pyg-cell-edit lightning-record-picker { display: block; width: 100%; }
+
+/* ===== Cabecera CHECK con botón "Todos Sí" ===== */
+.lm-check-th { display: flex; align-items: center; gap: 0.4rem; }
+.lm-check-all-btn {
+    background: #2e844a; border: 1px solid #1f6638; color: #ffffff;
+    padding: 0.1rem 0.45rem; border-radius: 0.25rem;
+    font-size: 0.66rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+    letter-spacing: normal; text-transform: none;
+}
+.lm-check-all-btn:hover { background: #1f6638; }
+
+/* ===== CHECK (select nativo con color: verde=Sí, rojo=No) ===== */
+.lm-check-cell { text-align: center; }
+.lm-check-select {
+    width: 100%; border: 1px solid #c9d4e5; border-radius: 0.25rem;
+    padding: 0.15rem 0.3rem; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+}
+.lm-check-si   { background: #d4f5dc; color: #1f6638; border-color: #a3e0b5; }
+.lm-check-no   { background: #fdd9dc; color: #8e0413; border-color: #f3b3b9; }
+.lm-check-none { background: #ffffff; color: #5f6b7c; }
+
+/* ===== SPINNER PEQUEÑO DE NAVEGACIÓN (sin desplazar contenido) ===== */
+.lm-nav-spinner {
+    position: relative; width: 1.75rem; height: 1.75rem; margin-left: 0.4rem;
+}
+
+/* ===== TOTALES (fila azul encima de los movimientos, alineada con las columnas) ===== */
+.lm-totales-row td {
+    background: #eef4fd; color: #0b1f3a; font-weight: 700;
+    border-top: 2px solid #0070d2; border-bottom: 1px solid #d6e4f7;
+    padding: 0.45rem 0.5rem; font-size: 0.82rem;
+}
+.lm-totales-row .pyg-num { font-variant-numeric: tabular-nums; }
+.lm-totales-row td.lm-totales-label { white-space: nowrap; }
+
+/* Estado inicial (antes de Generar) */
+.pyg-placeholder { display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 3.5rem 1.5rem; color: #9aa5b5; font-size: 0.95rem; text-align: center; }
+.pyg-placeholder strong { color: #6b7686; font-weight: 700; }
+.pyg-placeholder-icon { --slds-c-icon-color-foreground-default: #b3bcc9; }
+
+/* Botón Generar alineado al lado de las fechas */
+.lm-generar-cell { display: flex; align-items: flex-end; }
+.lm-generar-cell lightning-button { width: 100%; }
+
+/* Sentinel de carga progresiva */
+.lm-sentinel { display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    position: relative; min-height: 2.5rem; padding: 0.75rem; color: #9aa5b5; font-size: 0.85rem; }
+.lm-sentinel-text { margin-left: 1.5rem; }
+
+/* Edición bajo demanda: valor como texto, editor solo al pinchar */
+.lm-edit-disp { display: inline-block; min-width: 2rem; padding: 0.1rem 0.35rem; border-radius: 0.25rem;
+    cursor: pointer; color: #16325c; border: 1px solid transparent; }
+.lm-edit-disp:hover { background: #f3f6fb; border-color: #d8e0ec; }
+
+/* Nota aclaratoria del alcance de los avisos */
+.lm-avisos-nota { margin: 0.15rem 1.25rem 0.5rem; font-size: 0.75rem; color: #9aa5b5; font-style: italic; }

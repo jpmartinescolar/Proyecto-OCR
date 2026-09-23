@@ -1,0 +1,399 @@
+<template>
+    <div class="pyg-container">
+
+        <!-- HEADER -->
+        <div class="pyg-header">
+            <div class="pyg-header-left">
+                <div class="pyg-icon">
+                    <lightning-icon icon-name="standard:metrics" size="medium"></lightning-icon>
+                </div>
+                <div>
+                    <h1 class="pyg-title">Pérdidas y Ganancias Histórico anual</h1>
+                    <p class="pyg-subtitle">Total por ejercicio (de menor a mayor) · Plan General Contable</p>
+                </div>
+            </div>
+            <div class="pyg-header-right">
+                <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar"
+                                       variant="border-filled" onclick={handleRefresh}
+                                       class="slds-m-right_x-small"></lightning-button-icon>
+                <lightning-button label="Generar" icon-name="utility:apex" variant="brand"
+                                  onclick={handleGenerar}></lightning-button>
+            </div>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="pyg-filtros">
+            <div class="pyg-filtros-titulo">
+                <div class="pyg-toggles">
+                    <button class={balanceSwitchClass} type="button" role="switch"
+                            onclick={toggleBalanceOficial}
+                            title="Vista oficial: Simulación Todas · Extraordinarios No (bloquea esos filtros)">
+                        <span class="pyg-switch-track"><span class="pyg-switch-thumb"></span></span>
+                        <span class="pyg-switch-label">Balance oficial</span>
+                    </button>
+
+                    <span class={vistaClass}>{vistaLabel}</span>
+
+                    <span class="pyg-toggle-label">Desplegado</span>
+                    <button class={despSiCls} data-value="Si" onclick={setDesplegado}>Sí</button>
+                    <button class={despNoCls} data-value="No" onclick={setDesplegado}>No</button>
+
+                    <span class={lockedLabelCls}>Simulación</span>
+                    <button class={simTodasCls}  data-value="Todas"             onclick={setSimulacion} disabled={balanceOficial}>Todas</button>
+                    <button class={simNoCls}     data-value="No"                onclick={setSimulacion} disabled={balanceOficial}>No</button>
+                    <button class={simIvaCls}    data-value="Si"                onclick={setSimulacion} disabled={balanceOficial}>Sí. IVA</button>
+                    <button class={simTransfCls} data-value="Sí. Transferencia" onclick={setSimulacion} disabled={balanceOficial}>Sí. Transferencia</button>
+
+                    <span class={lockedLabelCls}>Extraordinarios</span>
+                    <button class={extTodasCls} data-value="Todas" onclick={setExtraordinarios} disabled={balanceOficial}>Todas</button>
+                    <button class={extSiCls}    data-value="Si"    onclick={setExtraordinarios} disabled={balanceOficial}>Sí</button>
+                    <button class={extNoCls}    data-value="No"    onclick={setExtraordinarios} disabled={balanceOficial}>No</button>
+
+                    <span class={lockedLabelCls}>Check</span>
+                    <button class={chkTodosCls} data-value="Todos" onclick={setCheck} disabled={balanceOficial}>Todos</button>
+                    <button class={chkSiCls}    data-value="Si"    onclick={setCheck} disabled={balanceOficial}>Sí</button>
+                    <button class={chkNoCls}    data-value="No"    onclick={setCheck} disabled={balanceOficial}>No</button>
+                </div>
+            </div>
+
+            <div class="pyg-filtros-grid">
+                <div class={empresaDropdownClass}>
+                    <label class="slds-form-element__label">Empresa titular <span class="pyg-req">*</span></label>
+                    <button class={empresaTriggerClass} type="button" onclick={toggleEmpresaDropdown}>
+                        <span class="pyg-ms-trigger-text">{empresaTriggerLabel}</span>
+                        <span class="pyg-ms-caret">▾</span>
+                    </button>
+                    <template if:true={showEmpresaDropdown}>
+                        <div class="pyg-ms-backdrop" onclick={closeEmpresaDropdown}></div>
+                        <div class="pyg-ms-panel" onclick={stopProp}>
+                            <div class="pyg-ms-panel-head">
+                                <input type="search" class="pyg-ms-search" placeholder="Buscar..."
+                                       value={empresaFiltroBusqueda} oninput={handleEmpresaBusqueda} />
+                                <div class="pyg-ms-actions">
+                                    <button type="button" class="pyg-ms-link" onclick={handleEmpresaSelectAll}>Todas</button>
+                                    <span>·</span>
+                                    <button type="button" class="pyg-ms-link" onclick={handleEmpresaClearAll}>Ninguna</button>
+                                </div>
+                            </div>
+                            <div class="pyg-ms-list">
+                                <template for:each={empresaOptionsFiltradas} for:item="opt">
+                                    <div key={opt.value} class={opt.optionClass} data-value={opt.value} onclick={handleEmpresaToggle}>
+                                        <span class="pyg-ms-check"></span>
+                                        <span class="pyg-ms-label">{opt.label}</span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="pyg-ms-panel-foot">
+                                <span class="pyg-ms-count">{empresaCount}</span>
+                                <button type="button" class="slds-button slds-button_brand pyg-ms-apply" onclick={closeEmpresaDropdown}>Aplicar</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class={ejercicioDropdownClass}>
+                    <label class="slds-form-element__label">Ejercicios <span class="pyg-req">*</span></label>
+                    <button class={ejercicioTriggerClass} type="button" onclick={toggleEjercicioDropdown}>
+                        <span class="pyg-ms-trigger-text">{ejercicioTriggerLabel}</span>
+                        <span class="pyg-ms-caret">▾</span>
+                    </button>
+                    <template if:true={showEjercicioDropdown}>
+                        <div class="pyg-ms-backdrop" onclick={closeEjercicioDropdown}></div>
+                        <div class="pyg-ms-panel" onclick={stopProp}>
+                            <div class="pyg-ms-panel-head">
+                                <div class="pyg-ms-actions">
+                                    <button type="button" class="pyg-ms-link" onclick={handleEjercicioClearAll}>Ninguno</button>
+                                </div>
+                            </div>
+                            <div class="pyg-ms-list">
+                                <template for:each={ejercicioOptions} for:item="opt">
+                                    <div key={opt.value} class={opt.optionClass} data-value={opt.value} onclick={handleEjercicioToggle}>
+                                        <span class="pyg-ms-check"></span>
+                                        <span class="pyg-ms-label">{opt.label}</span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="pyg-ms-panel-foot">
+                                <span class="pyg-ms-count"></span>
+                                <button type="button" class="slds-button slds-button_brand pyg-ms-apply" onclick={closeEjercicioDropdown}>Aplicar</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class={mesDropdownClass}>
+                    <label class="slds-form-element__label">Meses</label>
+                    <button class={mesTriggerClass} type="button" onclick={toggleMesDropdown}>
+                        <span class="pyg-ms-trigger-text">{mesTriggerLabel}</span>
+                        <span class="pyg-ms-caret">▾</span>
+                    </button>
+                    <template if:true={showMesDropdown}>
+                        <div class="pyg-ms-backdrop" onclick={closeMesDropdown}></div>
+                        <div class="pyg-ms-panel" onclick={stopProp}>
+                            <div class="pyg-ms-panel-head">
+                                <div class="pyg-ms-actions">
+                                    <button type="button" class="pyg-ms-link" onclick={handleMesSelectAll}>Todos</button>
+                                    <span>·</span>
+                                    <button type="button" class="pyg-ms-link" onclick={handleMesClearAll}>Ninguno</button>
+                                </div>
+                            </div>
+                            <div class="pyg-ms-list">
+                                <template for:each={mesOptions} for:item="opt">
+                                    <div key={opt.value} class={opt.optionClass} data-value={opt.value} onclick={handleMesToggle}>
+                                        <span class="pyg-ms-check"></span>
+                                        <span class="pyg-ms-label">{opt.label}</span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="pyg-ms-panel-foot">
+                                <span class="pyg-ms-count"></span>
+                                <button type="button" class="slds-button slds-button_brand pyg-ms-apply" onclick={closeMesDropdown}>Aplicar</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <lightning-combobox label="Balance Plan general contable" value={planPGC}
+                                    options={planOptions} onchange={handlePlanChange}></lightning-combobox>
+            </div>
+
+        </div>
+
+        <!-- BARRA DE CONTEXTO -->
+        <div class="pyg-contextbar">
+            <span><strong>Empresa:</strong> {empresaLabel}</span>
+            <span class="pyg-divider">·</span>
+            <span><strong>Ejercicios:</strong> {ejerciciosLabel}</span>
+            <span class="pyg-divider">·</span>
+            <span><strong>Meses:</strong> {mesesLabel}</span>
+        </div>
+
+        <!-- LOADING -->
+        <template if:true={loading}>
+            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="medium"></lightning-spinner></div>
+        </template>
+
+        <!-- ERROR -->
+        <template if:true={hasError}>
+            <div class="pyg-error">
+                <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- ESTADO INICIAL -->
+        <template if:true={showInicial}>
+            <div class="pyg-placeholder">
+                <lightning-icon icon-name="utility:filterList" size="small" class="pyg-placeholder-icon"></lightning-icon>
+                <span>{textoInicial} <strong>Generar</strong>.</span>
+            </div>
+        </template>
+
+        <!-- TABLA + GRÁFICOS (a la derecha, uno debajo del otro) -->
+        <template if:true={hasRows}>
+            <div class="pyg-layout">
+            <div class="pyg-tabla-wrap">
+                <table class="pyg-tabla pyg-tabla-grupo">
+                    <thead>
+                        <tr>
+                            <th class="pyg-th-concepto">CONCEPTO</th>
+                            <template for:each={aniosCabecera} for:item="g">
+                                <th key={g.key} class={g.cls}>{g.name}</th>
+                            </template>
+                            <th class="pyg-th-spacer-grupo"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={filasView} for:item="row">
+                            <tr key={row.key} class={row.rowClass}>
+                                <td class={row.conceptoClass} data-seckey={row.seccionKey} onclick={handleConceptoClick}>
+                                    <template if:true={row.showCodigo}>
+                                        <a href="javascript:void(0);" class="pyg-codigo"
+                                           data-recordid={row.cuentaId}
+                                           data-objectname="Plan_general_contable__c"
+                                           onclick={navigateToRecordNewTab}
+                                           title="Abrir cuenta contable en una pestaña nueva">{row.codigo}</a>
+                                    </template>
+                                    <span>{row.concepto}</span>
+                                </td>
+                                <template for:each={row.columnas} for:item="col">
+                                    <td key={col.key} class={col.tdClass}
+                                        data-rowkey={col.rowkey} data-anio={col.anio}
+                                        data-concepto={col.concepto}
+                                        onclick={handleAmountClick}>
+                                        {col.value}
+                                        <template if:true={col.showPct}>
+                                            <div class="pyg-pct-sub">{col.pct}<template if:true={col.pct}> s/CN</template></div>
+                                        </template>
+                                    </td>
+                                </template>
+                                <td class="pyg-spacer-grupo"></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <template if:true={showCharts}>
+                <div class="pyg-charts-side">
+                    <div class="pyg-chart-box">
+                        <div class="pyg-chart-title">Cifra de negocios por ejercicio</div>
+                        <div class="pyg-hchart">
+                            <template for:each={chartCifra} for:item="b">
+                                <div key={b.key} class="pyg-hchart-row" title={b.titleAttr}>
+                                    <span class="pyg-hchart-lbl">{b.anio}</span>
+                                    <div class="pyg-hchart-track">
+                                        <div class="pyg-hchart-bar" style={b.barStyle}></div>
+                                    </div>
+                                    <span class="pyg-hchart-val">{b.valorFmt}</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="pyg-chart-box">
+                        <div class="pyg-chart-title">Resultado del ejercicio (A.4)</div>
+                        <div class="pyg-hchart">
+                            <template for:each={chartResultado} for:item="b">
+                                <div key={b.key} class="pyg-hchart-row" title={b.titleAttr}>
+                                    <span class="pyg-hchart-lbl">{b.anio}</span>
+                                    <div class="pyg-hchart-track">
+                                        <div class="pyg-hchart-bar" style={b.barStyle}></div>
+                                    </div>
+                                    <span class="pyg-hchart-val">{b.valorFmt}</span>
+                                    <span class={b.crecClass}>{b.crecimiento}</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            </div>
+        </template>
+
+        <!-- EMPTY -->
+        <template if:true={emptyState}>
+            <div class="pyg-empty">
+                <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                <span>No se han encontrado apuntes que cumplan los filtros seleccionados.</span>
+            </div>
+        </template>
+
+        <!-- MODAL -->
+        <template if:true={showModal}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_large">
+                <div class="slds-modal__container pyg-modal-container">
+                    <header class="slds-modal__header pyg-modal-header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={closeModal} title="Cerrar">
+                            <lightning-icon icon-name="utility:close" alternative-text="Cerrar" variant="inverse" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Detalle de apuntes</h2>
+                        <div class="pyg-modal-subtitle">
+                            <span><strong>Concepto:</strong> {modalTitulo}</span>
+                            <span class="pyg-divider">·</span>
+                            <span><strong>{modalSubtitulo}</strong></span>
+                        </div>
+                    </header>
+
+                    <div class="slds-modal__content pyg-modal-content">
+                        <template if:true={modalLoading}>
+                            <div class="pyg-loading"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+                        </template>
+                        <template if:true={modalError}>
+                            <div class="pyg-error">
+                                <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                                <span>{modalError}</span>
+                            </div>
+                        </template>
+                        <template if:true={modalContentReady}>
+                            <table class="pyg-modal-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Nº Apunte</th>
+                                        <th>Descripción</th>
+                                        <th class="pyg-th-num">Debe</th>
+                                        <th class="pyg-th-num">Haber</th>
+                                        <th>Tipo de asiento</th>
+                                        <th>Empresa titular</th>
+                                        <th class="pyg-th-edit">Área</th>
+                                        <th class="pyg-th-edit">Director facturación</th>
+                                        <th class="pyg-th-edit">Campaña</th>
+                                        <th class="pyg-th-edit">Simulación</th>
+                                        <th class="pyg-th-edit">Check</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={modalMovimientos} for:item="mv">
+                                        <tr key={mv.key}>
+                                            <td>{mv.fecha}</td>
+                                            <td><a href="javascript:void(0);" class="pyg-link"
+                                                   data-recordid={mv.recordId} data-objectname={mv.objectApiName}
+                                                   onclick={navigateToRecordNewTab}>{mv.numero}</a></td>
+                                            <td class="pyg-desc">
+                                                <template if:true={mv.descLinkId}>
+                                                    <a href="javascript:void(0);" class="pyg-link" data-recordid={mv.descLinkId}
+                                                       data-objectname={mv.descLinkObject} onclick={navigateToRecordNewTab} title={mv.descLinkTitle}>
+                                                        <div class="pyg-text-wrap">{mv.descripcion}</div></a>
+                                                </template>
+                                                <template if:false={mv.descLinkId}>
+                                                    <div class="pyg-text-wrap">{mv.descripcion}</div>
+                                                </template>
+                                            </td>
+                                            <td class="pyg-num">{mv.debe}</td>
+                                            <td class="pyg-num">{mv.haber}</td>
+                                            <td>{mv.tipoAsiento}</td>
+                                            <td class="pyg-empresa"><div class="pyg-text-wrap pyg-text-wrap-empresa">{mv.empresaTitular}</div></td>
+                                            <td class="pyg-cell-edit">
+                                                <lightning-combobox variant="label-hidden" label="Área"
+                                                    value={mv.area} options={areaEditOptions}
+                                                    data-rid={mv.recordId} data-fld="area"
+                                                    onchange={handleModalEdit}></lightning-combobox>
+                                            </td>
+                                            <td class="pyg-cell-edit pyg-cell-edit-wide">
+                                                <lightning-record-picker label="Director" placeholder="Buscar persona..."
+                                                    object-api-name="User" variant="label-hidden"
+                                                    value={mv.directorFacturacionId} data-rid={mv.recordId}
+                                                    onchange={handleModalEditDirector}></lightning-record-picker>
+                                            </td>
+                                            <td class="pyg-cell-edit pyg-cell-edit-wide">
+                                                <lightning-record-picker label="Campaña" placeholder="Buscar campaña..."
+                                                    object-api-name="Campaign" variant="label-hidden"
+                                                    value={mv.campaniaId} data-rid={mv.recordId}
+                                                    onchange={handleModalEditCampania}></lightning-record-picker>
+                                            </td>
+                                            <td class="pyg-cell-edit">
+                                                <lightning-combobox variant="label-hidden" label="Simulación"
+                                                    value={mv.simulacion} options={simulacionEditOptions}
+                                                    data-rid={mv.recordId} data-fld="simulacion"
+                                                    onchange={handleModalEdit}></lightning-combobox>
+                                            </td>
+                                            <td class="pyg-cell-edit">
+                                                <lightning-combobox variant="label-hidden" label="Check"
+                                                    value={mv.checkValue} options={checkEditOptions}
+                                                    data-rid={mv.recordId} data-fld="check"
+                                                    onchange={handleModalEdit}></lightning-combobox>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </template>
+                        <template if:true={noMovimientos}>
+                            <div class="pyg-empty">
+                                <lightning-icon icon-name="utility:info" size="small"></lightning-icon>
+                                <span>No hay apuntes para esta selección.</span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeModal}>Cerrar</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={closeModal}></div>
+        </template>
+
+    </div>
+</template>

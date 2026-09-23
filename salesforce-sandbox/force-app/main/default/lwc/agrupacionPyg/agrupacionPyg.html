@@ -1,0 +1,39 @@
+<template>
+    <div class="apyg-container">
+
+        <div class="apyg-tabs">
+            <button class={tabPygCls}      data-value="pyg"      onclick={setTab}>Pérdidas y Ganancias</button>
+            <button class={tabMensualCls}  data-value="mensual"  onclick={setTab}>PyG Mensual</button>
+            <button class={tabAnaliticoCls} data-value="analitico" onclick={setTab}>PyG Analítico</button>
+            <button class={tabGrupoCls}    data-value="grupo"    onclick={setTab}>PyG Comparativo empresas</button>
+            <button class={tabHistoricoCls} data-value="historico" onclick={setTab}>PyG Histórico anual</button>
+        </div>
+
+        <template if:true={visitedPyg}>
+            <div class={panelPygCls}>
+                <c-perdidas-ganancias></c-perdidas-ganancias>
+            </div>
+        </template>
+        <template if:true={visitedMensual}>
+            <div class={panelMensualCls}>
+                <c-perdidas-ganancias-mensual></c-perdidas-ganancias-mensual>
+            </div>
+        </template>
+        <template if:true={visitedAnalitico}>
+            <div class={panelAnaliticoCls}>
+                <c-perdidas-ganancias-analitico></c-perdidas-ganancias-analitico>
+            </div>
+        </template>
+        <template if:true={visitedGrupo}>
+            <div class={panelGrupoCls}>
+                <c-perdidas-ganancias-grupo></c-perdidas-ganancias-grupo>
+            </div>
+        </template>
+        <template if:true={visitedHistorico}>
+            <div class={panelHistoricoCls}>
+                <c-perdidas-ganancias-historico></c-perdidas-ganancias-historico>
+            </div>
+        </template>
+
+    </div>
+</template>

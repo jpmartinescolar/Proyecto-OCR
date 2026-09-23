@@ -1,0 +1,1309 @@
+.pyg-container { background: #f3f4f6; border-radius: 0.5rem;
+    font-family: 'Salesforce Sans', Arial, sans-serif; color: #16325c; }
+
+/* ===== HEADER (mismo patrón que el resto de componentes) ===== */
+.pyg-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; background: #ffffff; border-radius: 0.5rem 0.5rem 0 0; border-bottom: 1px solid #e5e5e5; }
+.pyg-header-left { display: flex; align-items: center; gap: 0.75rem; }
+.pyg-icon { background: #eef4fd; border-radius: 0.4rem; padding: 0.5rem; }
+.pyg-title { font-size: 1.1rem; font-weight: 700; color: #0b1f3a; margin: 0; }
+.pyg-subtitle { font-size: 0.8rem; color: #5f6b7c; margin: 0; }
+.pyg-header-right { display: flex; align-items: center; gap: 0.4rem; }
+/* ===== SUBMENÚS (mismo patrón que tesoreria) ===== */
+.ts-tabs { padding: 0.75rem 1.25rem 0; background: #ffffff; }
+.acf-menubar { border-radius: 0.5rem 0.5rem 0 0; }
+/* Marca del componente a la derecha de los submenús, con su refresco delante */
+.acf-brand { margin-left: auto; display: flex; align-items: center; gap: 0.6rem;
+    padding-bottom: 0.3rem; position: relative; top: -2px; }
+.acf-brand-icon { padding: 0.3rem; }
+.acf-brand-title { font-size: 0.95rem; font-weight: 800; color: #0b1f3a; margin: 0; line-height: 1.15;
+    align-self: center; }
+/* Botón verde de acceso directo al ERP contable, delante del refresco */
+.acf-btn-erp { background: #1d6f42; border: 1px solid #175a36; color: #ffffff; border-radius: 0.5rem;
+    padding: 0.4rem 0.9rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+    margin-right: 0.3rem; }
+.acf-btn-erp:hover { background: #175a36; }
+/* Botón verde de Operativa contable (mismo verde que las pestañas activas) */
+.acf-btn-operativa { background: #43a047; border: 1px solid #368439; color: #ffffff;
+    border-radius: 0.5rem; padding: 0.4rem 0.9rem; font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; white-space: nowrap; margin-right: 0.3rem; }
+.acf-btn-operativa:hover { background: #3b9440; }
+/* Botón azul de solicitar ausencia o vacaciones, junto al de acceso al ERP */
+.acf-btn-ausencia { background: #0070d2; border: 1px solid #005fb2; color: #ffffff; border-radius: 0.5rem;
+    padding: 0.4rem 0.9rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+    margin-right: 0.3rem; }
+.acf-btn-ausencia:hover { background: #005fb2; }
+/* Tabla de oportunidades: columnas compactas para caber sin scroll horizontal */
+.acf-tabla-opo { font-size: 0.7rem; }
+.acf-tabla-opo th { padding-left: 0.25rem; padding-right: 0.25rem; }
+.acf-tabla-opo .acf-row td { padding-left: 0.25rem; padding-right: 0.25rem; }
+.acf-tabla-opo .acf-td-corta { max-width: 6.5rem; }
+.acf-tabla-opo .acf-td-titulo { max-width: 11rem; }
+.acf-tabla-opo .acf-td-empresa { max-width: 9rem; }
+/* Pie del listado paginado */
+.opo-mas { display: flex; justify-content: center; align-items: center; gap: 1rem;
+    padding: 0.7rem; font-size: 0.74rem; color: #5f6b7c; }
+
+/* Totales de la empresa (oportunidades y casos abiertos): círculo amarillo */
+.opo-circulo-amarillo { display: inline-flex; align-items: center; justify-content: center;
+    min-width: 1.3rem; height: 1.3rem; padding: 0 0.25rem; border-radius: 50%;
+    background: #f2cf3b; color: #4a3b00; font-weight: 700; }
+
+/* Líneas desplegadas por Ampliar: fondo suave, borde azul y marca ↳ */
+.opo-row-sub td { background: #f4f8fd; }
+.opo-row-sub td:first-child { border-left: 3px solid #0070d2; }
+.opo-sub-marca { color: #0b5cab; font-weight: 800; padding-left: 0.3rem; }
+
+/* Con Requieren acción o Riesgo de conflicto, las líneas aún en plazo van en verde */
+.opo-row-verde td { background: #eafaf1; }
+/* En riesgo de conflicto, los casos abiertos de la empresa van en amarillo */
+.opo-row-caso td { background: #fdf6e8; }
+
+/* Riesgo de conflicto: cabecera por empresa con más de una oportunidad abierta */
+.opo-grupo { background: #eef4fd; border-bottom: 1px solid #d8e4f5; padding: 0.4rem 0.9rem;
+    white-space: nowrap; }
+.opo-grupo-nombre { font-weight: 800; font-size: 0.76rem; color: #0b1f3a; }
+.opo-grupo-sub { color: #0b5cab; font-size: 0.7rem; font-weight: 700; margin-left: 0.7rem; }
+
+/* Oportunidades: desplegable por línea con lo abierto de la empresa */
+.opo-ampliar { background: #ffffff; border: 1px solid #c9d4e5; color: #0b5cab; border-radius: 0.4rem;
+    padding: 0.12rem 0.5rem; font-size: 0.64rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.opo-ampliar:hover { background: #eef4fd; }
+.opo-detalle { background: #f8fafd; border-bottom: 1px solid #e4e9f2; padding: 0.6rem 1.2rem; }
+.opo-detalle-cols { display: flex; gap: 3rem; flex-wrap: wrap; }
+.opo-detalle-col { min-width: 18rem; }
+.opo-detalle-titulo { font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.05em; color: #5f6b7c; margin-bottom: 0.3rem; }
+.opo-detalle-item { font-size: 0.74rem; padding: 0.12rem 0; }
+.opo-detalle-meta { color: #8a97a8; margin-left: 0.5rem; }
+.opo-detalle-vacio { font-size: 0.74rem; color: #9aa5b5; font-style: italic; }
+
+/* Incidencias de imputaciones: columnas compactas y el motivo legible entero */
+.rh-inc-tabla th { padding-left: 0.3rem; padding-right: 0.3rem; }
+.rh-inc-tabla .acf-row td { padding-left: 0.3rem; padding-right: 0.3rem; }
+.rh-inc-tabla .acf-td-corta { max-width: 8rem; }
+/* El nombre de la cuenta con más recorrido que el resto de columnas cortas */
+.rh-inc-tabla .rh-inc-cuenta { max-width: 15rem; }
+/* Estado editable en línea */
+.rh-inc-estado { min-width: 9.5rem; }
+/* Total de la columna Duración en la línea superior de la cabecera */
+.rh-inc-tabla th.rh-inc-total { border-bottom: none; text-align: left; font-size: 0.78rem;
+    font-weight: 800; color: #16325c; text-transform: none; letter-spacing: normal;
+    padding-bottom: 0; }
+.rh-inc-tabla th.rh-inc-total-vacio { border-bottom: none; padding-bottom: 0; }
+
+/* Detalle desplegado: "Descripción: texto" y debajo "Motivo de origen otros:
+   texto", con la etiqueta en negrita seguida del contenido */
+.rh-inc-detalle-fila { font-size: 0.74rem; white-space: normal; line-height: 1.45; padding: 0.12rem 0; }
+.rh-inc-detalle-label { font-weight: 700; color: #0b5cab; }
+/* El motivo de origen otros se lee entero: la columna envuelve el texto */
+.rh-inc-motivo { min-width: 18rem; white-space: normal; line-height: 1.35; }
+/* Nota sobre contratos previos de la empresa: verde si ha tenido contrato,
+   rojo claro si nunca lo ha tenido */
+.rh-inc-nota-td { min-width: 9rem; white-space: normal; }
+.rh-inc-nota { display: inline-block; border-radius: 6px; padding: 0.12rem 0.45rem;
+    font-size: 0.72rem; font-weight: 600; line-height: 1.3; }
+.rh-inc-nota-verde { background: #e3f5e6; color: #1e6b2e; }
+.rh-inc-nota-roja { background: #fdecec; color: #a4353c; }
+/* Aviso mientras se graba el cambio de estado de la línea */
+.rh-inc-guardando { font-size: 0.7rem; font-style: italic; color: #5a6a8a;
+    margin-top: 0.15rem; animation: rhIncParpadeo 1s ease-in-out infinite; }
+@keyframes rhIncParpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* Caja de incidencias de imputaciones: fondo rojo clarito y pinchable */
+.rh-kpi-rojo { background: #fef1f1; border-color: #f3b0b5; cursor: pointer; }
+.rh-kpi-rojo:hover { background: #fde5e6; }
+.rh-kpi-rojo .rh-kpi-num { color: #ba0517; }
+
+/* Botón de recordatorio de imputación junto al nombre de la persona */
+.rh-btn-record { background: #ffffff; border: 1px solid #c9d4e5; color: #0b5cab; border-radius: 0.4rem;
+    padding: 0.15rem 0.5rem; font-size: 0.66rem; font-weight: 700; cursor: pointer;
+    margin-left: 0.5rem; white-space: nowrap; }
+.rh-btn-record:hover { background: #eef4fd; }
+/* Confirmación de recordatorio enviado dentro de la ventana */
+.rh-record-ok { background: #eafaf1; border: 1px solid #bce8d2; color: #1d6f42; font-weight: 700;
+    border-radius: 0.5rem; padding: 0.9rem 1rem; text-align: center; }
+.lm-subtabs { display: flex; gap: 0.4rem; border-bottom: 2px solid #c9d4e5; }
+.lm-subtab { background: #f3f5fa; border: 1px solid #c9d4e5; border-bottom: none; color: #5f6b7c;
+    border-radius: 0.4rem 0.4rem 0 0; padding: 0.45rem 1.2rem; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; position: relative; top: 2px; }
+/* La pestaña seleccionada va en verde con el texto en blanco (menú superior
+   y subpestañas de Inicio, Área Contable y Fiscal y Análisis imputaciones) */
+.lm-subtab-active { background: #43a047; color: #ffffff; border-color: #368439;
+    border-bottom: 2px solid #43a047; }
+.lm-subtab:hover { color: #0b1f3a; }
+.lm-subtab-active:hover { color: #ffffff; background: #3b9440; }
+/* El menú principal (Inicio / Área Contable y Fiscal) va un píxel más pequeño */
+.acf-menubar .lm-subtab { font-size: calc(0.85rem - 1px); }
+
+/* Pestañas de Operativa: mismo estilo que el submenú superior, algo más bajas.
+   Texto reducido para que todas quepan en una sola línea */
+.acf-optabs { padding-top: 1.6rem; }
+.acf-optabs .lm-subtab { font-size: 0.72rem; padding: 0.32rem 0.7rem; white-space: nowrap; }
+/* Las subpestañas de Inicio van un píxel más grandes */
+.acf-optabs-inicio .lm-subtab { font-size: calc(0.72rem + 1px); }
+/* Pestañas del Área Contable y Fiscal: las no seleccionadas en gris muy
+   claro; solo la activa va en verde (o rojo oscuro con pendientes) */
+.acf-optabs-bal .lm-subtabs { border-bottom: 2px solid #c9d4e5; }
+.acf-optabs-bal .lm-subtab { background: #f3f5fa; border-color: #c9d4e5; }
+.acf-optabs-bal .lm-subtab:hover { background: #e8ecf4; }
+.acf-optabs-bal .lm-subtab-active { background: #43a047; color: #ffffff;
+    border-bottom: 2px solid #43a047; }
+.acf-optabs-bal .lm-subtab-active:hover { background: #3b9440; color: #ffffff; }
+/* Aviso en la pestaña: rojo claro con línea superior roja si hay registros,
+   gris muy claro a cero */
+.acf-optabs-bal .lm-subtab-rojo { background: #fdecec; border-color: #e8a1a1;
+    border-top: 3px solid #ba0517; color: #a4353c; }
+.acf-optabs-bal .lm-subtab-rojo:hover { background: #fbdcdc; color: #a4353c; }
+.acf-optabs-bal .lm-subtab-verde { background: #f3f5fa; border-color: #c9d4e5; }
+/* Pestañas sin aviso: estilo neutro de siempre aunque estén en la barra verde */
+.acf-optabs-bal .lm-subtab-neutra { background: #f3f5fa; border-color: #c9d4e5; }
+.acf-optabs-bal .lm-subtab-neutra:hover { background: #e8ecf4; }
+/* Pestaña marcada con registros pendientes: rojo oscuro en vez de verde */
+.acf-optabs-bal .lm-subtab-active-rojo { background: #ba0517; color: #ffffff;
+    border-color: #8e0412; border-bottom: 2px solid #ba0517; }
+.acf-optabs-bal .lm-subtab-active-rojo:hover { background: #a30413; color: #ffffff; }
+/* Pestañas de Inicio con contador: mismo aviso que en el Área Contable y Fiscal */
+.acf-optabs-inicio .lm-subtab-rojo { background: #fdecec; border-color: #e8a1a1;
+    border-top: 3px solid #ba0517; color: #a4353c; }
+.acf-optabs-inicio .lm-subtab-rojo:hover { background: #fbdcdc; color: #a4353c; }
+.acf-optabs-inicio .lm-subtab-verde { background: #eef7f1; border-color: #9fd4b3; color: #1d6f42; }
+.acf-optabs-inicio .lm-subtab-verde:hover { background: #e2f1e7; color: #1d6f42; }
+.acf-optabs-inicio .lm-subtab-active-rojo { background: #ba0517; color: #ffffff;
+    border-color: #8e0412; }
+.acf-optabs-inicio .lm-subtab-active-rojo:hover { background: #a30413; color: #ffffff; }
+/* Segunda fila de subpestañas de Operativa, ligeramente sangrada */
+.acf-optabs-ope { margin-top: 0.35rem; padding-left: 1.2rem; }
+.acf-optabs .lm-subtabs { flex-wrap: nowrap; }
+
+.pyg-placeholder { display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 3.5rem 1.5rem; color: #9aa5b5; font-size: 0.95rem; text-align: center; background: #ffffff;
+    border-radius: 0 0 0.5rem 0.5rem; }
+.pyg-placeholder strong { color: #6b7686; font-weight: 700; }
+.pyg-placeholder-icon { --slds-c-icon-color-foreground-default: #b3bcc9; }
+.acf-balances { padding: 0.9rem; }
+/* Informe montado pero fuera de vista mientras se consulta el libro mayor */
+.acf-oculto { display: none; }
+
+.pyg-loading { position: relative; min-height: 5rem; padding: 2rem; }
+.pyg-error { background: #fef1f1; border: 1px solid #ea001e; color: #ba0517; padding: 0.75rem 1rem; display: flex; gap: 0.5rem; align-items: center; margin: 1rem; border-radius: 0.25rem; }
+.pyg-empty { padding: 1.5rem; text-align: center; color: #5f6b7c; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+
+/* ===== TABLA ===== */
+.acf-wrap { padding: 0.9rem; }
+.acf-card { background: #ffffff; border: 1px solid #e2e6ec; border-radius: 0.5rem; padding: 0.9rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.acf-filtros { display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 0.9rem; flex-wrap: wrap; }
+.acf-filtro { min-width: 16rem; }
+
+/* Multiselección (mismo patrón que tesoreria) */
+.ts-ms-wrap { position: relative; }
+.ts-ms-trigger { width: 100%; height: 1.9rem; display: flex; align-items: center; justify-content: space-between;
+    gap: 0.4rem; background: #ffffff; border: 1px solid #c9d4e5; border-radius: 0.35rem;
+    padding: 0 0.6rem; font-size: 0.8rem; color: #16325c; cursor: pointer; }
+.ts-ms-trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ts-ms-caret { color: #8a97a8; }
+.ts-ms-backdrop { position: fixed; inset: 0; z-index: 800; }
+.ts-ms-panel { position: absolute; z-index: 900; top: 100%; left: 0; min-width: 14rem; margin-top: 0.2rem;
+    background: #ffffff; border: 1px solid #c9d4e5; border-radius: 0.4rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18); padding: 0.4rem; }
+.ts-ms-actions { display: flex; gap: 0.4rem; align-items: center; padding: 0 0.3rem 0.35rem;
+    font-size: 0.72rem; color: #8a97a8; border-bottom: 1px solid #eef0f4; }
+.ts-ms-link { background: none; border: none; color: #0b5cab; font-size: 0.74rem; font-weight: 700;
+    cursor: pointer; padding: 0; }
+.ts-ms-link:hover { text-decoration: underline; }
+/* Modo activo del filtro (incluir/excluir) */
+.ts-ms-link-activo { background: #0070d2; color: #ffffff; border-radius: 0.35rem;
+    padding: 0.1rem 0.5rem; }
+.ts-ms-link-activo:hover { text-decoration: none; }
+.ts-ms-list { max-height: 14rem; overflow-y: auto; padding: 0.25rem 0; }
+.ts-ms-option { display: flex; align-items: center; gap: 0.5rem; padding: 0.28rem 0.4rem;
+    font-size: 0.78rem; color: #16325c; cursor: pointer; border-radius: 0.25rem; }
+.ts-ms-option:hover { background: #eef4fd; }
+.ts-ms-check { width: 0.85rem; height: 0.85rem; border: 1px solid #b3bcc9; border-radius: 0.2rem;
+    flex-shrink: 0; background: #ffffff; }
+.ts-ms-option-selected .ts-ms-check { background: #0070d2; border-color: #005fb2;
+    box-shadow: inset 0 0 0 2px #ffffff; }
+.ts-ms-option-selected .ts-ms-label { font-weight: 700; }
+.ts-ms-foot { display: flex; justify-content: flex-end; padding: 0.35rem 0.3rem 0.1rem;
+    border-top: 1px solid #eef0f4; }
+.ts-ms-apply { font-size: 0.74rem; }
+.acf-scroll { overflow-x: auto; }
+.acf-tabla { width: 100%; border-collapse: collapse; font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+.acf-tabla th { color: #5f6b7c; font-weight: 700; font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.35rem 0.5rem; text-align: right; border-bottom: 2px solid #c9d4e5; white-space: normal; vertical-align: bottom; line-height: 1.2; }
+.acf-suphead th { border-bottom: none; padding-bottom: 0; }
+.acf-band { background: #14395c; color: #ffffff !important; text-align: center !important;
+    font-size: 0.62rem !important; letter-spacing: 0.08em !important; padding: 0.35rem 0.75rem !important;
+    border-radius: 0.35rem 0.35rem 0 0; }
+/* Bloques de columnas del cuadro: servicio / extraordinario / interno */
+.acf-band-extra { background: #3d6a96; }
+.acf-band-interno { background: #0070d2; }
+/* Banda superior de la Visión general que agrupa las tres bandas */
+.acf-band-trabajos { background: #eef1f5; color: #43506e !important; }
+/* Separador de bloques finísimo, en gris muy claro */
+.acf-sep { border-left: 1px solid #f0f2f6; }
+.acf-th-izq { text-align: left !important; }
+.acf-th-usuario { min-width: 12rem; }
+/* Cabecera de contratos en dos líneas y centrada */
+.acf-th-contratos { max-width: 9rem; text-align: center !important; }
+.acf-td-contratos { text-align: center; }
+/* Cabeceras clicables del cuadro de visión por usuarios; la activa se marca
+   con un resaltado azul suave y el subrayado de la columna */
+.acf-th-click { cursor: pointer; }
+.acf-th-click:hover { color: #0b5cab; }
+.acf-th-activo { background: #eef4fd; color: #0b5cab !important; border-radius: 0.4rem 0.4rem 0 0;
+    border-bottom: 2px solid #0070d2 !important; }
+/* Vencidas al lado del total de contabilidades */
+.acf-col-venc { color: #ba0517; font-size: 0.66rem; font-weight: 700; margin-left: 0.35rem; white-space: nowrap; }
+/* Números del cuadro en azul */
+.acf-num-azul { color: #0b5cab; font-weight: 700; }
+.acf-num-azul .acf-link { font-weight: 700; }
+.acf-row td { padding: 0.3rem 0.5rem; border-bottom: 1px solid #f0f2f6; white-space: nowrap; }
+/* Resalta la línea bajo el ratón para saber en qué fila se está
+   (gris muy suave, distinto del azul de las filas de empresa titular) */
+.acf-row:hover td { background: #f4f5f7; }
+.acf-td-usuario { padding-left: 1.1rem !important; }
+.acf-grupo-empresa td { background: #eef4fd; color: #0b1f3a; font-weight: 800; font-size: 0.72rem;
+    padding: 0.35rem 0.5rem; white-space: nowrap; border-bottom: 1px solid #d8e4f5; }
+/* Fila de grupo de Agrupar por asesor (la clase va en la propia celda): azul claro */
+td.acf-grupo-empresa, .acf-row:hover td.acf-grupo-empresa {
+    background: #dbeafe; color: #0b1f3a; font-weight: 800; font-size: 0.72rem;
+    padding: 0.35rem 0.5rem; white-space: nowrap; border-bottom: 1px solid #b9d3f2; }
+.acf-td-izq { text-align: left; }
+.acf-num { text-align: right; }
+.acf-total { font-weight: 800; color: #0b1f3a; }
+.acf-link { color: #0b5cab; font-weight: 700; text-decoration: none; }
+.acf-link:hover { text-decoration: underline; }
+/* Fila TOTAL al principio del cuadro, sin fondo de color */
+.acf-totalrow td { border-bottom: 2px solid #0070d2; font-weight: 800; padding: 0.35rem 0.5rem; white-space: nowrap; }
+.acf-total-usuarios { font-weight: 400; color: #5f6b7c; }
+.acf-chip { display: inline-block; border-radius: 0.85rem; padding: 0.05rem 0.5rem; font-size: 0.62rem; font-weight: 700; }
+.acf-chip-ok  { background: #eaf7ee; color: #1d6f42; border: 1px solid #bfe0c8; }
+.acf-chip-bad { background: #fef1f1; color: #ba0517; border: 1px solid #f3b0b5; }
+.acf-chip-neutro { background: #f3f4f6; color: #5f6b7c; border: 1px solid #d5dae2; }
+.acf-chip-info { background: #eef4fd; color: #0b5cab; border: 1px solid #c9d4e5; }
+.acf-chip-warn { background: #fdf6e8; color: #b26a00; border: 1px solid #ecd3a2; }
+/* Aviso de revisión de expedientes: caja con fondo rojo */
+.acf-chip-revisar { background: #ba0517; color: #ffffff; border: 1px solid #ba0517; }
+/* Total de líneas afectadas por los filtros de expedientes, encima del listado */
+.acf-exp-resumen { font-size: 0.78rem; font-weight: 800; color: #0b5cab; margin: 0 0 0.4rem 0.2rem; }
+/* Desplegables de asesor y área junto a los botones del listado de expedientes */
+.acf-exp-combo { min-width: 12rem; }
+/* Número de tareas abiertas mayor que cero: círculo con fondo rojo */
+.acf-tareas-circulo { display: inline-flex; align-items: center; justify-content: center;
+    min-width: 1.3rem; height: 1.3rem; padding: 0 0.25rem; border-radius: 50%;
+    background: #ba0517; color: #ffffff; font-weight: 700; }
+.acf-nota { font-size: 0.7rem; color: #8a97a8; font-style: italic; margin-top: 0.6rem; }
+
+/* ===== Pestaña Contabilidad y/o Consultoría ===== */
+.acf-contab { display: grid; grid-template-columns: 17rem 1fr; gap: 0.9rem; align-items: start; }
+.acf-contab-izq { display: flex; flex-direction: column; gap: 0.9rem; }
+.acf-kpi { background: #ffffff; border: 1px solid #e2e6ec; border-radius: 0.5rem; padding: 0.7rem 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04); text-align: center; }
+.acf-kpi-num { font-size: 1.5rem; font-weight: 800; color: #0b1f3a; line-height: 1.1; }
+.acf-kpi-label { font-size: 0.68rem; font-weight: 700; color: #5f6b7c; text-transform: uppercase; letter-spacing: 0.05em; }
+.acf-kpi-rojo .acf-kpi-num { color: #ba0517; }
+.acf-kpi-azul .acf-kpi-num { color: #0070d2; }
+.acf-kpi-active-azul { border: 2px solid #0070d2; background: #eef4fd; }
+.acf-kpi-amarillo .acf-kpi-num { color: #b26a00; }
+.acf-kpi-active-amarillo { border: 2px solid #b26a00; background: #fdf6e8; }
+.acf-kpi-gris .acf-kpi-num { color: #5f6b7c; }
+.acf-kpi-active-gris { border: 2px solid #5f6b7c; background: #f3f4f6; }
+.acf-kpi-active-rojo { border: 2px solid #ba0517; background: #fef1f1; }
+.acf-kpi-verde .acf-kpi-num { color: #1d6f42; }
+.acf-kpi-active-verde { border: 2px solid #1d6f42; background: #eaf7ee; }
+.acf-tipo-box { text-align: left; flex: 1.6 !important; }
+.acf-tipo-row { display: flex; align-items: center; gap: 0.45rem; margin-top: 0.35rem; }
+.acf-tipo-label { font-size: 0.7rem; color: #16325c; font-weight: 600; width: 40%; min-width: 7rem;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acf-tipo-bar-wrap { flex: 1; background: #eef0f4; border-radius: 0.25rem; height: 0.7rem; overflow: hidden; }
+.acf-tipo-bar { display: block; height: 100%; background: #0070d2; border-radius: 0.25rem; }
+.acf-tipo-num { font-size: 0.74rem; font-weight: 800; color: #0b1f3a; min-width: 1.4rem; text-align: right; }
+/* Cabecera de las cajas de distribución con su botón de orden */
+.acf-tipo-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+/* Filas de distribución clicables como filtro */
+.acf-tipo-click { cursor: pointer; border-radius: 0.3rem; padding: 0.1rem 0.3rem; margin-left: -0.3rem; margin-right: -0.3rem; }
+.acf-tipo-click:hover { background: #eef4fd; }
+.acf-tipo-activo { background: #eef4fd; }
+.acf-tipo-activo .acf-tipo-label { color: #0b5cab; font-weight: 800; }
+.acf-kpi-click { cursor: pointer; transition: background 0.1s ease; }
+.acf-kpi-click:hover { background: #fef7f7; }
+.acf-kpi-active { border: 2px solid #ba0517; background: #fef1f1; }
+.acf-kpis-der { display: flex; gap: 0.9rem; margin-bottom: 0.9rem; align-items: stretch; flex-wrap: wrap; }
+.acf-kpis-der .acf-kpi { flex: 1; min-width: 8.5rem; }
+.acf-kpis-der-refresh { display: flex; align-items: flex-start; }
+.acf-user-list { padding: 0.4rem; max-height: 34rem; overflow-y: auto; }
+.acf-list-title { font-size: 0.62rem; font-weight: 700; color: #5f6b7c; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 0.25rem 0.6rem 0.35rem; border-bottom: 1px solid #eef0f4;
+    margin-bottom: 0.25rem; }
+.acf-user-item { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+    padding: 0.35rem 0.6rem; font-size: 0.78rem; color: #16325c; cursor: pointer; border-radius: 0.3rem; }
+.acf-user-item:hover { background: #eef4fd; }
+.acf-user-item-active { background: #0070d2; color: #ffffff; font-weight: 700; }
+.acf-user-item-active:hover { background: #005fb2; }
+.acf-user-item-active .acf-user-num { background: #ffffff; color: #0b5cab; }
+.acf-user-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Periodos vencidos de la lista año-periodicidad */
+.acf-periodo-der { display: flex; align-items: center; gap: 0.3rem; flex-shrink: 0; }
+.acf-periodo-warn { color: #ba0517; font-weight: 800; }
+.acf-periodo-vencido .acf-user-nombre { color: #ba0517; font-weight: 700; }
+.acf-periodo-vencido .acf-user-num { background: #fef1f1; color: #ba0517; }
+.acf-user-num { background: #eef4fd; color: #0b5cab; font-weight: 800; font-size: 0.72rem;
+    border-radius: 0.85rem; padding: 0.05rem 0.55rem; flex-shrink: 0; }
+.acf-th-cen { text-align: center !important; }
+.acf-td-cen { text-align: center; }
+/* Cabeceras de columna en dos líneas para compactar el ancho */
+.acf-th-2l div { white-space: nowrap; }
+
+/* ===== Pestaña Mi situación ===== */
+/* Accesos rápidos: dos filas de seis cajas */
+.acf-accesos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.6rem; margin-bottom: 1rem; }
+.acf-acceso { background: #f8fafc; border: 1px solid #e2e6ec; border-radius: 0.6rem; padding: 0.5rem 0.8rem;
+    display: flex; align-items: center; gap: 0.55rem; min-height: 3.1rem; min-width: 0;
+    box-shadow: 0 1px 2px rgba(11,31,58,0.05); }
+.acf-acceso-click { cursor: pointer; transition: background 0.1s ease; }
+.acf-acceso-click:hover { background: #eef4fd; }
+.acf-acceso-label { font-size: 0.8rem; font-weight: 700; color: #0b1f3a; line-height: 1.15; }
+.acf-acceso-icono { display: flex; align-items: center; justify-content: center; width: 1.9rem; height: 1.9rem;
+    border-radius: 0.45rem; flex-shrink: 0; --sds-c-icon-color-foreground-default: #0b1f3a; }
+/* Chips de color de la segunda fila, con el icono en blanco */
+.acf-acceso-chip-azul { background: #4f9ef8; --sds-c-icon-color-foreground-default: #ffffff; }
+.acf-acceso-chip-teal { background: #0ea5a4; --sds-c-icon-color-foreground-default: #ffffff; }
+.acf-acceso-chip-celeste { background: #7cb8f5; --sds-c-icon-color-foreground-default: #ffffff; }
+.acf-acceso-chip-rosa { background: #f39a9f; --sds-c-icon-color-foreground-default: #ffffff; }
+.acf-acceso-chip-verde { background: #3fbf8f; --sds-c-icon-color-foreground-default: #ffffff; }
+.acf-acceso-chip-naranja { background: #f6a723; --sds-c-icon-color-foreground-default: #ffffff; }
+.acf-acceso-badge { background: #ba0517; color: #ffffff; border-radius: 0.85rem; font-size: 0.7rem;
+    font-weight: 800; padding: 0.05rem 0.5rem; margin-left: auto; flex-shrink: 0; }
+/* La caja del registro horario aloja el componente compacto de fichaje */
+/* Todas las cajas van en una sola línea: la de imputaciones, al ancho justo del título, y las ocho de totales */
+.acf-mis-grid { display: grid; grid-template-columns: repeat(11, 1fr); gap: 0.45rem; margin-bottom: 1rem; }
+/* Caja de situación de imputaciones (primera de la línea) */
+.acf-imput-caja { border-radius: 0.5rem; padding: 0.6rem 0.9rem 0.55rem; min-width: 0; min-height: 5.2rem;
+    display: flex; flex-direction: column; justify-content: center; gap: 0.15rem;
+    box-shadow: 0 1px 2px rgba(11,31,58,0.06); }
+.acf-imput-titulo { font-size: 0.72rem; font-weight: 700; color: #0b1f3a; }
+.acf-imput-linea { display: flex; align-items: center; gap: 0.4rem; }
+.acf-imput-texto { font-size: 0.9rem; font-weight: 800; }
+.acf-imput-sub { font-size: 0.72rem; color: #5f6b7c; }
+.acf-imput-caja-verde { background: #eef7f1; border: 1px solid #9fd4b3; border-top: 3px solid #1d6f42; }
+.acf-imput-caja-verde .acf-imput-texto { color: #1d6f42; }
+.acf-imput-caja-verde .acf-imput-icono { --sds-c-icon-color-foreground-default: #1d6f42; }
+.acf-imput-caja-roja { background: #fdf3f3; border: 1px solid #f0c2c6; border-top: 3px solid #ba0517; }
+.acf-imput-caja-roja .acf-imput-texto { color: #ba0517; }
+.acf-imput-caja-roja .acf-imput-icono { --sds-c-icon-color-foreground-default: #ba0517; }
+.acf-mis-caja { background: #ffffff; border: 1px solid #e2e6ec; border-top: 3px solid #0070d2;
+    border-radius: 0.5rem; padding: 0.4rem 0.5rem 0.35rem; box-shadow: 0 1px 2px rgba(11,31,58,0.06);
+    text-align: center; min-height: 3.6rem; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.acf-mis-num { font-size: 1.2rem; font-weight: 800; color: #0b1f3a; line-height: 1.1; }
+/* Los títulos de las cajas van en minúsculas, sin transformar */
+.acf-mis-titulo { font-size: 0.64rem; font-weight: 600; color: #5f6b7c; margin-top: 0.15rem; }
+.acf-mis-venc { font-size: 0.62rem; font-weight: 800; color: #ba0517; margin-top: 0.2rem; }
+.acf-mis-caja-click { cursor: pointer; transition: box-shadow 0.1s ease, transform 0.1s ease; }
+.acf-mis-caja-click:hover { box-shadow: 0 3px 8px rgba(11,31,58,0.14); transform: translateY(-1px); }
+/* Caja con vencidas: fondo rojo suave de aviso */
+.acf-mis-caja-peligro { background: #fdf3f3; border-color: #f0c2c6; border-top-color: #ba0517; }
+.acf-mis-caja-peligro .acf-mis-num { color: #ba0517; }
+/* Mis vencimientos con registros: rojo intenso y todo el texto en blanco */
+.acf-mis-caja-intenso { background: #ba0517; border-color: #8e0412; border-top-color: #8e0412; }
+.acf-mis-caja-intenso .acf-mis-num, .acf-mis-caja-intenso .acf-mis-titulo, .acf-mis-caja-intenso .acf-mis-venc { color: #ffffff; }
+.acf-mis-caja-intenso.acf-mis-caja-click:hover { background: #a30413; }
+/* El refresco del listado de tareas va alineado a la derecha */
+.acf-mis-refresh { justify-content: flex-end; margin-bottom: 0.5rem; }
+/* Botón Ver todas bajo el listado recortado de tareas */
+.acf-mis-vertodas { display: flex; justify-content: center; padding: 0.55rem; border-top: 1px solid #e2e6ec; }
+.acf-btn-vertodas { background: #ffffff; border: 1px solid #c9d4e5; color: #0070d2; border-radius: 0.5rem;
+    padding: 0.35rem 1.1rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.acf-btn-vertodas:hover { background: #f3f5fa; }
+.acf-dot { display: inline-block; width: 0.85rem; height: 0.85rem; border-radius: 50%; vertical-align: middle; }
+.acf-dot-verde { background: #7ed321; }
+.acf-dot-rojo { background: #e63946; }
+.acf-dot-azul { background: #0070d2; }
+.acf-dot-amarillo { background: #f2b400; }
+.acf-dot-gris { background: #c9d4e5; }
+.acf-chk-texto { font-size: 0.72rem; font-weight: 700; margin-left: 0.3rem; }
+/* Los títulos largos van en una sola línea y se recortan con puntos suspensivos
+   para que toda la fila quepa en pantalla (el texto completo sale al pasar el ratón) */
+/* Recortes para que los listados quepan en una pantalla sin desplazamiento lateral */
+.acf-td-titulo { white-space: nowrap; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; }
+.acf-td-empresa { white-space: nowrap; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; }
+.acf-td-corta { white-space: nowrap; max-width: 9rem; overflow: hidden; text-overflow: ellipsis; }
+/* Tabla de contratos: columnas de recuento más juntas para caber en una pantalla */
+/* Tabla de expedientes: columnas más juntas para que quepa en la pantalla */
+.acf-tabla-exp th { padding-left: 0.3rem; padding-right: 0.3rem; }
+.acf-tabla-exp .acf-row td { padding-left: 0.3rem; padding-right: 0.3rem; }
+.acf-tabla-exp .acf-td-empresa, .acf-tabla-exp .acf-td-titulo { max-width: 11rem; }
+.acf-tabla-cc th { padding-left: 0.3rem; padding-right: 0.3rem; }
+.acf-tabla-cc .acf-row td { padding-left: 0.3rem; padding-right: 0.3rem; }
+.acf-tabla-cc .acf-totalrow td { padding-left: 0.3rem; padding-right: 0.3rem; }
+/* ===== Subvistas y calendario mensual de vencimientos legales ===== */
+.acf-subtabs-vto { margin-bottom: 0.9rem; }
+.acf-subtabs-vto .lm-subtab { font-size: 0.78rem; padding: 0.35rem 0.9rem; }
+.acf-cal-head { display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding-bottom: 0.6rem; border-bottom: 1px solid #e2e6ec; margin-bottom: 0.6rem; }
+.acf-cal-titulo { font-size: 0.9rem; font-weight: 800; color: #0b1f3a; text-transform: capitalize;
+    min-width: 11rem; text-align: center; }
+.acf-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.acf-cal-diasemana { font-size: 0.62rem; font-weight: 700; color: #5f6b7c; text-transform: uppercase;
+    letter-spacing: 0.05em; text-align: center; padding: 0.3rem 0; border-bottom: 2px solid #c9d4e5; }
+.acf-cal-celda { min-height: 4rem; border-right: 1px solid #eef0f4; border-bottom: 1px solid #eef0f4;
+    padding: 0.3rem 0.45rem; background: #ffffff; }
+.acf-cal-celda:nth-child(7n) { border-right: none; }
+.acf-cal-vacia { background: #fbfcfd; }
+.acf-cal-finde { background: #f8f9fb; }
+.acf-cal-finde .acf-cal-dia { color: #9aa5b5; }
+.acf-cal-hoy { box-shadow: inset 0 0 0 2px #0070d2; }
+.acf-cal-con { background: #fef1f1; cursor: pointer; }
+.acf-cal-con:hover { background: #fbdfe1; }
+.acf-cal-dia { font-size: 0.72rem; font-weight: 700; color: #16325c; }
+.acf-cal-num { display: inline-block; margin-top: 0.3rem; background: #ba0517; color: #ffffff;
+    border-radius: 0.85rem; padding: 0.05rem 0.6rem; font-size: 0.78rem; font-weight: 800; }
+
+/* Chip del filtro de fecha activado desde el calendario */
+.acf-fecha-chip { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem;
+    background: #fef1f1; color: #ba0517; border: 1px solid #f3b0b5; border-radius: 0.85rem;
+    padding: 0.15rem 0.7rem; font-size: 0.76rem; font-weight: 700; }
+.acf-fecha-chip-x { background: none; border: none; color: #ba0517; font-weight: 800;
+    cursor: pointer; padding: 0; font-size: 0.76rem; }
+
+/* Fechas del listado de vencimientos legales */
+.acf-vto-vencido { color: #ba0517; font-weight: 700; }
+.acf-vto-hoy { color: #0b5cab; font-weight: 700; }
+/* Señalamientos legales del día en el calendario de vencimientos (solo informativo) */
+/* Misma tipografía que la línea de vencimientos: número grande y palabra al mismo cuerpo */
+.acf-venc-senal { font-size: 0.72rem; font-weight: 700; color: #6d5bd0; margin-top: 0.1rem;
+    display: flex; align-items: baseline; gap: 0.3rem; }
+/* Día sin señalamientos: misma línea pero apagada, como la de vencimientos */
+.acf-venc-senal-vacio { font-size: 0.72rem; font-weight: 700; color: #9aa5b5; margin-top: 0.1rem; }
+/* Cabecera de Expedientes: botones a la derecha */
+.acf-exp-acciones { justify-content: flex-end; align-items: center; gap: 0.6rem; }
+.acf-btn-mios { display: inline-flex; align-items: center; gap: 0.4rem; background: #ffffff;
+    border: 1px solid #c9d4e5; border-radius: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.78rem;
+    font-weight: 700; color: #0b5cab; cursor: pointer; }
+.acf-btn-mios:hover { background: #eef4fd; }
+.acf-btn-mios .acf-btn-mios-icono { --sds-c-icon-color-foreground-default: #0b5cab; }
+.acf-btn-mios-bloque { width: 100%; justify-content: center; }
+.acf-btn-mios-activo { background: #0070d2; border-color: #0070d2; color: #ffffff; }
+.acf-btn-mios-activo:hover { background: #005fb2; }
+.acf-btn-mios-activo .acf-btn-mios-icono { --sds-c-icon-color-foreground-default: #ffffff; }
+.acf-dias-verde { color: #1d6f42; font-weight: 700; }
+/* Riesgo de conflicto: rojo claro con clientes en conflicto, verde claro a cero */
+.opo-btn-conf-rojo { background: #fef1f1; border-color: #f3b0b5; color: #a4353c; }
+.opo-btn-conf-rojo:hover { background: #fbdcdc; }
+.opo-btn-conf-verde { background: #eaf7ee; border-color: #bfe0c8; color: #1d6f42; }
+.opo-btn-conf-verde:hover { background: #dff0e4; }
+/* Contratos fiscal/laboral de la empresa (Ok en verde, Cruz en rojo) */
+.acf-ct-ok { color: #1d6f42; font-weight: 800; }
+.acf-ct-cruz { color: #ba0517; font-weight: 800; }
+/* Cabecera de columna ordenable al pinchar (Empresa en Cuentas anuales) */
+.acf-th-orden { cursor: pointer; user-select: none; white-space: nowrap; }
+.acf-th-orden:hover { color: #0b5cab; }
+
+/* Buscador de los listados: borde fino y gris muy claro */
+/* Esqueleto de carga de Detalle: bloques grises difuminados con brillo
+   mientras llegan los datos, con la ruleta centrada encima */
+.acf-skel-zona { position: relative; }
+.acf-skel { background: linear-gradient(90deg, #eef0f4 25%, #f8f9fb 45%, #eef0f4 65%);
+    background-size: 300% 100%; animation: acf-skel-brillo 1.3s ease-in-out infinite;
+    border-radius: 0.9rem; }
+@keyframes acf-skel-brillo { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+.acf-skel-venc { height: 11rem; margin-bottom: 0.9rem; }
+.acf-skel-cajas { display: flex; gap: 0.9rem; margin-bottom: 0.9rem; }
+.acf-skel-caja { flex: 1; height: 5rem; }
+.acf-skel-tareas { height: 15rem; }
+.acf-skel-ruleta { position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; }
+
+.acf-buscador { margin-bottom: 0.9rem; }
+/* Buscador en línea con el botón de refresco */
+.acf-buscador-linea { flex: 1; margin-bottom: 0; }
+/* Filtros multiselección del listado de contratos, con el buscador a su misma altura */
+.acf-filtro-cc { min-width: 15rem; }
+.acf-fila-filtros { align-items: flex-end; }
+.acf-fila-filtros .acf-kpis-der-refresh { align-items: flex-end; padding-bottom: 0.1rem; }
+/* Filtro de asesor de Tareas recurrentes: caja compacta, panel ancho encima */
+.contab-filtro-asesor { min-width: 0; width: 12rem; flex: 0 0 auto; }
+.contab-filtro-asesor .ts-ms-panel { min-width: 16rem; }
+/* Vencidos de cada línea de contrato: en pequeño debajo del número, sin
+   ensanchar las columnas actuales */
+.cc-col-venc { display: block; color: #ba0517; font-size: 0.56rem; font-weight: 700;
+    line-height: 1.1; white-space: nowrap; }
+/* Analítica de contratos: columna mínima con un botón-gráfico de tres barras */
+.cc-th-analitica, .cc-td-analitica { width: 2rem; max-width: 2rem; padding-left: 0.1rem; padding-right: 0.1rem; }
+.cc-btn-grafico { display: inline-flex; align-items: flex-end; gap: 2px; height: 1.2rem;
+    padding: 0.15rem 0.3rem; background: #ffffff; border: 1px solid #c9d4e5;
+    border-radius: 0.3rem; cursor: pointer; }
+.cc-btn-grafico:hover { background: #eef4fd; }
+.cc-grafico-barra { width: 3px; background: #0070d2; border-radius: 1px; display: inline-block; }
+.cc-grafico-b1 { height: 5px; }
+.cc-grafico-b2 { height: 9px; }
+.cc-grafico-b3 { height: 7px; }
+/* Chip naranja claro (situación censal Inactiva) */
+.acf-chip-naranja { background: #fde8d8; color: #b45309; }
+/* Botón de agrupar por grupo empresarial */
+.acf-agrupar-wrap { display: flex; align-items: center; }
+/* Filtros de Contratos en una sola línea: cajas y botones más estrechos
+   para que Limpiar no salte a una segunda fila */
+.cc-filtros { gap: 0.5rem; }
+.cc-filtros .acf-filtro-cc { min-width: 0; width: 11.5rem; flex: 0 0 auto; }
+.cc-filtros .acf-btn-mios, .cc-filtros .acf-btn-agrupar {
+    padding: 0.4rem 0.5rem; font-size: 0.72rem; }
+.acf-btn-agrupar { background: #ffffff; border: 1px solid #c9d4e5; color: #16325c;
+    padding: 0.4rem 0.9rem; border-radius: 0.35rem; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    white-space: nowrap; }
+.acf-btn-agrupar:hover { background: #eef4fd; }
+.acf-btn-agrupar-activo { background: #0070d2; border-color: #005fb2; color: #ffffff; }
+.acf-btn-agrupar-activo:hover { background: #005fb2; }
+/* Botón amarillo de volver al Área RR.HH (solo cuando se llega desde el panel) */
+.acf-btn-volver-rrhh { background: #fdeea3; border: 1px solid #e5c65b; color: #6b5900;
+    padding: 0.4rem 0.9rem; border-radius: 0.35rem; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    white-space: nowrap; }
+.acf-btn-volver-rrhh:hover { background: #fbe27a; }
+/* Botón Incidencias con incidencias pendientes: fondo rojo claro */
+.acf-btn-inc-rojo { background: #fdecec; border-color: #f3b0b5; color: #a4353c; }
+.acf-btn-inc-rojo:hover { background: #fbdcdc; }
+/* Mis pendientes de la Visión general: amarillo claro, intenso al pulsarlo */
+.acf-btn-vis-mios { background: #fdf6d8; border-color: #e5c65b; color: #6b5900; }
+.acf-btn-vis-mios:hover { background: #fbedb0; }
+.acf-btn-vis-mios-activo, .acf-btn-vis-mios-activo:hover {
+    background: #f5d34d; border-color: #d4a900; color: #4a3f00; }
+/* Botón Analítica del listado de contratos */
+.acf-btn-analitica { background: #ffffff; border: 1px solid #c9d4e5; color: #0b5cab;
+    padding: 0.1rem 0.6rem; border-radius: 0.25rem; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+.acf-btn-analitica:hover { background: #eef4fd; }
+.acf-buscador lightning-input {
+    --slds-c-input-color-border: #eef0f4;
+    --sds-c-input-color-border: #eef0f4;
+    --slds-c-input-shadow: none;
+    --sds-c-input-shadow: none;
+}
+
+/* Número correlativo de los listados */
+.acf-th-idx { width: 2.2rem; }
+.acf-td-idx { color: #8a97a8; text-align: right; padding-right: 0.6rem !important; }
+
+/* ===== Vencimientos legales (semana actual y siguiente) ===== */
+.acf-venc-panel { margin-bottom: 0.9rem; padding: 0 !important; overflow: hidden; }
+.acf-venc-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 1rem; border-bottom: 1px solid #e2e6ec; flex-wrap: wrap; }
+.acf-venc-title { font-size: 0.7rem; font-weight: 800; color: #0b1f3a; text-transform: uppercase;
+    letter-spacing: 0.05em; }
+.acf-venc-badges { display: flex; gap: 0.5rem; align-items: center; }
+.acf-venc-badge { font-size: 0.72rem; font-weight: 800; border-radius: 0.85rem; padding: 0.12rem 0.65rem; }
+.acf-venc-badge-naranja { background: #fdf1e0; color: #b26a00; }
+.acf-venc-badge-azul { background: #eef4fd; color: #0b5cab; }
+.acf-venc-badge-morado { background: #f0edfb; color: #6d5bd0; }
+.acf-venc-badge-click { cursor: pointer; }
+.acf-venc-badge-click:hover { text-decoration: underline; }
+.acf-venc-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.acf-venc-celda { border-right: 1px solid #eef0f4; border-bottom: 1px solid #eef0f4;
+    padding: 0.5rem 0.65rem; min-height: 3.4rem; background: #ffffff; }
+.acf-venc-celda:nth-child(7n) { border-right: none; }
+.acf-venc-finde { background: #f8f9fb; }
+.acf-venc-finde .acf-venc-dia { color: #9aa5b5; }
+.acf-venc-alerta { box-shadow: inset 0 0 0 1px #f0b429; }
+.acf-venc-hoy { box-shadow: inset 0 0 0 2px #0070d2; }
+/* Días con vencimientos o señalamientos: fondo rojo claro; los enlaces del
+   interior llevan cada uno a su pestaña (vencimientos o señalamientos) */
+.acf-venc-rojo { background: #fef1f1; }
+.acf-venc-link { cursor: pointer; }
+.acf-venc-link:hover { text-decoration: underline; }
+.acf-venc-dia { font-size: 0.7rem; font-weight: 700; color: #16325c; margin-bottom: 0.2rem;
+    display: flex; align-items: center; gap: 0.3rem; }
+.acf-venc-hoy-pill { background: #0070d2; color: #ffffff; border-radius: 0.85rem;
+    padding: 0.08rem 0.55rem; font-size: 0.68rem; font-weight: 800; }
+.acf-venc-aviso { font-size: 0.72rem; }
+.acf-venc-texto { font-size: 0.72rem; color: #16325c; display: flex; align-items: baseline; gap: 0.3rem; }
+.acf-venc-num { font-size: 0.95rem; font-weight: 800; }
+.acf-venc-texto-alerta { color: #b26a00; }
+.acf-venc-texto-alerta .acf-venc-num { color: #b26a00; }
+.acf-venc-texto-rojo { color: #ba0517; }
+.acf-venc-texto-rojo .acf-venc-num { color: #ba0517; }
+.acf-venc-texto-muted { color: #9aa5b5; }
+
+/* ===== Ausencias Equipo (calendario de cuatro semanas) ===== */
+.acf-aus-panel { padding: 0 !important; overflow: hidden; }
+.acf-aus-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+    padding: 0.7rem 1rem; border-bottom: 1px solid #e2e6ec; flex-wrap: wrap; }
+.acf-aus-titulo { font-size: 0.95rem; font-weight: 800; color: #0b1f3a; }
+.acf-aus-sub { font-size: 0.74rem; color: #5f6b7c; margin-top: 0.1rem; }
+.acf-aus-acciones { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+/* Leyenda de colores por tipo de ausencia */
+.acf-aus-leyenda { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap;
+    padding: 0.45rem 1rem; border-bottom: 1px solid #eef0f4; }
+.acf-aus-leyenda-item { display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.7rem; font-weight: 700; color: #16325c; }
+.acf-aus-dot { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 0.2rem; }
+.acf-aus-leyenda-nota { font-size: 0.68rem; color: #8a97a8; font-style: italic; margin-left: auto; }
+/* Parrilla: personas en filas y los 28 días en columnas */
+.acf-aus-tabla { border-collapse: collapse; font-size: 0.74rem; width: 100%; }
+.acf-aus-tabla th { color: #5f6b7c; font-weight: 700; font-size: 0.62rem; letter-spacing: 0.05em;
+    text-transform: uppercase; border-bottom: 2px solid #c9d4e5; }
+.acf-aus-th-persona, .acf-aus-th-depto { text-align: left; vertical-align: bottom;
+    padding: 0.35rem 0.6rem; white-space: nowrap; }
+.acf-aus-th-persona { position: sticky; left: 0; background: #ffffff; z-index: 2; min-width: 11rem; }
+.acf-aus-th-depto { position: sticky; left: 11rem; background: #ffffff; z-index: 2; min-width: 8rem; }
+/* Cabeceras de día en vertical, como en los planificadores de vacaciones */
+.acf-aus-th-dia { vertical-align: bottom; text-align: center; padding: 0.35rem 0.1rem; min-width: 1.7rem; }
+.acf-aus-th-fecha { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap;
+    letter-spacing: 0.03em; }
+.acf-aus-th-finde .acf-aus-th-fecha { color: #b3bcc9; }
+/* La columna de hoy se identifica con un fondo verde */
+.acf-aus-th-hoy { background: #d9f2e1; }
+.acf-aus-th-hoy .acf-aus-th-fecha { color: #1d6f42; }
+.acf-aus-td-persona, .acf-aus-td-depto { padding: 0.3rem 0.6rem; border-bottom: 1px solid #f0f2f6;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acf-aus-td-persona { position: sticky; left: 0; background: #ffffff; z-index: 1;
+    max-width: 13rem; font-weight: 700; color: #0b1f3a; }
+.acf-aus-td-depto { position: sticky; left: 11rem; background: #ffffff; z-index: 1;
+    max-width: 10rem; color: #5f6b7c; }
+.acf-aus-td-grupo { background: #eef4fd; color: #0b1f3a; font-weight: 800; font-size: 0.72rem;
+    padding: 0.35rem 0.6rem; border-bottom: 1px solid #d8e4f5; position: sticky; left: 0; }
+.acf-aus-celda { border-left: 1px solid #f0f2f6; border-bottom: 1px solid #f0f2f6;
+    height: 1.7rem; min-width: 1.7rem; background: #ffffff; }
+.acf-aus-finde { background: #f8f9fb; }
+.acf-aus-hoycol { background: #d9f2e1; }
+/* Colores por grupo de tipo (van tras finde/hoy para imponerse a ellos) */
+.acf-aus-vacaciones { background: #4f9ef8; }
+/* Vacaciones solicitadas (sin aprobar): amarillo */
+.acf-aus-vacsol { background: #f2cf3b; }
+/* Teletrabajo: tabla compacta a la izquierda, días en horizontal y sin fecha */
+.tel-tabla { width: auto; }
+.tel-th-dia { text-align: center; padding: 0.4rem 0.8rem; white-space: nowrap;
+    color: #5f6b7c; font-weight: 700; font-size: 0.62rem; letter-spacing: 0.05em;
+    text-transform: uppercase; }
+.tel-celda { min-width: 4.5rem; }
+/* Los días de la cabecera filtran al pinchar (con la especificidad de
+   .acf-aus-tabla th para que el día activo se lea en blanco) */
+.acf-aus-tabla th.tel-th-click { cursor: pointer; user-select: none; }
+.acf-aus-tabla th.tel-th-click:hover { color: #0b5cab; }
+.acf-aus-tabla th.tel-th-activo { background: #0070d2; color: #ffffff; }
+.acf-aus-tabla th.tel-th-activo:hover { color: #ffffff; }
+/* Filtro de fecha fin del calendario, junto a los botones de la cabecera */
+.acf-aus-fechafin { max-width: 10rem; }
+/* Fechas desde/hasta de Vencimientos legales: etiqueta propia encima y el
+   cuadro alineado por abajo con los botones. El input lleva la altura fija
+   de su cuadro para que el aviso de formato que sale al enfocar se
+   superponga por debajo sin subir ni bajar la línea */
+.acf-vto-fecha { display: flex; flex-direction: column; width: 10rem; flex: 0 0 auto; }
+.acf-vto-fecha-lbl { font-size: 0.72rem; font-weight: 700; color: #3e3e3c;
+    margin-bottom: 0.125rem; }
+.acf-vto-fecha .acf-aus-fechafin { display: block; height: calc(1.875rem + 2px);
+    overflow: visible; }
+.acf-aus-baja { background: #c23934; }
+.acf-aus-permiso { background: #8a97a8; }
+.acf-aus-maternidad { background: #1d6f42; }
+.acf-aus-otros { background: #f6a723; }
+/* Ausencias por horas: rayado diagonal sobre el color del grupo */
+.acf-aus-horas { background-image: repeating-linear-gradient(45deg,
+    rgba(255, 255, 255, 0.55) 0 3px, transparent 3px 7px); }
+/* Solicitadas sin aprobar: atenuadas */
+.acf-aus-solicitada { opacity: 0.5; }
+
+/* ===== Área RR.HH ===== */
+.rh-fila-sup { display: grid; grid-template-columns: 23rem minmax(0, 1fr) 22rem; gap: 0.75rem;
+    align-items: stretch; margin-bottom: 0.75rem; }
+.rh-fila-inf { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem;
+    align-items: start; }
+@media (max-width: 1400px) {
+    .rh-fila-sup { grid-template-columns: 1fr; }
+    .rh-fila-inf { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* KPIs de plantilla en cuadrícula de dos por dos */
+.rh-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.rh-kpi { min-height: 6rem; }
+.rh-kpi-titulo { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #5f6b7c; }
+.rh-kpi-num { font-size: 1.7rem; font-weight: 800; color: #0b1f3a; line-height: 1.2; }
+.rh-kpi-unidad { font-size: 0.9rem; font-weight: 700; color: #5f6b7c; }
+.rh-kpi-sub { font-size: 0.72rem; color: #5f6b7c; }
+.rh-kpi-chip { display: inline-block; margin-top: 0.3rem; font-size: 0.66rem; font-weight: 700;
+    color: #0b5cab; background: #eef4fd; border-radius: 0.85rem; padding: 0.1rem 0.5rem; }
+
+/* Cabeceras comunes de tarjetas */
+.rh-card-titulo { font-size: 0.85rem; font-weight: 800; color: #0b1f3a; display: flex;
+    align-items: center; gap: 0.4rem; }
+.rh-card-sub { font-size: 0.7rem; color: #5f6b7c; margin-top: 0.1rem; }
+.rh-punto { width: 0.55rem; height: 0.55rem; border-radius: 50%; display: inline-block; }
+.rh-punto-naranja { background: #f6a723; }
+.rh-punto-ambar { background: #f6a723; }
+.rh-punto-rojo { background: #ba0517; }
+.rh-punto-azul { background: #0070d2; }
+
+/* Comparativa de ausencias: barras del año anterior en gris neutro y del actual en azul */
+.rh-chart-card { display: flex; flex-direction: column; }
+.rh-chart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;
+    flex-wrap: wrap; margin-bottom: 0.5rem; }
+.rh-acum { display: flex; align-items: center; gap: 0.6rem; font-size: 0.72rem; flex-wrap: wrap; }
+.rh-acum-label { color: #5f6b7c; }
+.rh-acum-ant { color: #5f6b7c; font-weight: 700; }
+.rh-acum-act { color: #0b5cab; font-weight: 800; }
+.rh-delta { font-weight: 800; border-radius: 0.85rem; padding: 0.1rem 0.5rem; font-size: 0.7rem; }
+.rh-delta-verde { background: #eaf7ee; color: #1d6f42; }
+.rh-delta-rojo { background: #fef1f1; color: #ba0517; }
+.rh-chart { display: flex; align-items: flex-end; gap: 0.55rem; height: 9.5rem; flex: 1;
+    border-bottom: 1px solid #e2e6ec; padding-bottom: 0.15rem; overflow-x: auto; }
+.rh-chart-mes { flex: 1; min-width: 3.4rem; display: flex; flex-direction: column; height: 100%; }
+.rh-chart-barras { display: flex; align-items: flex-end; justify-content: center; gap: 2px; flex: 1; }
+.rh-chart-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    height: 100%; width: 1.35rem; }
+.rh-chart-val { font-size: 0.6rem; color: #5f6b7c; font-variant-numeric: tabular-nums;
+    margin-bottom: 0.1rem; white-space: nowrap; }
+.rh-chart-val-act { color: #0b5cab; font-weight: 800; }
+.rh-bar { width: 100%; border-radius: 4px 4px 0 0; }
+.rh-bar-ant { background: #8a97a8; }
+.rh-bar-act { background: #0070d2; }
+.rh-chart-eje { text-align: center; font-size: 0.6rem; font-weight: 700; color: #5f6b7c;
+    letter-spacing: 0.04em; margin-top: 0.25rem; }
+/* Las barras se pueden pinchar para ver el detalle de las ausencias del mes */
+.rh-chart-click { cursor: pointer; border-radius: 4px 4px 0 0; }
+.rh-chart-click:hover { background: #eef4fd; }
+.rh-desg-sub-neutra { color: #5f6b7c; font-weight: 400; }
+.rh-desg-acciones { margin-left: auto; display: flex; align-items: center; gap: 0.4rem; }
+/* Cabecera de grupo en los desgloses de ausencias; el subtotal va a la derecha */
+.rh-grupo-persona { background: #eef4fd; color: #0b1f3a; font-weight: 800; font-size: 0.72rem;
+    padding: 0.35rem 0.5rem; white-space: nowrap; border-bottom: 1px solid #d8e4f5; }
+td.rh-grupo-persona:last-child { text-align: right; }
+/* Subgrupo (segundo nivel, p. ej. años dentro de una persona): más tenue y sangrado */
+.rh-grupo-sub { background: #f6f9fe; font-weight: 700; padding-left: 1.4rem; }
+
+/* Plantilla de los últimos 12 meses */
+.rh-plant-card { display: flex; flex-direction: column; flex: 1; }
+/* Columna de la plantilla con las cajas de hoy encima */
+.rh-plant-col { display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
+.rh-hoy-cajas { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.rh-hoy-caja { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.55rem 0.9rem;
+    cursor: pointer; }
+.rh-hoy-caja:hover { background: #eef4fd; }
+/* Con ausentes o teletrabajo hoy, fondo rojo claro y el número en rojo */
+.rh-hoy-caja-roja { background: #fef1f1; border-color: #f3b0b5; }
+.rh-hoy-caja-roja .rh-hoy-num { color: #ba0517; }
+.rh-hoy-num { font-size: 1.35rem; font-weight: 800; color: #16325c; }
+.rh-hoy-lbl { font-size: 0.78rem; font-weight: 700; color: #43506e; }
+
+/* Cajas de totales de la Visión general, en horizontal */
+.vis-kpis { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 0.75rem; }
+.vis-kpi { flex: 1 1 7rem; min-width: 7rem; padding: 0.4rem 0.55rem; text-align: center; }
+.vis-kpi .acf-kpi-num { font-size: 1.1rem; margin-bottom: 0.3rem; }
+.vis-kpi .acf-kpi-label { white-space: normal; line-height: 1.2; font-size: 0.62rem; }
+.vis-kpi-verde { background: #e3f5e6; border-color: #b6dfbf; }
+.vis-kpi-verde .acf-kpi-num { color: #1d6f42; font-weight: 800; }
+/* Caja con pendientes: fondo rojo claro y el número en rojo */
+.vis-kpi-rojo { background: #fdecec; border-color: #f3b0b5; }
+.vis-kpi-rojo .acf-kpi-num { color: #ba0517; }
+/* Pestaña Tareas: la fila de usuarios inactivos avisa en rojo */
+.tar-item-rojo:not(.acf-user-item-active) { background: #fdecec; }
+.tar-item-rojo:not(.acf-user-item-active) .acf-user-nombre,
+.tar-item-rojo:not(.acf-user-item-active) .acf-user-num { color: #ba0517; }
+
+/* Contratos C&F: totales a la izquierda, evolución de 12 meses y filtros a la derecha */
+.cc-meses-fila { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.75rem;
+    flex-wrap: wrap; }
+/* Dos columnas de cajas: total + asesores y consultoría + contable y fiscal */
+.cc-kpi-col { flex: 0 0 9rem; display: flex; flex-direction: column; gap: 0.75rem;
+    align-self: stretch; }
+.cc-total-kpi { flex: 1; display: flex; flex-direction: column;
+    justify-content: center; text-align: center; }
+.cc-total-kpi .acf-kpi-num { font-size: 1.6rem; }
+/* Porcentaje sobre el total de contratos: pastilla gris separada del número */
+.cc-kpi-num-fila { display: flex; align-items: center; justify-content: center; gap: 0.55rem; }
+.cc-kpi-pct { font-size: 0.66rem; font-weight: 700; color: #5f6b7c; background: #f3f4f6;
+    border: 1px solid #d5dae2; border-radius: 0.85rem; padding: 0.1rem 0.5rem; line-height: 1.3; }
+.cc-total-kpi .acf-kpi-label { white-space: normal; line-height: 1.2; }
+.cc-plant-card { flex: 0 0 24rem; min-width: 0; }
+/* Sin la altura fija el flex de la tarjeta colapsa el gráfico y las barras
+   pierden la proporción vertical */
+.cc-plant-card .rh-plant-chart { flex: 0 0 auto; height: 8rem; }
+/* ===== Obligaciones tributarias: matriz censal por modelo ===== */
+/* Cabecera con el total de clientes, KPIs por periodicidad y filtros */
+.obl-head { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap;
+    padding: 0.6rem 1rem; margin-bottom: 0.75rem; }
+.obl-head-label { font-size: 0.62rem; font-weight: 800; color: #5f6b7c;
+    text-transform: uppercase; letter-spacing: 0.05em; }
+.obl-head-num { font-size: 1.6rem; font-weight: 800; color: #0b1f3a; line-height: 1.1; }
+.obl-head-kpis { display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap; }
+.obl-kpi { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem;
+    color: #43506e; }
+.obl-kpi b { color: #0b1f3a; font-size: 1.15rem; }
+.obl-head-filtros { margin-left: auto; display: flex; align-items: center; gap: 0.4rem;
+    flex-wrap: wrap; }
+.obl-ejercicio { font-size: 0.78rem; font-weight: 700; color: #43506e; padding: 0 0.4rem; }
+
+/* Chips de periodicidad (celdas, KPIs y ficha) */
+.obl-chip { display: inline-flex; align-items: center; justify-content: center;
+    min-width: 0.95rem; height: 0.95rem; padding: 0 0.1rem; border-radius: 0.22rem;
+    font-size: 0.5rem; font-weight: 800; }
+/* En los KPIs de la cabecera el chip va algo más grande */
+.obl-kpi .obl-chip { min-width: 1.35rem; height: 1.35rem; font-size: 0.62rem; }
+.obl-chip-m { background: #14395c; color: #ffffff; }
+.obl-chip-t { background: #17a2b8; color: #ffffff; }
+.obl-chip-a { background: #cfe6f9; color: #0b5cab; }
+.obl-chip-3x { background: #f5d34d; color: #4a3f00; }
+.obl-chip-d { background: #0070d2; color: #ffffff; }
+.obl-chip-o { background: #eef1f5; color: #43506e; }
+
+/* Buscador por empresa a todo lo ancho con Nueva obligación y el refresco
+   a su derecha, en su propia línea sobre el listado */
+.obl-buscador-full { margin: 0.5rem 0 0.6rem; display: flex; gap: 0.5rem;
+    align-items: center; }
+.obl-buscador-input { flex: 1; min-width: 0; }
+/* Filtro de censo junto a Nueva obligación: caja compacta y panel hacia la izquierda */
+.obl-buscador-full .ts-ms-wrap { flex: 0 0 auto; min-width: 8rem; }
+.obl-buscador-full .ts-ms-panel { left: auto; right: 0; }
+/* Subpestañas Listado empresas / Listado impuestos, debajo del buscador y
+   con el mismo estilo que las pestañas superiores */
+.obl-vista-tabs { margin-bottom: 0.7rem; }
+.obl-vista-tabs .lm-subtab { font-size: 0.78rem; padding: 0.35rem 0.9rem; }
+/* Listado plano de impuestos: scroll propio y selects compactos en línea */
+.obl-imp-scroll { overflow: auto; max-height: calc(100vh - 5rem); }
+.obl-imp-scroll .acf-tabla { border-collapse: separate; border-spacing: 0; }
+.obl-imp-scroll thead th { position: sticky; top: 0; background: #ffffff; z-index: 2; }
+.obl-imp-empresa { max-width: 16rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.obl-imp-desc { max-width: 14rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.obl-imp-select { font-size: 0.72rem; padding: 0.15rem 0.3rem; border: 1px solid #c9d4e5;
+    border-radius: 0.3rem; background: #ffffff; color: #16325c; max-width: 11rem; cursor: pointer; }
+.obl-imp-select:disabled { background: #f4f5f7; color: #8a93a3; cursor: default; }
+/* Campo con incidencia (sin informar cuando toca): fondo rojo claro */
+.obl-imp-select.obl-imp-falta { background: #f8d7d7; border-color: #e8a1a1; }
+.obl-imp-toolbar { display: flex; justify-content: flex-end; margin-bottom: 0.5rem; }
+/* Buzón contable: cada tipo de documentación con su cajita de color claro */
+.buz-tipo { display: inline-block; padding: 0.08rem 0.45rem; border-radius: 0.6rem;
+    font-size: 0.72rem; font-weight: 700; }
+.buz-tipo-0 { background: #dbeafe; color: #0b5cab; }
+.buz-tipo-1 { background: #e3f5e6; color: #1d6f42; }
+.buz-tipo-2 { background: #fdf1c0; color: #6b5900; }
+.buz-tipo-3 { background: #e5defa; color: #5a3fc0; }
+.buz-tipo-4 { background: #d8f3f6; color: #0e7490; }
+.buz-tipo-5 { background: #fde2e2; color: #a4353c; }
+.buz-tipo-6 { background: #fde8d8; color: #b45309; }
+.buz-tipo-7 { background: #eef1f5; color: #43506e; }
+.acf-btn-inc-rojo-activo { background: #a4353c; border-color: #8d2b31; color: #ffffff; }
+.acf-btn-inc-rojo-activo:hover { background: #8d2b31; }
+/* Calendario bruto de modelos: bandas de color y una línea por periodicidad */
+.acf-tabla td.obl-cal-banda { text-align: left !important; font-size: 0.68rem;
+    letter-spacing: 0.06em; padding: 0.32rem 0.6rem; }
+.obl-cal-modelo { font-weight: 800; color: #0b5cab; }
+.obl-cal-linea { display: flex; align-items: center; gap: 0.3rem;
+    min-height: 1.3rem; white-space: nowrap; }
+.obl-cal-per { font-size: 0.72rem; color: #43506e; min-width: 5.4rem; }
+/* Las cajitas de vencimiento del calendario, al tamaño de la periodicidad */
+.obl-cal-linea .obl-venc-pill { font-size: 0.72rem; padding: 0.1rem 0.4rem; }
+/* Filas alternas del calendario con fondo muy clarito */
+.obl-cal-alt td { background: #f6f8fb; }
+/* Buscador por modelo a lo ancho con el agrupado por territorio a la derecha */
+.obl-cal-toolbar { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.7rem; }
+.obl-cal-busca { flex: 1; }
+/* Tira de meses con los días que tienen algún vencimiento */
+.obl-cal-meses-card { margin-bottom: 0.75rem; padding: 0.5rem 0.6rem; }
+/* Los doce meses siempre en una sola línea: cajitas pequeñas y sin saltos */
+.obl-cal-meses { display: flex; gap: 0.2rem; flex-wrap: nowrap; }
+.obl-cal-mes { flex: 1; min-width: 0; border-right: 1px solid #eef0f4;
+    padding: 0.1rem 0.15rem; text-align: center; }
+.obl-cal-mes:last-child { border-right: none; }
+.obl-cal-mes-nombre { font-size: 0.66rem; font-weight: 800; color: #0b5cab;
+    margin-bottom: 0.25rem; }
+.obl-cal-mes-dias { display: flex; gap: 0.15rem; justify-content: center; flex-wrap: nowrap; }
+.obl-cal-dia { background: #eef2f8; border: 1px solid transparent; border-radius: 0.25rem;
+    padding: 0.05rem 0.22rem; cursor: pointer; font-size: 0.6rem; font-weight: 800;
+    color: #16325c; white-space: nowrap; }
+.obl-cal-dia:hover { background: #dce7f5; }
+.obl-cal-dia-sel { background: #0070d2; border-color: #005fb2; color: #ffffff; }
+.obl-cal-dia-sel:hover { background: #005fb2; }
+/* Rótulo del día marcado y cajita resaltada en cada modelo filtrado */
+.obl-cal-dia-label { font-size: 0.82rem; font-weight: 800; color: #16325c;
+    margin-bottom: 0.5rem; }
+.obl-venc-pill-sel { background: #0070d2; color: #ffffff; }
+/* Territorios distintos del común, cada nombre con su fondo claro */
+.obl-cal-terr { display: inline-block; padding: 0.08rem 0.45rem; border-radius: 0.6rem;
+    font-size: 0.72rem; font-weight: 700; }
+.obl-cal-terr-canarias { background: #fdf1c0; color: #6b5900; }
+.obl-cal-terr-foral { background: #e3f5e6; color: #1d6f42; }
+.obl-cal-terr-navarra { background: #e5defa; color: #5a3fc0; }
+/* Fila de filtros ajustada al margen derecho: cajas compactas al ancho justo
+   de su rótulo y a la altura de los botones; el panel se abre ancho encima */
+.obl-filtros { justify-content: flex-end; }
+.obl-filtros .acf-filtro-cc { min-width: 0; width: auto; flex: 0 0 auto; }
+.obl-filtros .ts-ms-trigger { width: auto; font-size: 0.74rem; height: 2rem;
+    padding: 0 0.5rem; }
+.obl-filtros .ts-ms-panel { min-width: 16rem; }
+.obl-filtros .ts-ms-list { max-height: 20rem; overflow-y: auto; }
+/* Totales de periodicidades en la fila del grupo (asesor o empresa titular) */
+.obl-grupo-tot { margin-left: 0.9rem; font-size: 0.68rem; font-weight: 600;
+    color: #16325c; }
+/* Situación censal AEAT a la izquierda del cliente: A verde activa, I roja inactiva */
+.obl-censo-dot { display: inline-flex; align-items: center; justify-content: center;
+    width: 0.95rem; height: 0.95rem; border-radius: 50%; color: #ffffff;
+    font-size: 0.6rem; font-weight: 800; margin-right: 0.35rem;
+    vertical-align: middle; flex: 0 0 auto; }
+.obl-censo-activa { background: #2e844a; }
+.obl-censo-inactiva { background: #ba0517; }
+
+/* Matriz con la columna de cliente fija; la ficha censal se abre a la derecha */
+.obl-layout { display: flex; gap: 0.75rem; align-items: flex-start; }
+.obl-matriz { flex: 1; min-width: 0; }
+/* La matriz desplaza dentro de su propia caja: las filas de apartados y de
+   modelos quedan fijas arriba (y el número y el cliente, a la izquierda) */
+.obl-scroll { overflow: auto; max-height: calc(100vh - 5rem); }
+/* border-collapse rompe el sticky de las cabeceras: se separan los bordes.
+   La tabla NO estira al ancho de la caja: así el hueco sobrante no engorda
+   las columnas de modelos y todas quedan a su ancho mínimo */
+.obl-tabla { width: auto; min-width: 0; border-collapse: separate; border-spacing: 0; }
+.obl-tabla thead th { position: sticky; z-index: 3; }
+.obl-tabla .acf-suphead th { top: 0; height: 1.5rem; vertical-align: middle; }
+.obl-tabla thead tr:nth-of-type(2) th { top: 1.5rem; }
+/* Las esquinas (número y cliente) van fijas en los dos sentidos */
+.obl-tabla thead th.obl-sticky { z-index: 4; }
+.obl-th { min-width: 1rem; white-space: nowrap; font-size: 0.48rem !important;
+    padding: 0.25rem 0.01rem !important; text-align: center; background: #ffffff;
+    letter-spacing: 0 !important; }
+.obl-td { min-width: 1rem; text-align: center; border-left: 1px solid #f2f4f8;
+    padding: 0.14rem 0.01rem; }
+/* La columna del modelo filtra al pincharla y lleva la i con su descripción */
+.obl-th-btn { cursor: pointer; }
+.obl-th-btn:hover { background: #f0f5fb; }
+.obl-th-activo { background: #cfe6f9 !important; box-shadow: inset 0 -2px 0 #0070d2; }
+.obl-th-cod { line-height: 1.1; }
+.obl-th-info { display: inline-flex; align-items: center; justify-content: center;
+    width: 0.7rem; height: 0.7rem; margin-top: 0.12rem; border-radius: 50%;
+    border: 1px solid #9db2c8; color: #5f7a99; font-size: 0.48rem; font-weight: 800;
+    font-style: italic; cursor: pointer; position: relative; }
+/* La descripción del modelo sale al instante en una cajita propia (sin el
+   tooltip nativo del navegador, que tarda y pone el cursor de interrogante) */
+.obl-th-info::after { content: attr(data-info); display: none; position: absolute;
+    top: calc(100% + 0.3rem); left: 50%; transform: translateX(-50%);
+    background: #16325c; color: #ffffff; font-size: 0.62rem; font-weight: 600;
+    font-style: normal; line-height: 1.2; padding: 0.25rem 0.5rem;
+    border-radius: 0.3rem; white-space: nowrap; z-index: 6; pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
+.obl-th-info:hover::after { display: block; }
+.obl-band { color: #ffffff !important; text-align: center !important; font-size: 0.6rem;
+    padding: 0.3rem 0.4rem; white-space: nowrap; vertical-align: middle; }
+.obl-band-renta { background: #14395c; }
+.obl-band-soc { background: #3d6a96; }
+.obl-band-ret { background: #17a2b8; }
+/* Intrastat con el rótulo pequeño de verdad para que IC e IV queden al ancho
+   del resto: sin mayúsculas, sin espaciado entre letras y sin relleno, que es
+   lo que obligaba a ensanchar las dos columnas */
+.obl-band-intra { background: #7f5fb0; }
+/* El texto real va a tamaño 0 para no empujar el ancho de IC e IV, y el
+   rótulo se pinta encima con un pseudoelemento que no ocupa sitio */
+.acf-tabla th.obl-band-intra { font-size: 0 !important; padding: 0 !important; }
+.acf-tabla th.obl-band-intra::after { content: 'Intrastat'; position: absolute;
+    inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 0.5rem; letter-spacing: 0; text-transform: none;
+    color: #ffffff; overflow: hidden; }
+/* Otros, también con el rótulo algo más pequeño para no ensanchar 583 y 848 */
+.acf-tabla th.obl-band-terr { font-size: 0.45rem !important;
+    letter-spacing: 0 !important; padding: 0.3rem 0.02rem !important; }
+.obl-band-iva { background: #0070d2; }
+.obl-band-info { background: #1d6f42; }
+.obl-band-terr { background: #6c757d; }
+.obl-sticky { position: sticky; left: 0; background: #ffffff; z-index: 2; }
+/* Número correlativo de la fila, fijo a la izquierda antes del cliente */
+.obl-th-num { min-width: 1.8rem; max-width: 1.8rem; background: #ffffff; }
+.obl-td-num { min-width: 1.8rem; max-width: 1.8rem; text-align: right;
+    padding-right: 0.35rem; font-size: 0.6rem; color: #8a93a3; }
+/* El nombre del cliente va acotado con puntos suspensivos (el completo, en el título) */
+.obl-th-cliente { min-width: 13rem; max-width: 13rem; background: #ffffff; left: 1.8rem; }
+.obl-td-cliente { min-width: 13rem; max-width: 13rem; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; font-size: 0.72rem; left: 1.8rem; }
+.obl-fila { cursor: pointer; }
+.obl-fila-sel td, .obl-fila-sel:hover td { background: #eef4fd; }
+.obl-fila-sel td.obl-sticky { background: #eef4fd; }
+.obl-fila-sel td.obl-td-num { box-shadow: inset 3px 0 0 #0070d2; }
+.acf-row:hover td.obl-sticky { background: #f4f5f7; }
+/* Tres primeras líneas de totales por periodicidad (mensual/trimestral/anual) */
+.obl-total-fila td { background: #eef2f8; font-weight: 700; color: #16325c;
+    border-bottom: 1px solid #dde4ee; }
+.obl-total-fila td.obl-sticky { background: #eef2f8; }
+.obl-total-fila .obl-td-cliente { font-size: 0.68rem; text-transform: uppercase;
+    letter-spacing: 0.04em; }
+.obl-total-td { font-size: 0.58rem; }
+/* Total de la fila pegado a la primera columna de modelos (la del 100),
+   tanto en las filas de periodicidad como en las de cada asesor */
+td.obl-total-cliente { display: flex; align-items: center;
+    justify-content: space-between; gap: 0.4rem; }
+.obl-total-num { font-size: 0.66rem; font-weight: 800; color: #0b5cab; }
+/* Total por asesores: línea del asesor en blanco con su Ampliar y,
+   desplegado, las empresas sangradas debajo. Las etiquetas y los asesores
+   van pegados a la izquierda ocupando también la columna del número */
+.obl-ase-fila td { background: #ffffff; }
+.obl-ase-fila td.obl-sticky { background: #ffffff; }
+/* En esta pestaña la columna de usuarios va más ancha para que quepan el
+   nombre completo, el Ampliar y el total pegado a la primera columna */
+.obl-tabla-ase .obl-th-cliente, .obl-tabla-ase .obl-td-cliente {
+    min-width: 19.5rem; max-width: 19.5rem; }
+/* Las líneas de Total mensual/trimestral/anual/pago a cuenta, en amarillo
+   claro para que destaquen sobre los asesores */
+.obl-tabla-ase .obl-total-fila td { background: #fdf1c0; border-bottom: 1px solid #f0e3a0; }
+.obl-tabla-ase .obl-total-fila td.obl-sticky { background: #fdf1c0; }
+.obl-ase-nombre { font-size: 0.72rem; font-weight: 700; color: #16325c;
+    display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; }
+.obl-ase-btn { background: #ffffff; border: 1px solid #c9d4e5; color: #0b5cab;
+    font-size: 0.6rem; font-weight: 700; padding: 0.05rem 0.4rem;
+    border-radius: 0.3rem; cursor: pointer; }
+.obl-ase-btn:hover { background: #eef4fd; }
+/* El de ordenar por totales, en verde claro */
+.obl-ase-btn-orden { background: #e3f5e6; border-color: #bfe3c6; color: #1d6f42; }
+.obl-ase-btn-orden:hover { background: #d2eed8; }
+.obl-ase-td { font-size: 0.6rem; font-weight: 700; color: #16325c; }
+.obl-ase-cli { padding-left: 1.3rem !important; font-size: 0.7rem; }
+.obl-ase-nombre { white-space: nowrap; }
+/* Modelo obligatorio que falta (por tipo de titular o las parejas):
+   casilla en rojo intenso con un aviso blanco, también con la fila marcada */
+.obl-tabla td.obl-td-falta { background: #c23934; }
+.obl-tabla td.obl-td-falta::after { content: '⚠'; color: #ffffff;
+    font-size: 0.55rem; font-weight: 800; line-height: 1; }
+/* Operador intracomunitario sin el 349: rojo claro, sin aviso */
+.obl-tabla td.obl-td-349 { background: #f8d7d7; }
+/* Cliente en SII con el 390/347 de alta: ámbar de revisar */
+.obl-tabla td.obl-td-rev { background: #fdf1c0; }
+/* Leyendas, a la derecha de las subpestañas (la primera empuja al margen) */
+.obl-leyenda { align-self: center; display: inline-flex;
+    align-items: center; gap: 0.35rem; font-size: 0.7rem; color: #5f6b7c;
+    margin-left: 0.9rem; }
+.obl-leyenda:first-of-type { margin-left: auto; }
+.obl-leyenda-caja { width: 0.85rem; height: 0.85rem; border-radius: 0.2rem;
+    background: #f8d7d7; border: 1px solid #e8a1a1; flex: 0 0 auto; }
+.obl-leyenda-ambar { background: #fdf1c0; border-color: #e5c65b; }
+/* En la leyenda, el círculo del censo sin su margen (ya separa el gap) */
+.obl-leyenda .obl-censo-dot { margin-right: 0; }
+/* Fila de totales de anuales excluidos por SII, en amarillo claro */
+.obl-total-fila-amarilla td { background: #fdf6d8; }
+.obl-total-fila-amarilla td.obl-sticky { background: #fdf6d8; }
+/* Celdas de totales con número: pinchables para filtrar esos modelos */
+.obl-total-click { cursor: pointer; }
+.obl-total-click:hover { background: #dce7f5 !important; }
+.obl-total-sel { background: #0070d2 !important; color: #ffffff; }
+/* Línea de modelo excluido por SII en la ficha, en amarillo claro */
+.obl-ficha-item-amarilla { background: #fdf6d8; border-color: #ecdba4; }
+
+/* Ficha censal del cliente marcado: acompaña al scroll a su misma altura */
+.obl-ficha { flex: 0 0 63.7rem; padding: 0; overflow: hidden;
+    position: sticky; top: 0.75rem; max-height: calc(100vh - 1.5rem); overflow-y: auto; }
+.obl-ficha-head { position: relative; background: linear-gradient(135deg, #0b5cab, #1589ee);
+    color: #ffffff; padding: 0.5rem 0.8rem; }
+.obl-ficha-sobre { font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.05em; opacity: 0.85; }
+.obl-ficha-nombre { font-size: 0.85rem; font-weight: 800; padding-right: 11rem; }
+.obl-ficha-sub { font-size: 0.72rem; opacity: 0.9; margin-top: 0.1rem; }
+.obl-ficha-n { margin-top: 0.15rem; font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em; }
+.obl-ficha-num { font-size: 0.95rem; font-weight: 800; margin-right: 0.25rem; }
+/* Asesor responsable y empresa titular gestión del contrato, junto al total */
+.obl-ficha-det { text-transform: none; letter-spacing: normal; font-weight: 700;
+    opacity: 0.95; font-size: 0.8rem; }
+.obl-ficha-x { position: absolute; top: 0.5rem; right: 0.6rem; background: transparent;
+    border: none; color: #ffffff; font-size: 0.9rem; cursor: pointer; }
+/* Alta rápida desde la cabecera de la ficha, a la izquierda de la X */
+.obl-ficha-nueva { position: absolute; right: 2.4rem; top: 0.45rem;
+    background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #ffffff; font-size: 0.68rem; font-weight: 700; padding: 0.2rem 0.55rem;
+    border-radius: 0.35rem; cursor: pointer; }
+.obl-ficha-nueva:hover { background: rgba(255, 255, 255, 0.28); }
+/* Rótulos de las columnas de la ficha, en minúscula y sin negrita */
+.obl-ficha-cols { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 1rem;
+    font-size: 0.68rem; font-weight: 400; color: #5f6b7c;
+    border-bottom: 1px solid #eef0f4; }
+.obl-ficha-col-modelo { min-width: 2.6rem; }
+.obl-ficha-col-desc { flex: 1; }
+.obl-ficha-col-der { white-space: nowrap; }
+.obl-ficha-seccion { padding: 0.6rem 1rem 0.2rem; }
+.obl-ficha-grupo { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem;
+    font-weight: 800; color: #16325c; margin-bottom: 0.4rem; }
+.obl-ficha-item { display: flex; align-items: center; gap: 0.6rem; border: 1px solid #e2e6ec;
+    border-radius: 0.4rem; padding: 0.35rem 0.6rem; margin-bottom: 0.35rem; font-size: 0.78rem; }
+.obl-ficha-modelo { font-weight: 800; color: #0b5cab; min-width: 2.6rem; }
+/* El número del modelo abre la edición de la obligación */
+.obl-ficha-modelo-btn { background: transparent; border: none; padding: 0; cursor: pointer;
+    text-align: left; font-size: 0.78rem; }
+.obl-ficha-modelo-btn:hover { text-decoration: underline; }
+/* Anchos fijos de las columnas de la ficha (vencimientos, territorio,
+   modalidad, presentación y software) */
+.obl-w-venc { width: 10.8rem; text-align: center; flex: 0 0 10.8rem; }
+/* En la ficha, las cajitas un poco más grandes */
+.obl-ficha-item .obl-venc-pill { font-size: 0.66rem; padding: 0.1rem 0.35rem; }
+/* Cajitas de vencimiento pequeñas, siempre en una sola línea */
+.obl-venc-caja { display: inline-flex; flex-wrap: nowrap; gap: 0.15rem;
+    justify-content: center; align-items: center; white-space: nowrap; }
+.obl-venc-pill { background: #eef2f8; color: #16325c; font-size: 0.55rem;
+    font-weight: 700; padding: 0.08rem 0.3rem; border-radius: 0.3rem;
+    white-space: nowrap; }
+.obl-venc-caja-td .obl-venc-pill { margin: 0 0.08rem; }
+.obl-w-terr { width: 7.5rem; text-align: center; flex: 0 0 7.5rem; }
+.obl-w-ase { width: 8.5rem; text-align: center; flex: 0 0 8.5rem; }
+.obl-w-modal { width: 7.5rem; text-align: center; flex: 0 0 7.5rem; }
+.obl-w-pres { width: 8.6rem; text-align: center; flex: 0 0 8.6rem; }
+.obl-w-soft { width: 6.6rem; text-align: center; flex: 0 0 6.6rem; }
+.obl-col-cen { text-align: center; white-space: nowrap; }
+.obl-pres-vacio { background: transparent; color: #c8cfda; }
+.obl-ficha-terr { font-size: 0.68rem; color: #43506e; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+.obl-terr-vacio { color: #c8cfda; }
+.obl-ficha-desc { color: #43506e; flex: 1; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+/* Los chips centrados dentro de su columna, sin estirar el fondo */
+.obl-ficha-item .obl-w-pres, .obl-ficha-item .obl-w-soft {
+    display: inline-flex; align-items: center; justify-content: center; }
+/* Edición en línea dentro de la ficha: selects compactos, obligatorios en
+   rojo claro, tipo de titular en la cabecera y el guardando parpadeante */
+.obl-ficha-select { width: 100%; font-size: 0.66rem; padding: 0.1rem 0.15rem; }
+.obl-ficha-tipotit { width: auto; max-width: 13rem; margin-left: 0.5rem;
+    font-size: 0.7rem; vertical-align: middle; }
+.obl-ficha-guardando { font-size: 0.62rem; font-style: italic; color: #5a6a8a;
+    margin-left: 0.3rem; animation: rhIncParpadeo 1s ease-in-out infinite; }
+.obl-ficha-n .obl-ficha-guardando { color: #eaf2ff; }
+.obl-ficha-aviso { background: #fdecec; color: #a4353c; font-size: 0.72rem;
+    font-weight: 700; padding: 0.4rem 1rem; border-bottom: 1px solid #f3b0b5; }
+/* Quién presenta el modelo y con qué software, a la derecha y en color */
+.obl-ficha-pres { margin-left: 0.3rem; white-space: nowrap; font-size: 0.62rem; font-weight: 800;
+    padding: 0.1rem 0.4rem; border-radius: 0.6rem; }
+.obl-pres-despacho { background: #e3f5e6; color: #1d6f42; }
+.obl-pres-cliente { background: #fdf1c0; color: #6b5900; }
+.obl-pres-otro { background: #eef1f5; color: #43506e; }
+/* Al guardar, el pie del modal avisa parpadeando de que se está grabando */
+.obl-nueva-guardando { font-size: 0.74rem; font-style: italic; color: #5a6a8a;
+    margin-right: 0.75rem; animation: rhIncParpadeo 1s ease-in-out infinite; }
+/* Vencidos dentro de la caja de la Visión general, debajo de la etiqueta */
+.vis-kpi-venc { font-size: 0.62rem; font-weight: 800; color: #a4353c; margin-top: 0.1rem; }
+/* Aviso fijo del alta: qué fecha de alta poner cuando no se conoce */
+.obl-nueva-aviso { display: flex; align-items: center; gap: 0.5rem;
+    background: #fdf1c0; color: #6b5900; font-size: 0.74rem; font-weight: 600;
+    padding: 0.5rem 1rem; border-top: 1px solid #f0e3a0; }
+/* ERP de presentación: un color distinto para cada software */
+.obl-soft-despacho { background: #e5defa; color: #5a3fc0; }
+.obl-soft-cliente { background: #d8f3f6; color: #0e7490; }
+.obl-soft-hacienda { background: #d8e9fb; color: #0b5cab; }
+.obl-soft-otro { background: #eef1f5; color: #43506e; }
+
+/* Fila de botones y filtros alineada a la derecha (cuentas, libros y cierres).
+   Los desplegables van compactos para que todo quepa en una línea: el botón
+   recorta su texto con puntos suspensivos y el panel se abre a su ancho
+   completo, alineado a la derecha para no salirse de la pantalla */
+.acf-filtros-der { justify-content: flex-end; }
+.acf-filtros-der .acf-filtro-cc { min-width: 0; width: 11rem; flex: 0 0 auto; }
+.acf-filtros-der .acf-exp-combo { min-width: 0; width: 11.5rem; flex: 0 0 auto; }
+.acf-filtros-der .ts-ms-panel { left: auto; right: 0; min-width: 16rem; }
+.acf-filtros-der .acf-btn-mios, .acf-filtros-der .acf-btn-agrupar { padding: 0.4rem 0.55rem; }
+
+/* Barras horizontales de contratos vivos por empresa titular (gestión,
+   facturación y comercial); las tarjetas se reparten el ancho libre */
+.cc-tit-card { flex: 1 1 15rem; min-width: 14rem; align-self: stretch;
+    display: flex; flex-direction: column; }
+.cc-tit-lista { display: flex; flex-direction: column; gap: 0.3rem; overflow-y: auto;
+    flex: 1; min-height: 0; }
+.cc-tit-fila { display: flex; flex-direction: column; gap: 0.1rem; cursor: pointer;
+    padding: 0.2rem 0.3rem; border-radius: 0.3rem; }
+.cc-tit-fila:hover { background: #eef4fd; }
+.cc-tit-fila-activa { background: #eef4fd; box-shadow: inset 3px 0 0 #0070d2; }
+.cc-tit-nombre { font-size: 0.68rem; font-weight: 700; color: #43506e;
+    white-space: normal; line-height: 1.2; }
+.cc-tit-linea { display: flex; align-items: center; gap: 0.4rem; }
+.cc-tit-track { flex: 1; background: #eef1f5; border-radius: 3px; height: 0.7rem; }
+.cc-tit-bar { height: 100%; border-radius: 3px; background: #0070d2; }
+.cc-tit-n { flex: 0 0 2rem; text-align: right; font-size: 0.72rem; font-weight: 800; color: #16325c; }
+.rh-plant-chart { display: flex; align-items: flex-end; gap: 3px; height: 8rem; flex: 1;
+    border-bottom: 1px solid #e2e6ec; padding-bottom: 0.15rem; }
+.rh-plant-mes { flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-end; height: 100%; }
+.rh-plant-bar { width: 100%; max-width: 1.1rem; border-radius: 4px 4px 0 0; background: #a8cdf2; }
+.rh-plant-bar-actual { background: #0070d2; }
+.rh-plant-anios { display: flex; margin-top: 0.3rem; }
+.rh-plant-anio { text-align: center; font-size: 0.62rem; font-weight: 700; color: #5f6b7c;
+    background: #f3f4f6; border-radius: 0.3rem; padding: 0.1rem 0; margin: 0 1px; }
+
+/* Cajas inferiores */
+.rh-caja { display: flex; flex-direction: column; min-height: 22rem; }
+.rh-caja-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;
+    margin-bottom: 0.5rem; }
+.rh-caja-n { font-size: 1.25rem; font-weight: 800; color: #0b1f3a; white-space: nowrap; }
+.rh-caja-n-sub { font-size: 0.68rem; font-weight: 700; color: #5f6b7c; }
+.rh-caja-badge-linea { margin-top: 0.25rem; }
+.rh-badge { display: inline-block; font-size: 0.66rem; font-weight: 700; color: #5f6b7c;
+    background: #f3f4f6; border-radius: 0.85rem; padding: 0.1rem 0.55rem; white-space: nowrap; }
+.rh-badge-rojo { background: #ba0517; color: #ffffff; }
+.rh-badge-naranja { background: #fdf6e8; color: #b26a00; }
+.rh-vacio { font-size: 0.74rem; color: #5f6b7c; padding: 0.5rem 0.1rem; }
+
+/* Listas de las cajas: sin scroll, las líneas visibles van limitadas y el
+   Ver todos del pie abre el listado completo */
+.rh-lista { overflow: visible; }
+.rh-vertodos { margin-top: auto; width: 100%; padding: 0.4rem 0 0.1rem; border: none;
+    border-top: 1px solid #e2e6ec; background: transparent; color: #0b5cab; font-weight: 700;
+    font-size: 0.74rem; cursor: pointer; text-align: center; }
+.rh-vertodos:hover { text-decoration: underline; }
+.rh-lista-cab { display: flex; gap: 0.5rem; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; color: #5f6b7c; padding: 0.25rem 0; border-bottom: 2px solid #c9d4e5; }
+.rh-lista-cab span:first-child, .rh-lista-fila .rh-lista-nombre { flex: 1.4; }
+.rh-lista-cab span:nth-child(2), .rh-lista-fila .rh-lista-depto { flex: 1; }
+.rh-lista-fila { display: flex; gap: 0.5rem; align-items: center; padding: 0.3rem 0;
+    border-bottom: 1px solid #f0f2f6; font-size: 0.74rem; }
+.rh-lista-nombre { font-weight: 700; color: #0b1f3a; }
+.rh-lista-depto { color: #5f6b7c; }
+.rh-lista-der { min-width: 4.2rem; text-align: right; }
+.rh-item { padding: 0.4rem 0; border-bottom: 1px solid #f0f2f6; font-size: 0.74rem; }
+.rh-item-linea { display: flex; align-items: center; gap: 0.5rem; }
+/* Papelera de fichajes incompletos, en el rojo corporativo */
+.rh-fich-borrar { --slds-c-icon-color-foreground-default: #ba0517;
+    --sds-c-icon-color-foreground-default: #ba0517; }
+.rh-item-linea .rh-lista-nombre { flex: 1; }
+.rh-item-num { color: #0b5cab; font-weight: 700; font-size: 0.68rem; }
+.rh-item-sub { color: #0b1f3a; margin-top: 0.15rem; }
+.rh-item-pie { display: flex; justify-content: space-between; gap: 0.5rem; color: #8a97a8;
+    font-size: 0.68rem; margin-top: 0.15rem; }
+.rh-item-dias { font-weight: 700; color: #5f6b7c; }
+
+/* Desglose de imputación por días */
+.rh-desg-head { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem;
+    flex-wrap: wrap; }
+.rh-desg-sobre { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #5f6b7c; }
+.rh-desg-titulo { font-size: 1.05rem; font-weight: 800; color: #0b1f3a; }
+.rh-desg-sub { font-size: 0.74rem; color: #b26a00; font-weight: 700; }
+.rh-leyenda { display: flex; align-items: center; gap: 0.8rem; margin-left: auto; font-size: 0.7rem;
+    color: #5f6b7c; }
+.rh-leyenda-item { display: inline-flex; align-items: center; gap: 0.3rem; }
+.rh-desg-card { padding: 0.5rem 0.75rem !important; }
+.rh-desg-tabla { border-collapse: collapse; width: 100%; font-size: 0.74rem; }
+.rh-th-semana { text-align: center; font-size: 0.64rem; font-weight: 700; color: #5f6b7c;
+    border-left: 2px solid #e2e6ec; padding: 0.25rem 0; white-space: nowrap; }
+.rh-desg-tabla th { border-bottom: 2px solid #c9d4e5; vertical-align: bottom; }
+.rh-th-persona, .rh-th-depto { text-align: left; font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase; color: #5f6b7c; padding: 0.25rem 0.4rem; }
+.rh-th-persona { min-width: 11rem; }
+.rh-th-depto { min-width: 8rem; }
+.rh-th-faltan { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #5f6b7c; text-align: center; min-width: 3.2rem; }
+.rh-th-dia { text-align: center; padding: 0.15rem 0.1rem; min-width: 1.5rem; }
+.rh-th-letra { font-size: 0.56rem; color: #8a97a8; font-weight: 700; }
+.rh-th-num { font-size: 0.68rem; font-weight: 800; color: #0b1f3a; }
+.rh-th-finde .rh-th-num { color: #b3bcc9; }
+.rh-th-hoy { background: #d9f2e1; border-radius: 0.3rem 0.3rem 0 0; }
+.rh-desg-tabla td { border-bottom: 1px solid #f0f2f6; padding: 0.22rem 0.1rem; }
+.rh-td-persona { font-weight: 700; color: #0b1f3a; white-space: nowrap; padding: 0.22rem 0.4rem !important; }
+.rh-td-depto { color: #5f6b7c; white-space: nowrap; padding: 0.22rem 0.4rem !important; }
+.rh-td-celda { text-align: center; }
+.rh-celda { display: inline-block; width: 1.3rem; height: 1rem; border-radius: 0.25rem;
+    vertical-align: middle; }
+.rh-celda-imputado { background: #4bca81; }
+.rh-celda-pendiente { background: #e5484d; }
+.rh-celda-ausencia { border: 1px solid #9ec3f0; background-image: repeating-linear-gradient(45deg,
+    #e4effd 0 3px, #a8ccf5 3px 6px); }
+.rh-celda-futuro { background: #f3f4f6; }
+.rh-celda-finde { background: #f8f9fb; }
+.rh-celda-fuera { background: transparent; border: 1px dashed #e2e6ec; }
+.rh-celda-hoy { outline: 2px solid #1d6f42; outline-offset: 1px; }
+.rh-td-faltan { text-align: center; }
+.rh-faltan { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5rem;
+    height: 1.5rem; padding: 0 0.3rem; border-radius: 50%; background: #fdf6e8; color: #b26a00;
+    font-weight: 800; font-size: 0.72rem; }
+.rh-faltan-rojo { background: #ba0517; color: #ffffff; }
+/* Acceso rápido con registros pendientes: fondo rojo claro */
+.acf-acceso-rojo { background: #fdecec; border-color: #e8a1a1; }
+.acf-acceso-rojo .acf-acceso-label { color: #a4353c; font-weight: 700; }
+.acf-acceso-rojo:hover { background: #fbdcdc; }
+/* Triángulo de aviso junto al contador de Vencimientos legales y Casos: rojo en la pestaña
+   clara y blanco cuando la pestaña está marcada en rojo oscuro (igual que en el área completa) */
+.lm-subtab-aviso { --slds-c-icon-color-foreground-default: #ba0517; margin-left: 0.3rem; vertical-align: middle; }
+.lm-subtab-active-rojo .lm-subtab-aviso { --slds-c-icon-color-foreground-default: #ffffff; }

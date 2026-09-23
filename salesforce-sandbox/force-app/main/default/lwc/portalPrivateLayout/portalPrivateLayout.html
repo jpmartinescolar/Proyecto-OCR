@@ -1,0 +1,336 @@
+<template>
+    <div class="portal-layout">
+
+        <!-- Barra superior fija, SIEMPRE visible (móvil y escritorio), con el logo.
+             Es la única fuente del logo: al vivir fuera del <aside>, nunca desaparece
+             al colapsar el menú, en ningún dispositivo. -->
+        <div class="portal-layout__topbar">
+            <div class="portal-layout__topbar-logo" onclick={handleLogoClick} role="button" tabindex="0">
+                <span class="icon-wrapper">
+                    <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3 4 9.5l3 1.5"></path>
+                        <path d="m12 3 8 6.5-3 1.5"></path>
+                        <path d="M7 11v6l5 3 5-3v-6l-5 3z"></path>
+                    </svg>
+                </span>
+                <span class="text-wrapper">
+                    <span class="brand-title">Rosetta Advisor</span>
+                    <span class="brand-subtitle">ÁREA DE CLIENTE</span>
+                </span>
+            </div>
+
+            <!-- Botón de colapsar/desplegar el menú lateral (solo escritorio; en móvil
+                 sigue la pestaña del <aside>, ver CSS). Icono de panel lateral: la franja
+                 izquierda se rellena cuando el menú está desplegado. -->
+            <button
+                class={topbarToggleClass}
+                onclick={handleToggleSidebar}
+                aria-label={toggleAriaLabel}
+                aria-expanded={toggleAriaExpanded}
+                title={toggleAriaLabel}
+            >
+                <svg class="topbar-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path class="topbar-toggle__pane" d="M5 3h4v18H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" stroke="none"></path>
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <path d="M9 3v18"></path>
+                </svg>
+            </button>
+
+            <!-- ============ BLOQUE DERECHO DE LA BARRA SUPERIOR ============
+                 Se empuja al margen derecho con margin-left:auto. De izquierda a derecha:
+                 dos grupos de accesos rápidos (trabajadores y facturas), separador, Chat Rosetta IA, dos
+                 botones solo icono (formación y facturas) y el usuario logado con su
+                 desplegable. Los accesos rápidos, el chat y los dos iconos NO hacen nada
+                 todavía: todos pasan por handleQuickAction (vacío) con su data-action.
+                 En pantallas estrechas el CSS va quitando textos de derecha a izquierda
+                 (ver media queries al final del CSS). -->
+            <div class="portal-layout__topbar-right">
+
+                <div class="topbar-group" role="group" aria-label="Trabajadores">
+                    <button class="topbar-group__item" data-action="alta-trabajador" onclick={handleQuickAction} title="Alta trabajador" aria-label="Alta trabajador">
+                        <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M19 8v6"></path>
+                            <path d="M22 11h-6"></path>
+                        </svg>
+                        <span class="topbar-label">Alta trabajador</span>
+                    </button>
+                    <button class="topbar-group__item" data-action="baja-trabajador" onclick={handleQuickAction} title="Baja trabajador" aria-label="Baja trabajador">
+                        <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 11h-6"></path>
+                        </svg>
+                        <span class="topbar-label">Baja trabajador</span>
+                    </button>
+                    <button class="topbar-group__item" data-action="incidencias-laborales" onclick={handleQuickAction} title="Incidencias laborales" aria-label="Incidencias laborales">
+                        <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+                            <path d="M12 9v4"></path>
+                            <path d="M12 17h.01"></path>
+                        </svg>
+                        <span class="topbar-label">Incidencias laborales</span>
+                    </button>
+                    <button class="topbar-group__item" data-action="modificacion-trabajador" onclick={handleQuickAction} title="Modificación trabajador" aria-label="Modificación trabajador">
+                        <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M11.5 15H7a4 4 0 0 0-4 4v2"></path>
+                            <path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"></path>
+                            <circle cx="10" cy="7" r="4"></circle>
+                        </svg>
+                        <span class="topbar-label">Modificación trabajador</span>
+                    </button>
+                </div>
+
+                <div class="topbar-group" role="group" aria-label="Facturas">
+                    <button class="topbar-group__item" data-action="subir-facturas" onclick={handleQuickAction} title="Subir facturas" aria-label="Subir facturas">
+                        <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <path d="m17 8-5-5-5 5"></path>
+                            <path d="M12 3v12"></path>
+                        </svg>
+                        <span class="topbar-label">Subir facturas</span>
+                    </button>
+                </div>
+
+                <span class="topbar-separator" aria-hidden="true"></span>
+
+                <button class="topbar-chat" data-action="chat-rosetta-ia" onclick={handleQuickAction} title="Chat Rosetta IA" aria-label="Chat Rosetta IA">
+                    <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path>
+                        <path d="M20 3v4"></path>
+                        <path d="M22 5h-4"></path>
+                        <path d="M4 17v2"></path>
+                        <path d="M5 18H3"></path>
+                    </svg>
+                    <span class="topbar-label">Chat Rosetta IA</span>
+                </button>
+
+                <button class="topbar-iconbtn" data-action="formacion" onclick={handleQuickAction} title="Formación" aria-label="Formación">
+                    <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path>
+                        <path d="M22 10v6"></path>
+                        <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path>
+                    </svg>
+                </button>
+
+                <!-- Carrito: abre un desplegable con Contratos, Cuotas recurrentes, Listado
+                     facturas, Precios pactados, Presupuestos, Provisiones de fondos, Suplidos y Rosetta Store (con etiqueta NUEVO). De momento las opciones no van a ningún
+                     sitio: handleCartItemClick solo cierra el desplegable (cada una lleva
+                     su data-action para enganchar la navegación más adelante). -->
+                <div class="topbar-cart-wrap">
+                    <button
+                        class="topbar-iconbtn"
+                        onclick={handleToggleCartMenu}
+                        aria-haspopup="true"
+                        aria-expanded={cartMenuAriaExpanded}
+                        title="Facturación"
+                        aria-label="Facturación"
+                    >
+                        <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="8" cy="21" r="1"></circle>
+                            <circle cx="19" cy="21" r="1"></circle>
+                            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                        </svg>
+                    </button>
+
+                    <template if:true={isCartMenuOpen}>
+                        <div class="topbar-backdrop" onclick={handleCloseCartMenu}></div>
+                        <div class="topbar-cart__panel" role="menu">
+                            <button class="topbar-cart__item" role="menuitem" data-action="contratos" onclick={handleCartItemClick}>
+                                <svg class="topbar-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+                                    <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+                                    <path d="M10 9H8"></path>
+                                    <path d="M16 13H8"></path>
+                                    <path d="M16 17H8"></path>
+                                </svg>
+                                <span>Contratos</span>
+                            </button>
+                            <button class="topbar-cart__item" role="menuitem" data-action="cuotas-recurrentes" onclick={handleCartItemClick}>
+                                <svg class="topbar-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+                                    <path d="M21 3v5h-5"></path>
+                                </svg>
+                                <span>Cuotas recurrentes</span>
+                            </button>
+                            <button class="topbar-cart__item" role="menuitem" data-action="listado-facturas" onclick={handleCartItemClick}>
+                                <svg class="topbar-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+                                    <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+                                    <path d="M10 9H8"></path>
+                                    <path d="M16 13H8"></path>
+                                    <path d="M16 17H8"></path>
+                                </svg>
+                                <span>Listado facturas</span>
+                            </button>
+                            <button class="topbar-cart__item" role="menuitem" data-action="precios-pactados" onclick={handleCartItemClick}>
+                                <svg class="topbar-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path>
+                                    <circle cx="7.5" cy="7.5" r="0.5" fill="currentColor"></circle>
+                                </svg>
+                                <span>Precios pactados</span>
+                            </button>
+                            <button class="topbar-cart__item" role="menuitem" data-action="presupuestos" onclick={handleCartItemClick}>
+                                <svg class="topbar-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+                                    <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+                                    <path d="M10 9H8"></path>
+                                    <path d="M16 13H8"></path>
+                                    <path d="M16 17H8"></path>
+                                </svg>
+                                <span>Presupuestos</span>
+                            </button>
+                            <button class="topbar-cart__item" role="menuitem" data-action="provisiones-de-fondos" onclick={handleCartItemClick}>
+                                <svg class="topbar-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"></path>
+                                    <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"></path>
+                                </svg>
+                                <span>Provisiones de fondos</span>
+                            </button>
+                            <button class="topbar-cart__item" role="menuitem" data-action="suplidos" onclick={handleCartItemClick}>
+                                <svg class="topbar-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"></path>
+                                    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                                    <path d="M12 17.5v-11"></path>
+                                </svg>
+                                <span>Suplidos</span>
+                            </button>
+                            <div class="topbar-cart__divider" role="separator"></div>
+                            <button class="topbar-cart__item topbar-cart__item_store" role="menuitem" data-action="rosetta-store" onclick={handleCartItemClick}>
+                                <svg class="topbar-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+                                    <path d="M3 6h18"></path>
+                                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                </svg>
+                                <span>Rosetta Store</span>
+                                <span class="topbar-cart__badge">Nuevo</span>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Usuario logado (antes en el pie de la barra lateral). El botón abre el
+                     desplegable con Mi perfil y Cerrar sesión; el fondo transparente que
+                     se pinta detrás lo cierra al pinchar fuera. -->
+                <div class="topbar-user-wrap">
+                    <button
+                        class="topbar-user"
+                        onclick={handleToggleUserMenu}
+                        aria-haspopup="true"
+                        aria-expanded={userMenuAriaExpanded}
+                        title={displayName}
+                    >
+                        <div class="portal-layout__user-avatar topbar-user__avatar">{displayInitials}</div>
+                        <div class="topbar-user__info">
+                            <span class="topbar-user__name">{displayName}</span>
+                            <span class="topbar-user__email">{displayEmail}</span>
+                        </div>
+                        <svg class={chevronClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </button>
+
+                    <template if:true={isUserMenuOpen}>
+                        <div class="topbar-backdrop" onclick={handleCloseUserMenu}></div>
+                        <div class="portal-layout__user-menu-panel">
+                            <div class="portal-layout__user-menu-header">
+                                <div class="portal-layout__user-avatar">{displayInitials}</div>
+                                <div class="portal-layout__user-info">
+                                    <span class="portal-layout__user-menu-name">{displayName}</span>
+                                    <span class="portal-layout__user-menu-email">{displayEmail}</span>
+                                </div>
+                            </div>
+
+                            <a class="portal-layout__user-menu-item" href={profileUrl}>
+                                <lightning-icon
+                                    icon-name="utility:user"
+                                    size="x-small"
+                                    class="portal-layout__user-menu-icon"
+                                ></lightning-icon>
+                                <span>Mi perfil</span>
+                            </a>
+
+                            <div class="portal-layout__user-menu-divider"></div>
+
+                            <a class="portal-layout__user-menu-item portal-layout__user-menu-item_danger" href={logoutUrl}>
+                                <lightning-icon
+                                    icon-name="utility:logout"
+                                    size="x-small"
+                                    class="portal-layout__user-menu-icon_danger"
+                                ></lightning-icon>
+                                <span>Cerrar sesión</span>
+                            </a>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fondo oscuro: solo aparece con el menú abierto en pantallas pequeñas (ver CSS) -->
+        <template if:true={isSidebarOpen}>
+            <div class="portal-layout__overlay" onclick={handleToggleSidebar}></div>
+        </template>
+
+        <!-- ============ BARRA LATERAL ============ -->
+        <aside class={sidebarClass}>
+
+            <!-- Wrapper interno scrollable. padding-top compensa la altura de la
+                 barra superior fija para que el menú no arranque tapado por ella. -->
+            <div class="portal-layout__sidebar-inner">
+
+                <!-- <div class="portal-layout__sidebar-brand">
+                    <slot name="sidebar-brand"></slot>
+                </div> -->
+                <!-- <div class="portal-layout__sidebar-account">
+                    <slot name="sidebar-account"></slot>
+                </div> -->
+
+                <!-- Menú de navegación, dirigido por Portal_Menu_Item__mdt -->
+                <div class="portal-layout__nav-wrapper">
+                    <c-portal-nav-menu></c-portal-nav-menu>
+                </div>
+
+                <!-- El bloque del usuario logado (avatar, nombre, Mi perfil, Cerrar sesión)
+                     vivía aquí, en el pie de la barra lateral; ahora está arriba a la
+                     derecha, en la barra superior (.topbar-user-wrap). -->
+
+            </div>
+
+            <!-- Pestaña de colapsar/desplegar SOLO EN MÓVIL (en escritorio la oculta el CSS y
+                 se usa el botón de la barra superior). Hijo directo del <aside>, sin animación
+                 propia (viaja con el transform del <aside>). Posicionada abajo del todo
+                 (ver CSS: bottom en vez de top). -->
+            <button
+                class="portal-layout__sidebar-toggle"
+                onclick={handleToggleSidebar}
+                aria-label={toggleAriaLabel}
+                aria-expanded={toggleAriaExpanded}
+            >
+                <lightning-icon
+                    icon-name="utility:chevronright"
+                    size="xx-small"
+                    class={toggleIconClass}
+                ></lightning-icon>
+            </button>
+
+        </aside>
+
+        <!-- ============ COLUMNA PRINCIPAL ============ -->
+        <div class={mainClass}>
+
+            <header class="portal-layout__header">
+                <!-- <div class="portal-layout__header-top">
+                    <slot name="page-header-actions"></slot>
+                </div> -->
+                <div class="portal-layout__header-account">
+                    <slot name="page-header-account"></slot>
+                </div>
+            </header>
+
+            <div class="portal-layout__content">
+                <slot></slot>
+            </div>
+        </div>
+    </div>
+</template>

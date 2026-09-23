@@ -1,0 +1,98 @@
+<template>
+    <lightning-card>
+        <div class="slds-grid slds-grid_align-spread slds-p-around_small">
+            <h2 class="slds-text-heading_medium">Apuntes Contables</h2>
+            <div class="slds-grid slds-grid_align-end slds-col_bump-left">
+                <lightning-input
+                    class="slds-m-right_small"
+                    type="search"
+                    placeholder="Buscar..."
+                    variant="label-hidden"
+                    onchange={handleSearch}
+                    style="width: 200px; margin-right: 0.5rem;">
+                </lightning-input>
+                <lightning-button-icon icon-name="utility:filterList" variant="border-filled" alternative-text="Filtrar" onclick={openFilterModal}></lightning-button-icon>
+                <lightning-button-icon icon-name="utility:refresh" variant="border-filled" alternative-text="Refresh" onclick={handleRefresh} style="margin-left: 0.5rem;"></lightning-button-icon>
+            </div>
+        </div>
+
+        <div class="slds-is-relative">
+            <template if:true={isLoading}>
+                <div class="slds-spinner_container">
+                    <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <template if:true={filteredData}>
+                <div if:false={isSaveDisabled} class="slds-p-around_small slds-grid slds-grid_align-center">
+                    <lightning-button
+                        variant="neutral"
+                        label="Cancelar"
+                        style="margin-right: 0.3rem;"
+                        onclick={handleCancelEdits}>
+                    </lightning-button>
+                    <lightning-button
+                        variant="brand"
+                        label="Guardar"
+                        onclick={handleSave}>
+                    </lightning-button>
+                </div>
+
+                <!-- Altura fija para que el scroll dispare onloadmore de forma estable -->
+                <div style="height: 70vh;">
+                    <c-lwc-custom-data-table-types
+                        key-field="Id"
+                        data={filteredData}
+                        columns={columns}
+                        onsave={handleSave}
+                        oncellchange={handleDraftChange}
+                        draft-values={draftValues}
+                        sorted-by={sortedBy}
+                        sorted-direction={sortedDirection}
+                        default-sort-direction={sortedDirection}
+                        onsort={handleSort}
+                        hide-checkbox-column="true"
+                        enable-infinite-loading
+                        onloadmore={handleLoadMore}>
+                    </c-lwc-custom-data-table-types>
+                </div>
+            </template>
+
+            <template if:true={error}>
+                <p>Error fetching records.</p>
+            </template>
+        </div>
+
+        <template if:true={isFilterModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <h2 class="slds-modal__title slds-hyphenate">Filtros Avanzados</h2>
+                    </header>
+
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <h2 style="font-weight: bold">Fecha de asiento</h2>
+                        <lightning-input class="slds-m-right_small" type="date" label="Desde" value={startDate} onchange={handleStartDateChange}></lightning-input>
+                        <lightning-input class="slds-m-right_small" type="date" label="Hasta" value={endDate} onchange={handleEndDateChange}></lightning-input>
+                    </div>
+
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <h2 style="font-weight: bold">Empresa Titular</h2>
+                        <lightning-combobox
+                            value={empresaTitularFilter}
+                            placeholder="-- Seleccionar empresa --"
+                            options={empresaTitularOptions}
+                            onchange={handleEmpresaTitularChange}>
+                        </lightning-combobox>
+                    </div>
+
+                    <footer class="slds-modal__footer">
+                        <lightning-button variant="neutral" label="Limpiar filtros" style="margin-right: 0.5rem;" onclick={clearFilters}></lightning-button>
+                        <lightning-button variant="brand" label="Cerrar" onclick={closeFilterModal}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </lightning-card>
+</template>

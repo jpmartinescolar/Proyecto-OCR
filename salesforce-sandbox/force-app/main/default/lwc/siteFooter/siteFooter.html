@@ -1,0 +1,52 @@
+<template>
+    <footer class="nv-footer">
+        <div class="nv-wrap">
+            <div class="nv-foot-grid">
+                <div>
+                    <div class="nv-brand" data-target="inicio" onclick={handleNav}>
+                        <span class="nv-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M10 2l1.6 4.9a4 4 0 0 0 2.5 2.5L19 11l-4.9 1.6a4 4 0 0 0-2.5 2.5L10 20l-1.6-4.9a4 4 0 0 0-2.5-2.5L1 11l4.9-1.6a4 4 0 0 0 2.5-2.5z"/><path d="M18.5 13l.7 2.1a2 2 0 0 0 1.2 1.2l2.1.7-2.1.7a2 2 0 0 0-1.2 1.2l-.7 2.1-.7-2.1a2 2 0 0 0-1.2-1.2L14.5 17l2.1-.7a2 2 0 0 0 1.2-1.2z"/></svg></span>
+                        <span style="display:flex;flex-direction:column">
+                            <span class="nv-brand-name">Rosetta Advisor</span>
+                            <span class="nv-brand-sub">ABOGADOS &amp; ASESORES</span>
+                        </span>
+                    </div>
+                    <p class="nv-foot-desc">Abogados y asesores para empresas nacionales y multinacionales. Contable, fiscal, laboral y jurídico, con un único interlocutor en tu idioma.</p>
+                </div>
+                <div>
+                    <h5>Áreas de práctica</h5>
+                    <div class="nv-foot-col">
+                        <a data-target="servicios" onclick={handleNav}>Contabilidad y auditoría</a>
+                        <a data-target="servicios" onclick={handleNav}>Fiscal y tributario</a>
+                        <a data-target="servicios" onclick={handleNav}>Laboral y movilidad</a>
+                        <a data-target="servicios" onclick={handleNav}>Mercantil, M&amp;A e internacional</a>
+                    </div>
+                </div>
+                <div>
+                    <h5>La Firma</h5>
+                    <div class="nv-foot-col">
+                        <a data-target="nosotros" onclick={handleNav}>Sobre nosotros</a>
+                        <a data-target="metodo" onclick={handleNav}>Nuestro método</a>
+                        <a data-target="empresas" onclick={handleNav}>Para empresas</a>
+                        <a data-target="noticias" onclick={handleNav}>Noticias</a>
+                    </div>
+                </div>
+                <div>
+                    <h5>Contacto</h5>
+                    <div class="nv-foot-col">
+                        <span>+34 91 000 00 00</span>
+                        <span>contacto@rosettaadvisor.com</span>
+                        <span>Madrid</span>
+                    </div>
+                </div>
+            </div>
+            <div class="nv-foot-bottom">
+                <span>&copy; {year} Rosetta Advisor. Todos los derechos reservados.</span>
+                <div class="nv-foot-legal">
+                    <a data-doc="aviso" onclick={handleNav}>Aviso legal</a>
+                    <a data-doc="privacidad" onclick={handleNav}>Privacidad</a>
+                    <a data-doc="cookies" onclick={handleNav}>Cookies</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</template>

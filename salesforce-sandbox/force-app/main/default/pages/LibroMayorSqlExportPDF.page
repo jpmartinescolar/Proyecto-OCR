@@ -1,0 +1,197 @@
+<apex:page controller="LibroMayorSqlExportPDFController"
+           action="{!init}"
+           renderAs="pdf"
+           applyHtmlTag="false"
+           applyBodyTag="false"
+           showHeader="false"
+           sidebar="false"
+           standardStylesheets="false"
+           language="es">
+<html>
+<head>
+<title>Libro Mayor</title>
+<style type="text/css">
+    @page {
+        size: A4 portrait;
+        margin: 1.4cm 1.4cm 1.9cm 1.4cm;
+        @bottom-left {
+            content: "Libro Mayor · Plan General de Contabilidad";
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 7.5pt;
+            color: #9aa7b5;
+        }
+        @bottom-right {
+            content: "Página " counter(page) " de " counter(pages);
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 7.5pt;
+            color: #9aa7b5;
+        }
+    }
+    body {
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 8.5pt;
+        color: #33475b;
+        line-height: 1.25;
+        margin: 0;
+    }
+
+    /* ===== CABECERA ===== */
+    .topbar { height: 5pt; background: #14395c; margin-bottom: 0.42cm; }
+    .kicker { width: 100%; border-collapse: collapse; }
+    .kicker td {
+        font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.22em;
+        color: #2878a8; font-weight: 700; padding: 0;
+    }
+    .kicker td.right { text-align: right; }
+    .title { font-size: 19pt; font-weight: 700; color: #14395c; letter-spacing: -0.2pt; margin: 0.18cm 0 0.1cm 0; }
+    .empresa { font-size: 11.5pt; font-weight: 700; color: #14395c; margin: 0 0 0.1cm 0; }
+    .cuenta { font-size: 9.5pt; font-weight: 700; color: #2878a8; margin: 0 0 0.4cm 0; }
+
+    /* ===== FICHA (meta) ===== */
+    .meta {
+        width: 100%; border-collapse: collapse;
+        border-top: 1pt solid #dfe5ec; border-bottom: 1pt solid #dfe5ec; margin-bottom: 0.55cm;
+    }
+    .meta td { padding: 0.16cm 0 0.16cm 0; vertical-align: top; }
+    .meta td.right { text-align: right; }
+    .meta .m-lbl {
+        font-size: 6.8pt; text-transform: uppercase; letter-spacing: 0.16em;
+        color: #8a97a8; font-weight: 700; margin-bottom: 0.06cm; white-space: nowrap;
+    }
+    .meta .m-val { font-size: 8.8pt; color: #14395c; font-weight: 700; white-space: nowrap; }
+
+    /* ===== TABLA ===== */
+    .pyg { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1pt solid #dfe5ec; }
+    .pyg col.col-idx    { width: 6%; }
+    .pyg col.col-fecha  { width: 11%; }
+    .pyg col.col-desc   { width: 41%; }
+    .pyg col.col-amount { width: 14%; }
+
+    .pyg thead th {
+        background: #14395c; color: #ffffff; padding: 5.5pt 8pt; text-align: right;
+        font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.12em;
+        font-weight: 700; vertical-align: middle;
+    }
+    .pyg thead th.concepto { text-align: left; }
+    .pyg tbody td {
+        padding: 3.8pt 8pt; border-bottom: 0.75pt solid #e7ecf2;
+        font-size: 8pt; line-height: 1.2;
+    }
+    .pyg td.amount { text-align: right; white-space: nowrap; border-left: 0.75pt solid #e7ecf2; }
+    .pyg td.idx { text-align: right; color: #8a97a8; }
+    .pyg td.concepto { text-align: left; word-wrap: break-word; }
+    .row-item td { background: #ffffff; color: #33475b; }
+
+    /* Fila final: TOTAL (banda azul marino) */
+    .row-final td {
+        background: #14395c; color: #ffffff; font-weight: 700; font-size: 9pt; padding: 6pt 8pt;
+    }
+    .row-final td.amount { border-left: 0.75pt solid #2c5379; }
+
+    /* Signos */
+    .pos  { color: #14395c; font-weight: 700; }
+    .neg  { color: #c0392b; font-weight: 700; }
+    .zero { color: #9aa7b5; }
+    .row-final .pos, .row-final .zero { color: #ffffff; font-weight: 700; }
+    .row-final .neg { color: #ffb3ac; }
+
+    .err {
+        background: #fef1f1; border: 1pt solid #ea001e; color: #ba0517;
+        padding: 0.3cm; margin-top: 0.5cm; font-weight: bold;
+    }
+    .vacio { padding: 0.4cm; color: #8a97a8; }
+</style>
+</head>
+<body>
+
+<!-- CABECERA -->
+<div class="topbar"></div>
+<table class="kicker">
+    <tr>
+        <td>Informe financiero</td>
+        <td class="right">Documento confidencial</td>
+    </tr>
+</table>
+<h1 class="title">Libro Mayor</h1>
+<div class="empresa">{!empresaLabel}</div>
+<div class="cuenta">{!cuentaLabel}</div>
+
+<!-- FICHA -->
+<table class="meta">
+    <tr>
+        <td>
+            <div class="m-lbl">Periodo</div>
+            <div class="m-val">{!fechaDesdeLabel} &#8211; {!fechaHastaLabel}</div>
+        </td>
+        <td>
+            <div class="m-lbl">Movimientos</div>
+            <div class="m-val">{!numMovs}</div>
+        </td>
+        <td class="right">
+            <div class="m-lbl">Moneda</div>
+            <div class="m-val">Euro (EUR)</div>
+        </td>
+        <td class="right">
+            <div class="m-lbl">Fecha de emisión</div>
+            <div class="m-val">{!generadoEnLabel}</div>
+        </td>
+    </tr>
+</table>
+
+<apex:outputPanel rendered="{!errorMsg != null}" layout="block">
+    <div class="err">{!errorMsg}</div>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!errorMsg == null}" layout="block">
+
+<!-- TABLA -->
+<table class="pyg">
+    <colgroup>
+        <col class="col-idx"/>
+        <col class="col-fecha"/>
+        <col class="col-desc"/>
+        <col class="col-amount"/>
+        <col class="col-amount"/>
+        <col class="col-amount"/>
+    </colgroup>
+    <thead>
+        <tr>
+            <th class="amount">#</th>
+            <th class="concepto">Fecha</th>
+            <th class="concepto">Descripción</th>
+            <th class="amount">Debe</th>
+            <th class="amount">Haber</th>
+            <th class="amount">Saldo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <apex:repeat value="{!rows}" var="r">
+            <tr class="row-item">
+                <td class="idx">{!r.idx}</td>
+                <td class="concepto">{!r.fecha}</td>
+                <td class="concepto">{!r.descripcion}</td>
+                <td class="amount">{!r.debe}</td>
+                <td class="amount">{!r.haber}</td>
+                <td class="amount"><span class="{!r.saldoSigno}">{!r.saldo}</span></td>
+            </tr>
+        </apex:repeat>
+        <tr class="row-final">
+            <td></td>
+            <td></td>
+            <td class="concepto">TOTAL</td>
+            <td class="amount">{!totalDebe}</td>
+            <td class="amount">{!totalHaber}</td>
+            <td class="amount"><span class="{!totalSaldoSigno}">{!totalSaldo}</span></td>
+        </tr>
+    </tbody>
+</table>
+
+<apex:outputPanel rendered="{!rows.size == 0}" layout="block">
+    <div class="vacio">La cuenta no tiene movimientos en el periodo.</div>
+</apex:outputPanel>
+
+</apex:outputPanel>
+
+</body>
+</html>
+</apex:page>

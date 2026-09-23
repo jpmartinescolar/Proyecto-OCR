@@ -1,0 +1,303 @@
+<template>
+    <div class="ce-container">
+
+        <!-- HEADER -->
+        <div class="ce-header">
+            <div class="ce-header-left">
+                <div class="ce-icon">
+                    <lightning-icon icon-name="standard:process" size="medium"></lightning-icon>
+                </div>
+                <div>
+                    <h1 class="ce-title">Cierre de ejercicio</h1>
+                </div>
+            </div>
+            <div class="ce-header-right">
+                <template if:true={hayAnalisis}>
+                    <lightning-button label="Empezar de nuevo" variant="neutral" onclick={handleReiniciar}
+                                      class="slds-m-right_x-small"></lightning-button>
+                </template>
+                <lightning-button label="Analizar cierre" icon-name="utility:search" variant="brand"
+                                  onclick={handleAnalizar}></lightning-button>
+            </div>
+        </div>
+
+        <!-- SELECCIÓN -->
+        <div class="ce-filtros">
+            <lightning-combobox label="Empresa titular" value={empresa} options={empresaOptions}
+                                placeholder="Selecciona empresa..." onchange={handleEmpresaChange}></lightning-combobox>
+            <lightning-input type="number" label="Ejercicio a cerrar" value={ejercicio}
+                             step="1" onchange={handleEjercicioChange}></lightning-input>
+        </div>
+
+        <!-- ERROR -->
+        <template if:true={hasError}>
+            <div class="ce-error">
+                <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                <span>{error}</span>
+            </div>
+        </template>
+
+        <!-- LOADING -->
+        <template if:true={loading}>
+            <div class="ce-loading"><lightning-spinner alternative-text="Analizando" size="medium"></lightning-spinner></div>
+        </template>
+        <template if:true={ejecutando}>
+            <div class="ce-loading"><lightning-spinner alternative-text="Creando asientos" size="medium"></lightning-spinner></div>
+        </template>
+
+        <!-- ANÁLISIS -->
+        <template if:true={hayAnalisis}>
+
+            <!-- BLOQUEOS -->
+            <template if:true={hayBloqueos}>
+                <div class="ce-bloqueo">
+                    <div class="ce-bloqueo-title">
+                        <lightning-icon icon-name="utility:ban" size="x-small" variant="error"></lightning-icon>
+                        <span>No se puede ejecutar el cierre: ya existen estos asientos en el ejercicio</span>
+                    </div>
+                    <ul class="ce-bloqueo-list">
+                        <template for:each={bloqueos} for:item="b">
+                            <li key={b.key}>
+                                <strong>{b.tipo}</strong> · {b.fecha} ·
+                                <a href="javascript:void(0);" data-recordid={b.asientoId}
+                                   onclick={navigateToRecordNewTab}>Asiento {b.asientoName}</a>
+                            </li>
+                        </template>
+                    </ul>
+                    <div class="ce-bloqueo-help">Si quieres repetir el proceso, elimina o revisa primero esos asientos.</div>
+                </div>
+            </template>
+
+            <!-- ERROR DE PLAN (p.ej. falta cuenta 129) -->
+            <template if:true={hayErrorPlan}>
+                <div class="ce-error">
+                    <lightning-icon icon-name="utility:error" size="small" variant="error"></lightning-icon>
+                    <span>{errorPlan}</span>
+                </div>
+            </template>
+
+            <!-- AVISOS -->
+            <template if:true={hayAvisos}>
+                <div class="ce-aviso">
+                    <lightning-icon icon-name="utility:warning" size="x-small"></lightning-icon>
+                    <span>
+                        Datos pendientes de revisar en el ejercicio:
+                        <template if:true={hayDescuadrados}><strong>{avisoDescuadrados}</strong> asiento(s) descuadrado(s). </template>
+                        <template if:true={haySinCuenta}><strong>{avisoSinCuenta}</strong> apunte(s) sin cuenta contable. </template>
+                        Puedes continuar, pero el cierre reflejará estos datos.
+                    </span>
+                </div>
+            </template>
+
+            <!-- ARRASTRE DE EJERCICIOS ANTERIORES SIN CERRAR -->
+            <template if:true={hayArrastre}>
+                <div class="ce-aviso">
+                    <lightning-icon icon-name="utility:warning" size="x-small"></lightning-icon>
+                    <span>
+                        Hay un saldo de <strong>{arrastreFmt}</strong> en cuentas 6/7 de ejercicios anteriores sin regularizar.
+                        Este cierre solo considera los movimientos de {ejercicio}, así que ese saldo <strong>queda fuera</strong>
+                        (no afecta a la 129). Si quieres regularizarlo, cierra también los ejercicios anteriores.
+                    </span>
+                </div>
+            </template>
+
+            <!-- SIN MOVIMIENTOS -->
+            <template if:true={sinMovimientos}>
+                <div class="ce-aviso">
+                    <lightning-icon icon-name="utility:info" size="x-small"></lightning-icon>
+                    <span>No hay saldos que regularizar ni cerrar para esa empresa y ejercicio.</span>
+                </div>
+            </template>
+
+            <!-- RESULTADO DEL EJERCICIO -->
+            <div class={resultadoBoxCls}>
+                <span class="ce-resultado-lbl">{resultadoLabel} del ejercicio {ejercicio}</span>
+                <span class="ce-resultado-val">{resultadoFmt}</span>
+                <span class="ce-resultado-help">(se llevará a la cuenta 129 en la regularización)</span>
+            </div>
+
+            <!-- VISTA PREVIA DE LOS 3 ASIENTOS -->
+            <div class="ce-cards">
+                <template for:each={asientosPreview} for:item="a">
+                    <div key={a.key} class="ce-card">
+                        <div class="ce-card-head">
+                            <div>
+                                <div class="ce-card-tipo">{a.titulo}</div>
+                                <div class="ce-card-fecha">{a.fechaFmt} · {a.numLineas} apuntes</div>
+                            </div>
+                            <div class="ce-card-tot">
+                                <div>Debe <strong>{a.totalDebe}</strong></div>
+                                <div>Haber <strong>{a.totalHaber}</strong></div>
+                            </div>
+                        </div>
+                        <template if:true={a.hayLineas}>
+                            <button class="ce-card-toggle" data-key={a.key} onclick={togglePreview}>{a.toggleLabel}</button>
+                            <template if:true={a.expanded}>
+                                <div class="ce-card-tabla-wrap">
+                                    <table class="ce-card-tabla">
+                                        <thead>
+                                            <tr><th>Cuenta</th><th>Título</th><th class="ce-num">Debe</th><th class="ce-num">Haber</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <template for:each={a.lineas} for:item="l">
+                                                <tr key={l.key}>
+                                                    <td class="ce-codigo">{l.numero}</td>
+                                                    <td>{l.titulo}</td>
+                                                    <td class="ce-num">{l.debe}</td>
+                                                    <td class="ce-num">{l.haber}</td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </template>
+            </div>
+
+            <!-- ACCIÓN -->
+            <div class="ce-actions">
+                <lightning-button label="Crear los 3 asientos" icon-name="utility:check" variant="brand"
+                                  disabled={ejecutarDisabled} onclick={abrirConfirm}></lightning-button>
+            </div>
+        </template>
+
+        <!-- ÉXITO -->
+        <template if:true={resultado}>
+            <div class="ce-exito">
+                <div class="ce-exito-title">
+                    <lightning-icon icon-name="utility:success" size="small" variant="success"></lightning-icon>
+                    <span>Cierre de {ejercicio} completado. Se han creado los tres asientos:</span>
+                </div>
+                <ul class="ce-exito-list">
+                    <template for:each={resultadoLinks} for:item="r">
+                        <li key={r.key}>
+                            {r.label}:
+                            <a href="javascript:void(0);" data-recordid={r.id}
+                               onclick={navigateToRecordNewTab}>Asiento {r.name}</a>
+                        </li>
+                    </template>
+                </ul>
+                <lightning-button label="Hacer otro cierre" variant="neutral" onclick={handleReiniciar}></lightning-button>
+            </div>
+        </template>
+
+        <!-- HISTÓRICO DE CIERRES -->
+        <div class="ce-hist">
+            <div class="ce-hist-head">
+                <div class="ce-hist-title">
+                    <lightning-icon icon-name="utility:archive" size="x-small"></lightning-icon>
+                    <span>Histórico de cierres realizados</span>
+                </div>
+                <div class="ce-hist-actions">
+                    <lightning-button label="Excluir empresas"
+                                      title="Elegir empresas excluidas del histórico"
+                                      variant="neutral" onclick={abrirExclusiones}
+                                      class="slds-m-right_x-small"></lightning-button>
+                    <lightning-button-icon icon-name="utility:refresh" alternative-text="Actualizar histórico"
+                                           variant="border-filled" size="small" onclick={cargarHistorico}></lightning-button-icon>
+                </div>
+            </div>
+
+            <!-- Panel de empresas excluidas (persistente para todos los usuarios) -->
+            <template if:true={showExclusiones}>
+                <div class="ce-excl-panel">
+                    <div class="ce-excl-title">Empresas excluidas del histórico</div>
+                    <div class="ce-excl-help">Las empresas marcadas no aparecerán en el listado. La selección queda guardada de forma permanente para todo el equipo.</div>
+                    <div class="ce-excl-list">
+                        <template for:each={exclusionOptions} for:item="o">
+                            <label key={o.value} class="ce-excl-item">
+                                <input type="checkbox" checked={o.excluida} data-value={o.value} onchange={toggleExclusion}/>
+                                <span>{o.value}</span>
+                            </label>
+                        </template>
+                    </div>
+                    <div class="ce-excl-actions">
+                        <button class="slds-button slds-button_neutral" onclick={cerrarExclusiones}>Cancelar</button>
+                        <button class="slds-button slds-button_brand" onclick={guardarExclusionesClick}>Guardar</button>
+                    </div>
+                </div>
+            </template>
+            <template if:true={hayHistorico}>
+                <table class="ce-hist-tabla">
+                    <thead>
+                        <tr>
+                            <th>Empresa titular</th>
+                            <th>Ejercicio</th>
+                            <th>Asiento Reg. Cierre</th>
+                            <th>Asiento de cierre</th>
+                            <th>Asiento de apertura</th>
+                            <th>Creado</th>
+                            <th>Estado</th>
+                            <th class="ce-hist-th-accion"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={historico} for:item="h">
+                            <tr key={h.key}>
+                                <td class="ce-hist-emp">{h.empresa}</td>
+                                <td><span class="ce-hist-ej">{h.ejercicio} <span class="ce-hist-flecha">→</span> {h.aperturaEjercicio}</span></td>
+                                <td>
+                                    <template if:true={h.hayReg}>
+                                        <a href="javascript:void(0);" class="ce-hist-chip" data-recordid={h.regId}
+                                           onclick={navigateToRecordNewTab} title="Abrir el asiento de regularización">{h.regName}</a>
+                                    </template>
+                                    <template if:false={h.hayReg}><span class="ce-hist-falta">—</span></template>
+                                </td>
+                                <td>
+                                    <template if:true={h.hayCierre}>
+                                        <a href="javascript:void(0);" class="ce-hist-chip" data-recordid={h.cierreId}
+                                           onclick={navigateToRecordNewTab} title="Abrir el asiento de cierre">{h.cierreName}</a>
+                                    </template>
+                                    <template if:false={h.hayCierre}><span class="ce-hist-falta">—</span></template>
+                                </td>
+                                <td>
+                                    <template if:true={h.hayApertura}>
+                                        <a href="javascript:void(0);" class="ce-hist-chip" data-recordid={h.aperturaId}
+                                           onclick={navigateToRecordNewTab} title="Abrir el asiento de apertura">{h.aperturaName}</a>
+                                    </template>
+                                    <template if:false={h.hayApertura}><span class="ce-hist-falta">—</span></template>
+                                </td>
+                                <td class="ce-hist-fecha">{h.creado}</td>
+                                <td><span class={h.estadoCls}>{h.estadoTxt}</span></td>
+                                <td class="ce-hist-accion">
+                                    <template if:true={h.puedeCerrar}>
+                                        <button class="ce-hist-btn" data-empresa={h.empresa} data-ejercicio={h.ejercicio}
+                                                onclick={handleCerrarDesdeHistorico}
+                                                title="Precarga la empresa y el ejercicio y lanza el análisis del cierre">
+                                            {h.accionLabel}
+                                        </button>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </template>
+            <template if:true={sinHistorico}>
+                <div class="ce-hist-empty">Aún no se ha realizado ningún cierre de ejercicio.</div>
+            </template>
+        </div>
+
+        <!-- CONFIRMACIÓN -->
+        <template if:true={showConfirm}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_small">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header ce-confirm-header">
+                        <h2 class="slds-modal__title">Confirmar cierre de ejercicio</h2>
+                    </header>
+                    <div class="slds-modal__content ce-confirm-body">
+                        <p>{confirmTexto}</p>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={cerrarConfirm}>Cancelar</button>
+                        <button class="slds-button slds-button_brand" onclick={confirmarEjecutar}>Sí, crear asientos</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" onclick={cerrarConfirm}></div>
+        </template>
+
+    </div>
+</template>

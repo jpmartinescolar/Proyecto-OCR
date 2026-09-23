@@ -1,0 +1,20 @@
+<apex:component ><div class="CoveoRecommendation" data-results-per-page="5" data-hide-if-no-results="true" data-excerpt-length="150" data-enable-history="false" style="margin:0;">
+    <div class="CoveoAnalytics"></div>
+    <div class="coveo-recommendation-header">
+      <div class="coveo-recommendation-title" style="padding-left: 15px;">Recommendations</div>
+    </div>
+    <div class="coveo-recommendation-body">
+      <div class="CoveoResultList">
+        <script id="Default" class="result-template" type="text/html" data-layout="list"  ><div class="coveo-result-row" style="display: flex; align-items: center;">
+  <div class="coveo-result-cell" style="margin-right: 10px;height: 30px;">
+    <div class="CoveoIcon" data-small="true" data-with-label="false"></div>
+  </div>
+  <div class="coveo-result-cell">
+    <a class="CoveoSalesforceResultLink" data-open-in-sub-tab="true" data-always-open-in-new-window="true"></a>
+  </div>
+</div>
+</script>
+      </div>
+    </div>
+  </div>
+</apex:component>

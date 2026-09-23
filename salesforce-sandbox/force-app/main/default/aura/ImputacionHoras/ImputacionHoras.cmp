@@ -1,0 +1,41 @@
+<aura:component controller="ImputacionHorasController" implements="flexipage:availableForAllPageTypes,forceCommunity:availableForAllPageTypes">
+    <aura:attribute name="recordId" type="string"/>
+    <aura:attribute name="isStarted" type="boolean" default="false"/>
+    <aura:attribute name="seconds" type="string" default="00"/>
+    <aura:attribute name="minutes" type="string" default="00"/>
+    <aura:attribute name="hours" type="string" default="00"/>
+    <aura:attribute name="showMessage" type="boolean" default="false"/>
+    <aura:attribute name="message" type="string"/>
+    <aura:attribute name="spinner" type="boolean" default="false"/>
+    
+    <aura:attribute name="isStartGeoLocation" type="boolean" default="false"/>
+    <aura:attribute name="startLatitude" type="object"/>
+    <aura:attribute name="startLongitude" type="object"/>
+    <aura:attribute name="isStartIpInfo" type="boolean" default="false"/>
+    <aura:attribute name="startIpInfo" type="object"/>
+    
+    <aura:attribute name="isStopGeoLocation" type="boolean" default="false"/>
+    <aura:attribute name="stopLatitude" type="object"/>
+    <aura:attribute name="stopLongitude" type="object"/>
+    <aura:attribute name="isStopIpInfo" type="boolean" default="false"/>
+    <aura:attribute name="stopIpInfo" type="object"/>
+    <aura:attribute name="isReset" type="boolean" default="false"/>
+    <aura:attribute name="isStop" type="boolean" default="false"/>
+    
+    <article class="slds-card">
+       <div style="width:100%;text-align:center;padding:7.3%">
+           <div id="demo" style="display:inline-block;margin:0 auto">{!v.hours}:{!v.minutes}:{!v.seconds} </div>
+           &nbsp;<aura:if isTrue="{!!v.isStarted}">
+               <div style="display:inline-block;margin:0 auto"><button class="slds-button slds-button_success" onclick="{!c.start}"  style="color: white;background-color: var(--sds-c-button-success-color-background-active,#04844b);" disabled="{!v.isStop}">Iniciar</button></div>
+           </aura:if>
+           &nbsp;<aura:if isTrue="{!v.isStarted}">
+              <div style="display:inline-block;margin:0 auto"> <lightning:button variant="destructive" label="Parar" title="Parar" onclick="{!c.stop}" /></div>
+           </aura:if>
+          &nbsp;<div style="display:inline-block;margin:0 auto"> <lightning:button variant="brand" label="Reiniciar" title="Reiniciar" onclick="{!c.reset}"/></div>
+          &nbsp; <aura:if isTrue="{!v.isStop}">
+             <div style="display:inline-block;margin:0 auto">  <lightning:button variant="outline-brand" label="Crear imputación" class="slds-button slds-button_outline-brand" title="Crear imputación" onclick="{!c.CreateRecord}"/></div>
+           </aura:if>
+       </div>
+    </article>
+    
+</aura:component>

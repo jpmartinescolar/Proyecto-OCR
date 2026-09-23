@@ -1,0 +1,118 @@
+<template>
+    <nav class="nav-menu" aria-label="Menú del área privada">
+        <template for:each={menuItems} for:item="item">
+            <div key={item.key} class="nav-menu__group">
+
+                <!-- Cabecera de sección en primer nivel (Es_Cabecera__c sin padre):
+                     título en mayúsculas y sus opciones debajo, como opciones de primer nivel -->
+                <template if:true={item.isSection}>
+                    <div class="nav-section nav-section_root">
+                        <div class="nav-section__title">{item.label}</div>
+                        <template for:each={item.children} for:item="leaf">
+                            <div
+                                key={leaf.key}
+                                class={leaf.itemClass}
+                                data-target-page={leaf.targetPage}
+                                onclick={handleSubItemClick}
+                                role="button"
+                                tabindex="0"
+                            >
+                                <template if:true={leaf.hasIcon}>
+                                    <lightning-icon
+                                        icon-name={leaf.iconName}
+                                        size="x-small"
+                                        class="nav-item__icon"
+                                    ></lightning-icon>
+                                </template>
+                                <span class="nav-item__label nav-item__label_sub">{leaf.label}</span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:false={item.isSection}>
+                    <!-- Opción de primer nivel: puede ser directa o padre de submenú -->
+                    <div
+                        class={item.itemClass}
+                        data-key={item.key}
+                        onclick={handleItemClick}
+                        role="button"
+                        tabindex="0"
+                    >
+                        <lightning-icon
+                            icon-name={item.iconName}
+                            size="x-small"
+                            class="nav-item__icon"
+                        ></lightning-icon>
+                        <span class="nav-item__label">{item.label}</span>
+                        <template if:true={item.isParent}>
+                            <lightning-icon
+                                icon-name="utility:chevronright"
+                                size="xx-small"
+                                class={item.chevronClass}
+                            ></lightning-icon>
+                        </template>
+                    </div>
+
+                    <!-- Submenú: solo aplica cuando el item es padre y está expandido. Sus hijos
+                         son opciones directas (como siempre) o cabeceras de sección con sus opciones -->
+                    <template if:true={item.isParent}>
+                        <template if:true={item.isExpanded}>
+                            <div class="nav-submenu">
+                                <template for:each={item.children} for:item="child">
+
+                                    <template if:true={child.isSection}>
+                                        <div key={child.key} class="nav-section">
+                                            <div class="nav-section__title">{child.label}</div>
+                                            <template for:each={child.children} for:item="leaf">
+                                                <div
+                                                    key={leaf.key}
+                                                    class={leaf.itemClass}
+                                                    data-target-page={leaf.targetPage}
+                                                    onclick={handleSubItemClick}
+                                                    role="button"
+                                                    tabindex="0"
+                                                >
+                                                    <template if:true={leaf.hasIcon}>
+                                                        <lightning-icon
+                                                            icon-name={leaf.iconName}
+                                                            size="x-small"
+                                                            class="nav-item__icon"
+                                                        ></lightning-icon>
+                                                    </template>
+                                                    <span class="nav-item__label nav-item__label_sub">{leaf.label}</span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <template if:false={child.isSection}>
+                                        <div
+                                            key={child.key}
+                                            class={child.itemClass}
+                                            data-target-page={child.targetPage}
+                                            onclick={handleSubItemClick}
+                                            role="button"
+                                            tabindex="0"
+                                        >
+                                            <template if:true={child.hasIcon}>
+                                                <lightning-icon
+                                                    icon-name={child.iconName}
+                                                    size="x-small"
+                                                    class="nav-item__icon"
+                                                ></lightning-icon>
+                                            </template>
+                                            <span class="nav-item__label nav-item__label_sub">{child.label}</span>
+                                        </div>
+                                    </template>
+
+                                </template>
+                            </div>
+                        </template>
+                    </template>
+                </template>
+
+            </div>
+        </template>
+    </nav>
+</template>

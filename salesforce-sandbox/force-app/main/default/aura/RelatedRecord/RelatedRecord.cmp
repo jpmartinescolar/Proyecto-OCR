@@ -1,0 +1,19 @@
+<aura:component controller="RelatedRecordComponentCtr" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    
+    <aura:attribute name="objectName"            type="String"/>
+    <aura:attribute name="iconName"              type="String" />
+    <aura:attribute name="ParentId"              type="String"  />
+    <aura:attribute name="DefaultFields"         type="String[]"  default="['Name','Phone','AccountSource','Industry','Email','StartDate','ContractNumber','Status','IsActive','Description']"/>
+    <aura:attribute name="fieldToShow"           type="String[]" />
+    <aura:attribute name="customStyle"           type="String"    default='display: block;' />
+    <aura:attribute name="fieldString"           type="String"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <lightning:card title="{!v.objectName}" iconName="{!v.iconName}" >
+        
+    	<lightning:recordForm aura:id="RecordForm" recordId="{!v.recordId}" objectApiName="{!v.objectName}" fields="{!v.fieldToShow}" columns="2" mode="view" onsubmit="{!c.handleSubmit}" />    	
+    
+    </lightning:card>
+        
+</aura:component>

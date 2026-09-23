@@ -1,0 +1,69 @@
+<template>
+    <template lwc:if={paging}>
+        <c-site-header></c-site-header>
+    </template>
+    <template lwc:if={hasNoticias}>
+        <section class={sectionClass}>
+            <div class="nvn-wrap">
+                <p class="nvn-eyebrow">{eyebrow}</p>
+                <h2 class="nvn-title">{heading}</h2>
+                <p class="nvn-sub">{subheading}</p>
+
+                <template lwc:if={showSearch}>
+                    <div class="nvn-search">
+                        <svg class="nvn-search-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input type="search" class="nvn-search-input" value={search} oninput={handleSearchInput}
+                            placeholder="Buscar por título, resumen o contenido…" />
+                        <template lwc:if={isSearching}>
+                            <button class="nvn-search-clear" type="button" onclick={clearSearch} aria-label="Limpiar búsqueda">&times;</button>
+                        </template>
+                    </div>
+                    <template lwc:if={isSearching}>
+                        <p class="nvn-search-count">{searchLabel}</p>
+                    </template>
+                </template>
+
+                <template lwc:if={hasResults}>
+                    <div class="nvn-grid">
+                        <template for:each={noticias} for:item="n">
+                            <article key={n.id} class="nvn-card" data-url={n.urlName} data-key={n.id} onclick={openArticle}>
+                                <div class="nvn-media">
+                                    <template lwc:if={n.hasImg}>
+                                        <img src={n.imageUrl} alt={n.title} loading="lazy" />
+                                    </template>
+                                    <template lwc:else>
+                                        <div class="nvn-noimg"><span>Rosetta Advisor</span></div>
+                                    </template>
+                                </div>
+                                <div class="nvn-cardbody">
+                                    <p class="nvn-date">{n.fechaLabel}</p>
+                                    <h3 class="nvn-headline">{n.title}</h3>
+                                    <p class="nvn-excerpt">{n.excerpt}</p>
+                                    <span class="nvn-more">Leer más &rarr;</span>
+                                </div>
+                            </article>
+                        </template>
+                    </div>
+
+                    <div class="nvn-actions">
+                        <template lwc:if={hasMore}>
+                            <button class="nvn-btn" type="button" onclick={loadMore}>Ver más</button>
+                        </template>
+                        <template lwc:if={showViewAll}>
+                            <button class="nvn-btn" type="button" onclick={goToList}>{viewAllLabel}
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            </button>
+                        </template>
+                    </div>
+                </template>
+
+                <template lwc:if={noResults}>
+                    <div class="nvn-empty">
+                        <p>No encontramos noticias que coincidan con tu búsqueda.</p>
+                        <button class="nvn-btn" type="button" onclick={clearSearch}>Ver todas las noticias</button>
+                    </div>
+                </template>
+            </div>
+        </section>
+    </template>
+</template>
