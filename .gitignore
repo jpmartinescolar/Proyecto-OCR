@@ -1,0 +1,5 @@
+# Caché y config local de la CLI de Salesforce
+.sf/
+.sfdx/
+**/.sf/
+**/.sfdx/

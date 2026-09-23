@@ -1,0 +1,115 @@
+<template>
+    <lightning-card title="Subir facturas · Test opción A" icon-name="utility:upload">
+        <div slot="actions">
+            <template lwc:if={simulado}>
+                <lightning-badge label="Modo simulado (sin Google)"></lightning-badge>
+            </template>
+        </div>
+
+        <div class="slds-p-horizontal_medium">
+            <template lwc:if={cargando}>
+                <div class="stf-spinner"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+            </template>
+            <template lwc:if={errorCarga}>
+                <div class="slds-text-color_error">{errorCarga}</div>
+            </template>
+
+            <template lwc:if={contexto}>
+                <!-- Empresa -->
+                <template lwc:if={sinEmpresas}>
+                    <div class="slds-box stf-aviso slds-m-bottom_small">
+                        No tienes empresas asignadas. Pide que te asignen como asesor responsable
+                        o como miembro del equipo de la cuenta.
+                    </div>
+                </template>
+                <template lwc:if={empresaUnica}>
+                    <div class="slds-form-element slds-m-bottom_small">
+                        <span class="slds-form-element__label">Empresa</span>
+                        <div class="slds-form-element__static">{empresaUnica.nombre} ({empresaUnica.cif})</div>
+                    </div>
+                </template>
+                <template lwc:if={usarCombo}>
+                    <lightning-combobox class="slds-m-bottom_small" label="Empresa" required
+                                        placeholder="Selecciona la empresa" value={empresaId}
+                                        options={empresaOpciones} disabled={trabajando}
+                                        onchange={handleEmpresaCombo}></lightning-combobox>
+                </template>
+                <template lwc:if={usarPicker}>
+                    <lightning-record-picker class="slds-m-bottom_small" label="Empresa" required
+                                             object-api-name="Account" placeholder="Buscar empresa…"
+                                             filter={pickerFiltro} disabled={trabajando}
+                                             onchange={handleEmpresaPicker}></lightning-record-picker>
+                </template>
+
+                <!-- Tipo y observaciones -->
+                <lightning-combobox class="slds-m-bottom_small" label="Tipo de documentación" required
+                                    placeholder="Selecciona el tipo" value={tipo} options={tipoOpciones}
+                                    disabled={trabajando} onchange={handleTipo}></lightning-combobox>
+                <lightning-textarea class="slds-m-bottom_small" label="Observaciones" max-length="32768"
+                                    value={observaciones} disabled={trabajando}
+                                    onchange={handleObservaciones}></lightning-textarea>
+
+                <!-- Archivo -->
+                <lightning-input type="file" label="Adjuntar fichero" required accept={accept}
+                                 disabled={trabajando} onchange={handleArchivo}></lightning-input>
+                <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                    PDF, ZIP, PNG, JPG o JPEG. Máximo {maxBytesTxt}.
+                </div>
+                <template lwc:if={fileInfo}>
+                    <div class="slds-m-top_x-small stf-file">{fileInfo}</div>
+                </template>
+
+                <!-- Progreso -->
+                <template lwc:if={mostrarProgreso}>
+                    <div class="slds-m-top_medium">
+                        <lightning-progress-indicator current-step={pasoActual} type="path" variant="base">
+                            <template for:each={pasos} for:item="p">
+                                <lightning-progress-step key={p.key} label={p.label} value={p.key}></lightning-progress-step>
+                            </template>
+                        </lightning-progress-indicator>
+                        <div class="slds-m-top_small">
+                            <lightning-progress-bar value={progreso} size="large"></lightning-progress-bar>
+                            <div class="slds-text-body_small slds-m-top_xx-small">{progresoTxt}</div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Error -->
+                <template lwc:if={hayError}>
+                    <div class="slds-box stf-error slds-m-top_medium">
+                        <div>{error}</div>
+                        <template lwc:if={numero}>
+                            <div class="slds-text-body_small slds-m-top_xx-small">
+                                El registro {numero} queda guardado con el error para poder revisarlo.
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- Resultado -->
+                <template lwc:if={resultado}>
+                    <div class={resultadoCls}>
+                        <div><strong>{resultado.numero}</strong> · {resultado.estado}</div>
+                        <div class="slds-text-body_small">{resultado.mensaje}</div>
+                    </div>
+                </template>
+            </template>
+        </div>
+
+        <div slot="footer" class="stf-footer">
+            <template lwc:if={numero}>
+                <lightning-button variant="base" label={numero} title="Abrir el registro"
+                                  onclick={handleAbrirRegistro}></lightning-button>
+            </template>
+            <template lwc:if={trabajando}>
+                <lightning-button label="Cancelar" onclick={handleCancelar}></lightning-button>
+            </template>
+            <template lwc:if={puedeReintentar}>
+                <lightning-button label="Reintentar" icon-name="utility:refresh"
+                                  onclick={handleReintentar}></lightning-button>
+            </template>
+            <lightning-button variant="brand" label="Subir factura" icon-name="utility:upload"
+                              disabled={botonDeshabilitado} onclick={handleSubir}></lightning-button>
+        </div>
+    </lightning-card>
+</template>

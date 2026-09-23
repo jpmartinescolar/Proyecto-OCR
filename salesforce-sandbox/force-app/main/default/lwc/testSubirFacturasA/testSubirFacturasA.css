@@ -1,0 +1,6 @@
+.stf-spinner { position: relative; min-height: 4rem; }
+.stf-file { font-size: 0.8rem; color: #16325c; }
+.stf-footer { display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem; }
+.stf-ok { background: #e3f5e6; border-color: #1d6f42; color: #1d6f42; }
+.stf-aviso { background: #fdf6e8; border-color: #b26a00; color: #6b4400; }
+.stf-error { background: #fef1f1; border-color: #ba0517; color: #ba0517; }

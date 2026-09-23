@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Estado_sincronizacion__c</fullName>
+    <label>Estado de sincronización</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <value>
+                <fullName>Pendiente</fullName>
+                <default>true</default>
+                <label>Pendiente</label>
+            </value>
+            <value>
+                <fullName>Subiendo</fullName>
+                <default>false</default>
+                <label>Subiendo</label>
+            </value>
+            <value>
+                <fullName>Subido</fullName>
+                <default>false</default>
+                <label>Subido</label>
+            </value>
+            <value>
+                <fullName>Verificado</fullName>
+                <default>false</default>
+                <label>Verificado</label>
+            </value>
+            <value>
+                <fullName>Sincronizado</fullName>
+                <default>false</default>
+                <label>Sincronizado</label>
+            </value>
+            <value>
+                <fullName>Error</fullName>
+                <default>false</default>
+                <label>Error</label>
+            </value>
+            <sorted>false</sorted>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

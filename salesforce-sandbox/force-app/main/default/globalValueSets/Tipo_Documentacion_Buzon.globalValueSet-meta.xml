@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GlobalValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customValue>
+        <fullName>Emitida</fullName>
+        <default>false</default>
+        <label>Factura emitida</label>
+    </customValue>
+    <customValue>
+        <fullName>Recibida</fullName>
+        <default>false</default>
+        <label>Factura recibida</label>
+    </customValue>
+    <customValue>
+        <fullName>Ticket</fullName>
+        <default>false</default>
+        <label>Ticket</label>
+    </customValue>
+    <description>Tipo de documento subido al buzón contable. API names estables sin tildes; las etiquetas se pueden traducir.</description>
+    <masterLabel>Tipo documentación buzón</masterLabel>
+    <sorted>false</sorted>
+</GlobalValueSet>

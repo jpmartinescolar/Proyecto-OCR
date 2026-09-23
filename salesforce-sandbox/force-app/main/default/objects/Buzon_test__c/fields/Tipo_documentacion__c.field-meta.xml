@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Tipo_documentacion__c</fullName>
+    <label>Tipo de documentación</label>
+    <required>true</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetName>Tipo_Documentacion_Buzon</valueSetName>
+    </valueSet>
+</CustomField>

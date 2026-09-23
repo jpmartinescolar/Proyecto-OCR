@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Modo_simulado__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>Activado: no se llama a Google, la subida y la sincronización se simulan.</description>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Modo simulado</label>
+    <type>Checkbox</type>
+</CustomField>
