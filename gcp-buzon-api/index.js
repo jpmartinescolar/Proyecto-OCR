@@ -6,11 +6,9 @@ const { Pool } = require('pg');
 
 const PROJECT_ID = process.env.PROJECT_ID;
 const BUCKET_NAME = process.env.BUCKET_NAME;
-const API_KEY = process.env.API_KEY;
 const INSTANCE_CONNECTION_NAME = process.env.INSTANCE_CONNECTION_NAME;
 
 if (!BUCKET_NAME) throw new Error('Falta la variable de entorno BUCKET_NAME.');
-if (!API_KEY) throw new Error('Falta la variable de entorno API_KEY.');
 
 const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/devstorage.read_write'] });
 
@@ -48,14 +46,8 @@ app.use(express.json());
 
 app.get('/', (_req, res) => res.status(200).send('buzon-api OK'));
 
-// Todo lo que no sea la raiz exige la API key compartida con el Named Credential de Salesforce
-app.use((req, res, next) => {
-  if (req.path === '/') return next();
-  if (req.get('X-Api-Key') !== API_KEY) {
-    return res.status(401).json({ error: 'API key invalida o ausente.' });
-  }
-  next();
-});
+// La autenticacion real la hace Cloud Run (servicio privado + IAM invoker):
+// Salesforce llama con un ID token de Google, no con una API key.
 
 // Pide a Google una sesion de subida resumible para gcsPath y devuelve su URL final
 app.post('/upload-session', async (req, res) => {

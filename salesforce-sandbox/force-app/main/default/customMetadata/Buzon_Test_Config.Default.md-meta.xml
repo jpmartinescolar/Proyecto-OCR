@@ -4,7 +4,7 @@
     <protected>false</protected>
     <values>
         <field>Modo_simulado__c</field>
-        <value xsi:type="xsd:boolean">true</value>
+        <value xsi:type="xsd:boolean">false</value>
     </values>
     <values>
         <field>Tamano_maximo_MB__c</field>
