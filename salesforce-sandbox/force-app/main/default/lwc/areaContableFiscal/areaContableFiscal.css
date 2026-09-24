@@ -1040,6 +1040,16 @@ td.rh-grupo-persona:last-child { text-align: right; }
 /* Fila de filtros ajustada al margen derecho: cajas compactas al ancho justo
    de su rótulo y a la altura de los botones; el panel se abre ancho encima */
 .obl-filtros { justify-content: flex-end; }
+/* Filtros dentro de Total por empresas: la fila de departamento y periodicidad deja de ir pegada
+   a la derecha de los KPI y va encima de la fila de filtros y agrupaciones */
+.obl-filtros-emp { margin-bottom: 0.7rem; }
+.obl-filtros-emp .obl-head-filtros { margin-left: 0; margin-bottom: 0.5rem; }
+/* Filtros propios de Total por asesores, alineados a la izquierda bajo la nota */
+.obl-ase-filtros { justify-content: flex-start; margin-bottom: 0.6rem; }
+/* Aviso en las otras vistas de que siguen aplicándose los filtros de Total por empresas */
+.obl-filtros-aviso { display: inline-block; font-size: 0.72rem; color: #8a5a00; background: #fdf6d8;
+    border: 1px solid #ecdba4; border-radius: 0.4rem; padding: 0.3rem 0.6rem; margin: 0 0 0.6rem; }
+.obl-filtros-aviso .ts-ms-link { margin-left: 0.3rem; }
 .obl-filtros .acf-filtro-cc { min-width: 0; width: auto; flex: 0 0 auto; }
 .obl-filtros .ts-ms-trigger { width: auto; font-size: 0.74rem; height: 2rem;
     padding: 0 0.5rem; }

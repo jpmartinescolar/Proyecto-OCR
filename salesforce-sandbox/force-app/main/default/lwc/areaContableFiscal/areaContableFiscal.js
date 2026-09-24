@@ -127,12 +127,12 @@ const OBL_BANDAS = [
     { nombre: 'Renta', cls: 'obl-band obl-band-renta',
       modelos: ['100', '130', '131', '184', '345', '720'] },
     { nombre: 'Sociedades', cls: 'obl-band obl-band-soc',
-      modelos: ['200', '202', '203', '220', '222', '22A', '232', 'S90', 'S91'] },
+      modelos: ['200', '202', '203', '220', '222', '223', '22A', '232', 'S90', 'S91'] },
     { nombre: 'Retenciones', cls: 'obl-band obl-band-ret',
       modelos: ['110', '111', '115', '123', '180', '190', '193', '216', '296',
                 '716', '759', '760'] },
     { nombre: 'IVA', cls: 'obl-band obl-band-iva',
-      modelos: ['303', '309', '320', '322', '347', '349', '353', '369', '390',
+      modelos: ['303', '309', '320', '322', '330', '347', '349', '353', '369', '390',
                 '410', '415', '417', '420', '425', 'F66', 'F69', 'SII'] },
     { nombre: 'Intrastat', cls: 'obl-band obl-band-intra',
       modelos: ['IC', 'IV'] },
@@ -156,6 +156,8 @@ const oblColVerdeCls = (modelo) => (OBL_MODELOS_VERDES.includes(modelo) ? ' obl-
 // Impuesto sobre Sociedades y pago fraccionado en todos los territorios: 200 y 202 (común,
 // Canarias y Álava), 203 (pago fraccionado de Bizkaia y Guipúzcoa), S90 y S91 (Navarra)
 const OBL_MODELOS_SOCIEDAD = ['200', '202', '203', 'S90', 'S91'];
+// Pagos a cuenta de un solo plazo (forales y Navarra): su chip es 1x en vez de 3x
+const OBL_PAGO_UNICO = ['203', '223', 'S91'];
 // Oportunidades: tramos de antigüedad (días desde la creación) del gráfico de acumulados de la
 // columna izquierda; a partir de 11 días se considera retraso y el tramo va en rojo
 const OPO_TRAMOS = [
@@ -173,9 +175,9 @@ const OBL_DESCRIPCIONES = {
     '190': 'Resumen anual retenciones', '193': 'Resumen anual capital mobiliario',
     '200': 'Impuesto de Sociedades individual', '202': 'Pago fraccionado Sociedades individual',
     '203': 'Pago fraccionado Sociedades individual', '216': 'Retenciones no residentes',
-    '220': 'Impuesto de Sociedades consolidado', '222': 'Pago fraccionado consolidado', '22A': 'Anexo Pago fraccionado consolidado',
+    '220': 'Impuesto de Sociedades consolidado', '222': 'Pago fraccionado consolidado', '223': 'Pago fraccionado consolidado', '22A': 'Anexo Pago fraccionado consolidado',
     '232': 'Operaciones vinculadas', '296': 'Resumen anual no residentes',
-    '303': 'IVA individual sin grupo', '309': 'IVA no periódico', '320': 'IVA individual sin grupo',
+    '303': 'IVA individual sin grupo', '309': 'IVA no periódico', '320': 'IVA individual sin grupo', '330': 'IVA mensual Bizkaia y Guipúzcoa (SII)',
     '322': 'IVA individual con grupo', '345': 'Planes de pensiones', '347': 'Operaciones con terceros',
     '349': 'Operaciones intracomunitarias', '353': 'IVA grupo',
     '369': 'IVA ventanilla única', '390': 'Resumen anual IVA',
@@ -212,7 +214,7 @@ const OBL_VENC_FECHAS = {
     '296': '31/01', '345': '31/01',
     '347': '28/02', '720': '31/03', '848': '14/02',
     '100': '30/06', '150': '30/06',
-    '200': '25/07', '203': '25/10', '220': '25/07',
+    '200': '25/07', '203': '25/10', '223': '25/10', '220': '25/07',
     '232': '30/11',
     '583': '20/02;20/05;20/09;20/11',
     'SII': '4 días háb.'
@@ -225,7 +227,7 @@ const OBL_TERRITORIO_MODELO = {
     '425': 'Canarias', 'F66': 'Navarra', 'F69': 'Navarra',
     'S90': 'Navarra', 'S91': 'Navarra',
     '716': 'Navarra', '759': 'Navarra', '760': 'Navarra',
-    '203': 'Guipúzcoa', '320': 'Guipúzcoa'
+    '203': 'Guipúzcoa', '223': 'Guipúzcoa', '320': 'Guipúzcoa', '330': 'Guipúzcoa'
 };
 // Territorios en los que el modelo también se presenta con LOS MISMOS plazos que en su
 // territorio principal: en el catálogo salen como chips junto a él, sobre las mismas líneas
@@ -234,11 +236,14 @@ const OBL_TERRITORIOS_MISMOS_PLAZOS = {
     '180': ['Guipúzcoa'],
     '193': ['Guipúzcoa'],
     '200': ['Guipúzcoa', 'Bizkaia', 'Álava'],
+    '203': ['Bizkaia', 'Álava'],
     '220': ['Guipúzcoa', 'Bizkaia', 'Álava', 'Navarra'],
-    '222': ['Bizkaia'],
+    '223': ['Bizkaia'],
     '232': ['Guipúzcoa', 'Bizkaia', 'Álava', 'Navarra'],
-    '303': ['Guipúzcoa', 'Bizkaia', 'Álava'],
+    '303': ['Bizkaia', 'Álava'],
     '309': ['Bizkaia', 'Álava'],
+    '322': ['Navarra'],
+    '330': ['Bizkaia'],
     '349': ['Navarra'],
     '848': ['Guipúzcoa', 'Bizkaia', 'Álava', 'Navarra'],
     '22A': ['Bizkaia'],
@@ -255,6 +260,8 @@ const OBL_CAT_EXCLUIDOS = ['410'];
 // para que el calendario les pinte sus líneas igualmente
 const OBL_PER_SIN_PICKLIST = {
     '848': ['Anual'],
+    '223': ['Pago a cuenta'],
+    '330': ['Mensual'],
     '716': ['Mensual', 'Trimestral'],
     '759': ['Trimestral'],
     '760': ['Mensual', 'Trimestral']
@@ -274,12 +281,16 @@ const OBL_FORAL_GUI_LINEAS = [
 ];
 // Navarra: los resúmenes anuales de retenciones 180 y 193 se presentan hasta el 5 de febrero
 const OBL_FORAL_NAV_5FEB = [{ terr: 'Navarra', per: 'Anual', textos: ['5 feb'], fechas: [{ mes: 2, dia: 5 }] }];
+// Bizkaia y Guipúzcoa: el 322 (IVA de grupo) mensual vence el 25 de cada mes, no el 30
+const OBL_FORAL_BIZ_GUI_25 = [{ terrs: ['Guipúzcoa', 'Bizkaia'], per: 'Mensual', texto: '25 de cada mes',
+    fechas: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => ({ mes: m, dia: 25 })) }];
 const OBL_VENC_FORAL = {
     '115': OBL_FORAL_GUI_LINEAS,
     '123': OBL_FORAL_GUI_LINEAS,
     '349': OBL_FORAL_GUI_LINEAS,
     '180': OBL_FORAL_NAV_5FEB,
-    '193': OBL_FORAL_NAV_5FEB
+    '193': OBL_FORAL_NAV_5FEB,
+    '322': OBL_FORAL_BIZ_GUI_25
 };
 
 // Pestaña de destino de cada caja de la Visión general (tareas generales no navega)
@@ -996,7 +1007,13 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
             if (['303', '322', '353', '410', '417', '716', '760'].includes(valorPicklist)) {
                 return MESES12.map(m => ({ mes: m, dia: m === 2 ? 28 : 30 }));
             }
-            if (valorPicklist === '330') return MESES12.map(m => ({ mes: m, dia: 25 }));
+            if (valorPicklist === '330') {
+                // Bizkaia y Guipúzcoa: el de julio (que vencería el 25 ago) se presenta hasta el 25 sep
+                // y el de diciembre (25 ene) hasta el 31 ene
+                return MESES12.map(m => (m === 1 ? { mes: 1, dia: 31 }
+                    : m === 8 ? { mes: 9, dia: 25 }
+                    : { mes: m, dia: 25 }));
+            }
             // El 320 (Guipúzcoa) va el 25 de cada mes, pero en enero no se presenta
             if (valorPicklist === '320') return MESES12.filter(m => m !== 1).map(m => ({ mes: m, dia: 25 }));
             if (valorPicklist === 'F66') {
@@ -1323,7 +1340,7 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
                 if (OBL_PER_FORZADA[col]) pers = OBL_PER_FORZADA[col];
                 if (!pers.length && OBL_PER_SIN_PICKLIST[col]) pers = OBL_PER_SIN_PICKLIST[col];
                 const lineas = (pers.length ? pers : ['']).map(per => {
-                    const chip = per ? this.oblChip(per) : null;
+                    const chip = per ? this.oblChip(per, col) : null;
                     const pills = this.oblCalPillsView(valores[0], per);
                     return {
                         key: col + '·' + (per || 'unica'),
@@ -1341,6 +1358,7 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
                 // distintos del común); las que declaran periodicidad solo
                 // salen si el picklist la admite para el modelo
                 const foralPorTerr = new Map();
+                const foralTerrs = new Map(); // clave -> territorios de la línea
                 (OBL_VENC_FORAL[col] || []).forEach((v, i) => {
                     if (v.per && pers.length && !pers.includes(v.per)) return;
                     const sel = this.oblCalDiaSel;
@@ -1354,9 +1372,12 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
                         return { key: tx + '·' + j, text: tx,
                             cls: 'obl-venc-pill obl-venc-pill-foral' + (casaPill ? ' obl-venc-pill-sel' : '') };
                     });
-                    const chip = v.per ? this.oblChip(v.per) : null;
-                    if (!foralPorTerr.has(v.terr)) foralPorTerr.set(v.terr, []);
-                    foralPorTerr.get(v.terr).push({
+                    const chip = v.per ? this.oblChip(v.per, col) : null;
+                    // Una línea puede ser de varios territorios (terrs): se agrupan juntos
+                    const terrsLinea = v.terrs || [v.terr];
+                    const claveTerr = terrsLinea.join(' · ');
+                    if (!foralPorTerr.has(claveTerr)) { foralPorTerr.set(claveTerr, []); foralTerrs.set(claveTerr, terrsLinea); }
+                    foralPorTerr.get(claveTerr).push({
                         key: col + '·foral' + i,
                         per: v.per || '—',
                         perLabel: v.per ? v.per + ':' : '',
@@ -1388,12 +1409,12 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
                     key: col + '·' + territorio, terr: terrsPrincipal.join(' · '),
                     terrs: terrsPrincipal.map(chipTerr), lineas, hayLineas: lineas.length > 0
                 }];
-                foralPorTerr.forEach((ls, terr) => grupos.push({
-                    key: col + '·' + terr, terr, terrs: [chipTerr(terr)],
+                foralPorTerr.forEach((ls, clave) => grupos.push({
+                    key: col + '·' + clave, terr: clave, terrs: (foralTerrs.get(clave) || [clave]).map(chipTerr),
                     lineas: ls, hayLineas: ls.length > 0
                 }));
                 // Todos los territorios en los que vive el modelo, para el agrupado por territorio
-                const territorios = [...terrsPrincipal, ...foralPorTerr.keys()];
+                const territorios = [...terrsPrincipal, ...[...foralPorTerr.keys()].flatMap(k => foralTerrs.get(k) || [k])];
                 // Con un día marcado, solo los modelos que vencen ese día
                 if (this.oblCalDiaSel
                     && !grupos.some(g => g.lineas.some(l => l.casaDia))) return;
@@ -1525,13 +1546,13 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
     }
     handleOblAgrAsesor() {
         this.oblAgrAsesor = !this.oblAgrAsesor;
-        if (this.oblAgrAsesor) { this.oblAgrTitular = false; this.oblAgrTipoTit = false; this.oblAgrGrupo = false; }
+        if (this.oblAgrAsesor) { this.oblAgrTitular = false; this.oblAgrTipoTit = false; this.oblAgrGrupo = false; this.oblAgrTerrFis = false; this.oblAgrConsol = false; }
     }
     @track oblAgrTitular = false;
     get oblAgrTitularCls() { return 'acf-btn-agrupar' + (this.oblAgrTitular ? ' acf-btn-agrupar-activo' : ''); }
     handleOblAgrTitular() {
         this.oblAgrTitular = !this.oblAgrTitular;
-        if (this.oblAgrTitular) { this.oblAgrAsesor = false; this.oblAgrTipoTit = false; this.oblAgrGrupo = false; }
+        if (this.oblAgrTitular) { this.oblAgrAsesor = false; this.oblAgrTipoTit = false; this.oblAgrGrupo = false; this.oblAgrTerrFis = false; this.oblAgrConsol = false; }
     }
     // Agrupar por el tipo de titular de la empresa (el botón se llama
     // Agrupar por tipo de empresa)
@@ -1539,15 +1560,46 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
     get oblAgrTipoTitCls() { return 'acf-btn-agrupar' + (this.oblAgrTipoTit ? ' acf-btn-agrupar-activo' : ''); }
     handleOblAgrTipoTit() {
         this.oblAgrTipoTit = !this.oblAgrTipoTit;
-        if (this.oblAgrTipoTit) { this.oblAgrAsesor = false; this.oblAgrTitular = false; this.oblAgrGrupo = false; }
+        if (this.oblAgrTipoTit) { this.oblAgrAsesor = false; this.oblAgrTitular = false; this.oblAgrGrupo = false; this.oblAgrTerrFis = false; this.oblAgrConsol = false; }
     }
     // Agrupar por el grupo empresarial del contrato
     @track oblAgrGrupo = false;
     get oblAgrGrupoCls() { return 'acf-btn-agrupar' + (this.oblAgrGrupo ? ' acf-btn-agrupar-activo' : ''); }
     handleOblAgrGrupo() {
         this.oblAgrGrupo = !this.oblAgrGrupo;
-        if (this.oblAgrGrupo) { this.oblAgrAsesor = false; this.oblAgrTitular = false; this.oblAgrTipoTit = false; }
+        if (this.oblAgrGrupo) { this.oblAgrAsesor = false; this.oblAgrTitular = false; this.oblAgrTipoTit = false; this.oblAgrTerrFis = false; this.oblAgrConsol = false; }
     }
+    // Agrupar por el territorio fiscal del contrato contable y fiscal
+    @track oblAgrTerrFis = false;
+    get oblAgrTerrFisCls() { return 'acf-btn-agrupar' + (this.oblAgrTerrFis ? ' acf-btn-agrupar-activo' : ''); }
+    handleOblAgrTerrFis() {
+        this.oblAgrTerrFis = !this.oblAgrTerrFis;
+        if (this.oblAgrTerrFis) { this.oblAgrAsesor = false; this.oblAgrTitular = false; this.oblAgrTipoTit = false; this.oblAgrGrupo = false; this.oblAgrConsol = false; }
+    }
+    // Consolidación sociedades: agrupar por el campo Consolidación fiscal del contrato (Sí / No / sin informar)
+    @track oblAgrConsol = false;
+    get oblAgrConsolCls() { return 'acf-btn-agrupar' + (this.oblAgrConsol ? ' acf-btn-agrupar-activo' : ''); }
+    handleOblAgrConsol() {
+        this.oblAgrConsol = !this.oblAgrConsol;
+        if (this.oblAgrConsol) { this.oblAgrAsesor = false; this.oblAgrTitular = false; this.oblAgrTipoTit = false; this.oblAgrGrupo = false; this.oblAgrTerrFis = false; }
+    }
+    oblEtiquetaConsol(c) {
+        const v = this.normalizar(c.consolidacionFiscal);
+        if (v === 'si') return 'Consolidación fiscal: Sí';
+        if (v === 'no') return 'Consolidación fiscal: No';
+        return 'Consolidación fiscal sin informar';
+    }
+
+    // Filtros generales activos (los de la fila de Total por empresas, que también actúan en Total
+    // por asesores y Listado impuestos); el censo y el buscador no cuentan porque siguen a la vista
+    get oblFiltrosGeneralesN() {
+        return (this.oblMios ? 1 : 0) + (this.oblDeptoFiltro ? 1 : 0) + (this.oblPerFiltro ? 1 : 0)
+            + (this.oblAsesoresSel.length ? 1 : 0) + (this.oblTitularesSel.length ? 1 : 0)
+            + (this.oblTerritoriosSel.length ? 1 : 0) + (this.oblTipoTitSel.length ? 1 : 0)
+            + (this.oblModelosSel.length ? 1 : 0) + (this.oblModeloFiltro ? 1 : 0)
+            + (this.oblTotSel ? 1 : 0) + (this.oblPresSel.length ? 1 : 0);
+    }
+    get hayOblFiltrosGenerales() { return this.oblFiltrosGeneralesN > 0; }
 
     // Limpiar: deja los filtros y botones como al llegar a la pestaña
     handleOblLimpiar() {
@@ -1582,6 +1634,8 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
         this.oblAgrTitular = false;
         this.oblAgrTipoTit = false;
         this.oblAgrGrupo = false;
+        this.oblAgrTerrFis = false;
+        this.oblAgrConsol = false;
         this.oblCalBusqueda = '';
         this.oblCalAgrTerr = false;
         this.oblCalDiaSel = '';
@@ -2181,13 +2235,16 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
     }
 
     // Chip de una periodicidad: letra y clase de color
-    oblChip(per) {
+    // El modelo solo hace falta para distinguir el pago a cuenta único (1x) del de tres plazos (3x)
+    oblChip(per, modelo) {
         const p = this.normalizar(per);
         if (p.startsWith('mensual')) return { letra: 'M', cls: 'obl-chip obl-chip-m' };
         if (p.startsWith('trimestral')) return { letra: 'T', cls: 'obl-chip obl-chip-t' };
         if (p.startsWith('anual +')) return { letra: 'A+', cls: 'obl-chip obl-chip-3x' };
         if (p.startsWith('anual')) return { letra: 'A', cls: 'obl-chip obl-chip-a' };
-        if (p.startsWith('pago')) return { letra: '3x', cls: 'obl-chip obl-chip-3x' };
+        if (p.startsWith('pago')) {
+            return { letra: OBL_PAGO_UNICO.includes(String(modelo || '')) ? '1x' : '3x', cls: 'obl-chip obl-chip-3x' };
+        }
         if (p.includes('sii') || p.startsWith('diaria') || p.startsWith('semanal')) {
             return { letra: 'D', cls: 'obl-chip obl-chip-d' };
         }
@@ -2198,7 +2255,7 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
     // periodicidad, pero el color es el territorio del registro (leyenda de
     // territorios bajo las subpestañas)
     oblChipTerr(m) {
-        const letra = this.oblChip(m.periodicidad).letra;
+        const letra = this.oblChip(m.periodicidad, m.modelo).letra;
         return { letra, cls: 'obl-chip ' + this.oblTerrColorCls(m.territorio) };
     }
     // Clase de color de un territorio (paleta común de la matriz y la ficha)
@@ -2406,7 +2463,7 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
             if (['303', '322', '353', '410', '417', '716', '760'].includes(valorPicklist)) {
                 return ['30 de cada mes (feb: 28)'];
             }
-            if (valorPicklist === '330') return ['25 de cada mes'];
+            if (valorPicklist === '330') return ['25 de cada mes (julio: hasta 25 sep; diciembre: hasta 31 ene)'];
             if (valorPicklist === '320') return ['25 de cada mes (enero no se presenta)'];
             if (valorPicklist === 'F66') return ['30 de cada mes (31 ene, feb: 28; junio: 5 ago; julio: 21 sep)'];
             if (valorPicklist.startsWith('Intrastat')) return ['12 de cada mes'];
@@ -2433,7 +2490,7 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
             this.oblTerritoriosSel, this.oblTerritoriosModo, this.oblTipoTitSel, this.oblTipoTitModo,
             this.oblCensosSel, this.oblBusqueda, this.oblPerFiltro, this.oblModeloFiltro,
             this.oblModelosSel, this.oblModelosModo, this.oblTotSel,
-            this.oblAgrAsesor, this.oblAgrTitular, this.oblAgrTipoTit, this.oblAgrGrupo,
+            this.oblAgrAsesor, this.oblAgrTitular, this.oblAgrTipoTit, this.oblAgrGrupo, this.oblAgrTerrFis, this.oblAgrConsol,
             this.oblPresSel, this.oblPresModo]);
     }
 
@@ -2478,6 +2535,8 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
                 hayAvisos: avisos.length > 0,
                 asesor: c.asesor,
                 titular: c.empresaTitular || 'Sin empresa titular',
+                terrFiscal: c.territorioFiscal || 'Sin territorio fiscal',
+                consolFiscal: this.oblEtiquetaConsol(c),
                 tipoTit: c.tipoTitular || 'Sin informar',
                 grupo: c.grupo || 'Sin grupo',
                 filaCls: 'acf-row obl-fila',
@@ -2519,7 +2578,9 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
             ? (c => c.asesor || 'Sin asesor')
             : (this.oblAgrTitular ? (c => c.titular)
                 : (this.oblAgrTipoTit ? (c => c.tipoTit)
-                    : (this.oblAgrGrupo ? (c => c.grupo) : null)));
+                    : (this.oblAgrGrupo ? (c => c.grupo)
+                        : (this.oblAgrTerrFis ? (c => c.terrFiscal)
+                            : (this.oblAgrConsol ? (c => c.consolFiscal) : null)))));
         if (!agrupar) return numerar(filas);
         // Totales de mensuales, trimestrales, anuales y SII de cada grupo
         const totales = new Map();
@@ -2530,7 +2591,11 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
                     ? (c.empresaTitular || 'Sin empresa titular')
                     : (this.oblAgrTipoTit
                         ? (c.tipoTitular || 'Sin informar')
-                        : (c.grupo || 'Sin grupo')));
+                        : (this.oblAgrGrupo
+                            ? (c.grupo || 'Sin grupo')
+                            : (this.oblAgrTerrFis
+                                ? (c.territorioFiscal || 'Sin territorio fiscal')
+                                : this.oblEtiquetaConsol(c)))));
             if (!totales.has(k)) totales.set(k, { m: 0, t: 0, a: 0, sii: new Set() });
             const g = totales.get(k);
             (c.modelos || []).forEach(x => {
@@ -2661,11 +2726,13 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
     //    El 180 también queda justificado por el 759 o el 760, y el 193 por el 716 (forales).
     //  - Dependencias en un solo sentido: 759 o 760 exigen el 180; 716 exige el 193; 320 exige
     //    el 390 (no en SII, donde el 390 va por la regla del SII). El 417 es solo mensual y no
-    //    va ligado al 425.
+    //    va ligado al 425. El 330 (IVA mensual de Bizkaia y Guipúzcoa) exige estar en SII y
+    //    excluye el 303.
     //  - Con situación censal activa, toda empresa debe tener el 111 y el 190.
     //  - 220 (consolidado) exige el 222 y el 22A.
     //  - Persona física: nunca 200, 202 ni 232. Sociedad: 200, 232 y 347 (en SII el 347 va
     //    por la regla del SII) y 202 salvo que Consolidación fiscal sea Sí.
+    //  - CIF que empieza por E (atribución de rentas): sin 200, 202 ni 232 aunque no sea persona física.
     //  - SII: el 347 y el 390 deben estar de alta y marcados Exonerado = Sí; con territorio
     //    fiscal Canarias son el 415 y el 425, y el 347 y el 390 no le corresponden.
     //  - Operador intracomunitario Sí exige el 349; No, el 349 no debe estar de alta.
@@ -2677,6 +2744,8 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
         const titular = this.normalizar(c.tipoTitular);
         const fisica = !!titular && titular.includes('fisica');
         const sociedad = !!titular && !fisica;
+        // CIF que empieza por E (entidad en atribución de rentas): sin 200, 202 ni 232 aunque no sea persona física
+        const cifE = String(c.cif || '').trim().toUpperCase().startsWith('E');
         const censo = this.normalizar(c.censo);
         const consolidacion = this.normalizar(c.consolidacionFiscal);
         const operador = this.normalizar(c.operadorIntracomValor);
@@ -2699,7 +2768,7 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
                 const permitidos = [...OBL_MODELOS_SOCIEDAD, '232', '347'];
                 [...tiene].filter(m => !permitidos.includes(m)).sort().forEach(m => avisos.push(
                     'Situación censal inactiva: el modelo ' + m + ' no debería estar de alta'));
-                this.oblAvisosSociedad(tiene, false, consolidacion, terr, avisos);
+                this.oblAvisosSociedad(tiene, false, consolidacion, terr, avisos, cifE);
             }
             return avisos;
         }
@@ -2735,13 +2804,19 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
             if (!tiene.has('222')) avisos.push('Tiene el modelo 220 pero no el 222');
             if (!tiene.has('22A')) avisos.push('Tiene el modelo 220 pero no el 22A');
         }
+        // 330 (IVA mensual de Bizkaia y Guipúzcoa): solo lo presenta quien está en el SII, y con
+        // él no le corresponde el 303
+        if (tiene.has('330')) {
+            if (!sii) avisos.push('Tiene el modelo 330 pero no el SII: el 330 es el IVA mensual foral de los inscritos en SII');
+            if (tiene.has('303')) avisos.push('Tiene el modelo 330 y el 303: con el 330 no le corresponde el 303');
+        }
         // Persona física: nunca sociedades (ni el 200 y el 202 ni sus equivalentes forales)
         if (fisica) {
             [...OBL_MODELOS_SOCIEDAD, '232'].forEach(m => {
                 if (tiene.has(m)) avisos.push('Persona física con el modelo ' + m + ', que no le corresponde');
             });
         }
-        if (sociedad) this.oblAvisosSociedad(tiene, sii, consolidacion, terr, avisos);
+        if (sociedad) this.oblAvisosSociedad(tiene, sii, consolidacion, terr, avisos, cifE);
         // SII: los modelos que exonera (347 y 390; en Canarias, 415 y 425) de alta y marcados
         // Exonerado = Sí. En Canarias, el 347 y el 390 no le corresponden
         if (sii) {
@@ -2776,7 +2851,16 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
     // Modelos que no pueden faltar a una sociedad: el 200, el 232, el 347 (fuera de SII) y el
     // 202 salvo consolidación fiscal, con el 200 y el 202 que tocan por territorio fiscal. Tener
     // de alta el Impuesto sobre Sociedades o el pago fraccionado de otro territorio es incidencia
-    oblAvisosSociedad(tiene, sii, consolidacion, terr, avisos) {
+    oblAvisosSociedad(tiene, sii, consolidacion, terr, avisos, cifE = false) {
+        if (cifE) {
+            // Entidad en atribución de rentas (CIF que empieza por E): sin Impuesto sobre Sociedades,
+            // pago fraccionado ni 232; tenerlos de alta es incidencia. El 347 sí se le exige
+            [...OBL_MODELOS_SOCIEDAD, '232'].forEach(m => {
+                if (tiene.has(m)) avisos.push('CIF que empieza por E (entidad en atribución de rentas): el modelo ' + m + ' no le corresponde');
+            });
+            if (!sii && !tiene.has('347')) avisos.push('No es persona física y no tiene el modelo 347');
+            return;
+        }
         const enTerr = terr.m200 !== '200' || terr.m202 !== '202' ? ' (' + terr.nombre + ')' : '';
         if (!tiene.has(terr.m200)) avisos.push('No es persona física y no tiene el modelo ' + terr.m200 + enTerr);
         if (consolidacion !== 'si' && !tiene.has(terr.m202)) {

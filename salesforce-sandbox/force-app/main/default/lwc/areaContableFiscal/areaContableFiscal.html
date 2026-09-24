@@ -3084,7 +3084,174 @@
                                     <span class="obl-kpi-desp obl-kpi-cli" title="De ellos, los clientes cuyo SII presenta el cliente">{oblKpis.siiCli} presenta cliente</span>
                                     <span class="obl-kpi-desp obl-kpi-otro" title="De ellos, los clientes cuyo SII presenta otro asesor">{oblKpis.siiOtro} presenta otro asesor</span></span></span>
                         </div>
-                        <div class="obl-head-filtros">
+                    </div>
+                    <!-- Buscador por empresa a todo lo ancho con Nueva obligación a su derecha -->
+                    <div class="obl-buscador-full">
+                        <div class="obl-buscador-input">
+                            <lightning-input type="search" variant="label-hidden"
+                                             placeholder="Buscar por empresa…"
+                                             value={oblBusqueda} onchange={handleOblBusqueda}></lightning-input>
+                        </div>
+                        <lightning-button label="Nueva obligación" onclick={handleOblNuevaOpen}
+                                          title="Dar de alta una obligación tributaria nueva"></lightning-button>
+                        <!-- Filtro por situación censal AEAT (Activa/Inactiva) -->
+                        <div class="ts-ms-wrap">
+                            <button class="ts-ms-trigger" type="button" onclick={toggleOblCensoDd}
+                                    title="Filtrar por la situación censal AEAT del contrato">
+                                <span class="ts-ms-trigger-text">{oblCensoTriggerLabel}</span>
+                                <span class="ts-ms-caret">▾</span>
+                            </button>
+                            <template if:true={showOblCensoDd}>
+                                <div class="ts-ms-backdrop" onclick={closeOblCensoDd}></div>
+                                <div class="ts-ms-panel" onclick={stopClick}>
+                                    <div class="ts-ms-actions">
+                                        <button type="button" class="ts-ms-link" onclick={handleOblCensoTodos}>Todos</button>
+                                    </div>
+                                    <div class="ts-ms-list">
+                                        <template for:each={oblCensoOptionsView} for:item="opt">
+                                            <div key={opt.value} class={opt.optionClass}
+                                                 data-value={opt.value} onclick={handleOblCensoToggle}>
+                                                <span class="ts-ms-check"></span>
+                                                <span class="ts-ms-label">{opt.label}</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="ts-ms-foot">
+                                        <button type="button" class="slds-button slds-button_brand ts-ms-apply"
+                                                onclick={closeOblCensoDd}>Aplicar</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar"
+                                               title="Refrescar los datos de las cuatro subpestañas"
+                                               variant="border-filled" size="small"
+                                               onclick={handleOblRefresh}></lightning-button-icon>
+                    </div>
+                    <!-- Subpestañas: la matriz de empresas o el listado plano de impuestos -->
+                    <div class="lm-subtabs obl-vista-tabs">
+                        <button class={oblVistaEmpCls} data-vista="empresas" onclick={handleOblVista}
+                                title="La matriz de clientes con sus modelos">Total por empresas</button>
+                        <button class={oblVistaAseCls} data-vista="asesores" onclick={handleOblVista}
+                                title="Totales por asesor dentro de cada periodicidad, con el desglose de empresas al ampliar">Total por asesores</button>
+                        <button class={oblVistaImpCls} data-vista="impuestos" onclick={handleOblVista}
+                                title="Una línea por obligación tributaria de los contratos del Total por empresas, con filtros por modelo y por quién presenta">Listado impuestos</button>
+                        <button class={oblVistaCalCls} data-vista="calendario" onclick={handleOblVista}
+                                title="Todos los modelos del panel con sus periodicidades y vencimientos, tengan o no registros">Catálogo modelos</button>
+                        <button class={oblVistaInfoCls} data-vista="info" onclick={handleOblVista}
+                                title="Qué se comprueba para marcar una incidencia en un contrato">Reglas incidencias</button>
+                        <span class="obl-leyenda"><span class="obl-censo-dot obl-censo-activa">A</span>
+                            Situación censal AEAT Activa</span>
+                        <span class="obl-leyenda"><span class="obl-censo-dot obl-censo-inactiva">I</span>
+                            Situación censal AEAT Inactiva</span>
+                    </div>
+                    <!-- Leyenda de territorios: el color del chip es el territorio de la
+                         obligación; la letra, su periodicidad -->
+                    <template if:true={esOblVistaConChips}>
+                        <div class="obl-leyenda-terr">
+                            <span class="obl-leyenda"><span class="obl-chip obl-chip-comun">T</span> Territorio Común</span>
+                            <span class="obl-leyenda"><span class="obl-chip obl-chip-navarra">T</span> Navarra</span>
+                            <span class="obl-leyenda"><span class="obl-chip obl-chip-gipuzkoa">T</span> Guipúzcoa</span>
+                            <span class="obl-leyenda"><span class="obl-chip obl-chip-alava">T</span> Álava</span>
+                            <span class="obl-leyenda"><span class="obl-chip obl-chip-bizkaia">T</span> Bizkaia</span>
+                            <span class="obl-leyenda"><span class="obl-chip obl-chip-canarias">T</span> Canarias</span>
+                            <span class="obl-leyenda"><span class="obl-chip obl-chip-sinterr">T</span> Sin territorio informado</span>
+                            <span class="obl-leyenda" title="Lo presenta el cliente u otro asesor, o no consta quién lo presenta"><span class="obl-leyenda-caja obl-leyenda-azul"></span> Caja azul: no lo presenta el despacho</span>
+                            <span class="obl-leyenda-terr-nota">La letra es la periodicidad: M mensual · T trimestral · A anual · A+ anual con pago a cuenta · 3x pago a cuenta · 1x pago a cuenta de un solo plazo (203, 223, S91) · D SII</span>
+                        </div>
+                    </template>
+                    <!-- Alta de una obligación tributaria nueva -->
+                    <template if:true={oblNuevaOpen}>
+                        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small">
+                            <div class="slds-modal__container">
+                                <header class="slds-modal__header">
+                                    <h2 class="slds-modal__title">{oblModalTitulo}</h2>
+                                </header>
+                                <div class="slds-modal__content slds-p-around_medium">
+                                    <template if:true={hasOblNuevaError}>
+                                        <div class="pyg-error">
+                                            <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
+                                            <span>{oblNuevaError}</span>
+                                        </div>
+                                    </template>
+                                    <template if:false={oblOcultarEmpresa}>
+                                        <lightning-record-picker label="Empresa" object-api-name="Account"
+                                                                 placeholder="Buscar la empresa…"
+                                                                 onchange={hOblNuevaEmpresa}></lightning-record-picker>
+                                    </template>
+                                    <div class="slds-grid slds-gutters slds-wrap">
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-combobox label="Modelo" value={oblNuevaModelo} required
+                                                                options={oblNuevaModelos} onchange={hOblNuevaModelo}></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-combobox label="Modalidad" value={oblNuevaMod}
+                                                                options={oblNuevaModalidades} onchange={hOblNuevaMod}
+                                                                disabled={oblNuevaModDisabled}
+                                                                required={oblNuevaModRequerida}
+                                                                placeholder="Según el modelo elegido"></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-combobox label="Periodicidad" value={oblNuevaPer} required
+                                                                options={oblNuevaPeriodicidades} onchange={hOblNuevaPer}
+                                                                disabled={oblNuevaPerDisabled}
+                                                                placeholder="Según el modelo elegido"></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-input type="date" label="Fecha alta hacienda" required
+                                                             value={oblNuevaFecha} onchange={hOblNuevaFecha}></lightning-input>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-combobox label="Territorio" value={oblNuevaTerr} required
+                                                                options={oblNuevaTerritorios} onchange={hOblNuevaTerr}></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-combobox label="Quién presenta" value={oblNuevaPres} required
+                                                                options={oblNuevaPresentaciones} onchange={hOblNuevaPres}></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-combobox label="ERP presentación" value={oblNuevaSoft} required
+                                                                options={oblNuevaSoftwares} onchange={hOblNuevaSoft}></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-combobox label="Exonerado" value={oblNuevaExo}
+                                                                options={oblNuevaExonerados} onchange={hOblNuevaExo}
+                                                                placeholder="Sin informar"
+                                                                field-level-help="En SII, el 347 y el 390 (en Canarias, el 415 y el 425) deben estar de alta y marcados Exonerado = Sí"></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1">
+                                            <lightning-combobox label="Asesor responsable" value={oblNuevaAsesor}
+                                                                options={oblNuevaAsesores} onchange={hOblNuevaAsesor}
+                                                                placeholder="Sin asesor responsable"></lightning-combobox>
+                                        </div>
+                                    </div>
+                                </div>
+                                <template if:false={oblEsEdicion}>
+                                    <div class="obl-nueva-aviso">
+                                        <lightning-icon icon-name="utility:warning" size="x-small" variant="warning"></lightning-icon>
+                                        <span>Si es una obligación antigua y no se sabe la fecha de alta en Hacienda,
+                                            poner por defecto el 01/01/2022. En caso contrario, buscarla: esa fecha es importante.</span>
+                                    </div>
+                                </template>
+                                <footer class="slds-modal__footer obl-nueva-pie">
+                                    <template if:true={oblNuevaSaving}>
+                                        <span class="obl-nueva-guardando">Guardando la obligación…</span>
+                                    </template>
+                                    <lightning-button label="Cancelar" onclick={handleOblNuevaClose}
+                                                      disabled={oblNuevaSaving} class="slds-m-right_x-small"></lightning-button>
+                                    <lightning-button variant="brand" label={oblNuevaGuardarLabel} onclick={handleOblNuevaGuardar}
+                                                      disabled={oblNuevaGuardarDisabled}></lightning-button>
+                                </footer>
+                            </div>
+                        </section>
+                        <div class="slds-backdrop slds-backdrop_open"></div>
+                    </template>
+                    <!-- Matriz y, si hay cliente marcado, su ficha censal -->
+                    <template if:true={esOblVistaEmpresas}>
+                    <!-- Filtros del listado: departamento y periodicidad, y la fila de filtros y agrupaciones. Actúan
+                         también en Total por asesores y Listado impuestos, que lo avisan cuando hay alguno activo -->
+                    <div class="obl-filtros-emp">
+                        <div class="obl-head-filtros obl-filtros-depto">
                             <button class={oblDeptoLabCls} data-depto="laboral" onclick={handleOblDepto}
                                     title="Solo los clientes con los modelos 111, 216, 190, 296 o 345">Departamento laboral</button>
                             <button class={oblDeptoFisCls} data-depto="fiscal" onclick={handleOblDepto}
@@ -3095,7 +3262,6 @@
                                         title="Ver solo los modelos de esta periodicidad">{f.label}</button>
                             </template>
                         </div>
-                    </div>
                     <!-- Botones y filtros en una línea; el buscador va debajo a todo lo ancho -->
                     <div class="acf-kpis-der acf-fila-filtros obl-filtros">
                         <button class={oblMisBtnCls} onclick={handleOblMios}
@@ -3170,116 +3336,6 @@
                                 </div>
                             </template>
                         </div>
-                        <!-- Solo en Total por asesores: filtros por el asesor de cada obligación y por la
-                             empresa titular de ese usuario (la vista atribuye cada obligación a su asesor) -->
-                        <template if:true={esOblVistaAsesores}>
-                        <div class="acf-filtro-cc ts-ms-wrap">
-                            <button class="ts-ms-trigger" type="button" onclick={toggleOblAseOblDd}
-                                    title="Filtrar por el asesor responsable de cada obligación tributaria (solo en Total por asesores)">
-                                <span class="ts-ms-trigger-text">{oblAseOblTriggerLabel}</span>
-                                <span class="ts-ms-caret">▾</span>
-                            </button>
-                            <template if:true={showOblAseOblDd}>
-                                <div class="ts-ms-backdrop" onclick={closeOblAseOblDd}></div>
-                                <div class="ts-ms-panel" onclick={stopClick}>
-                                    <div class="ts-ms-actions">
-                                        <button type="button" class="ts-ms-link" onclick={handleOblAseOblTodos}>Todos</button>
-                                        <span>·</span>
-                                        <button type="button" class={oblAseOblModoIncCls} data-modo="incluir"
-                                                title="Mostrar solo los asesores marcados"
-                                                onclick={handleOblAseOblModo}>Incluir</button>
-                                        <button type="button" class={oblAseOblModoExcCls} data-modo="excluir"
-                                                title="Mostrar todos menos los asesores marcados"
-                                                onclick={handleOblAseOblModo}>Excluir</button>
-                                    </div>
-                                    <div class="ts-ms-list">
-                                        <template for:each={oblAseOblOptionsView} for:item="opt">
-                                            <div key={opt.value} class={opt.optionClass}
-                                                 data-value={opt.value} onclick={handleOblAseOblToggle}>
-                                                <span class="ts-ms-check"></span>
-                                                <span class="ts-ms-label">{opt.label}</span>
-                                            </div>
-                                        </template>
-                        <!-- Quién presenta la obligación: filtra los modelos de cada cliente en todas las vistas -->
-                        <div class="acf-filtro-cc ts-ms-wrap">
-                            <button class="ts-ms-trigger" type="button" onclick={toggleOblPresDd}
-                                    title="Filtrar por quién presenta la obligación: Despacho, Cliente, Otro asesor o sin informar">
-                                <span class="ts-ms-trigger-text">{oblPresTriggerLabel}</span>
-                                <span class="ts-ms-caret">▾</span>
-                            </button>
-                            <template if:true={showOblPresDd}>
-                                <div class="ts-ms-backdrop" onclick={closeOblPresDd}></div>
-                                <div class="ts-ms-panel" onclick={stopClick}>
-                                    <div class="ts-ms-actions">
-                                        <button type="button" class="ts-ms-link" onclick={handleOblPresTodos}>Todos</button>
-                                        <span>·</span>
-                                        <button type="button" class={oblPresModoIncCls} data-modo="incluir"
-                                                title="Mostrar solo los modelos con los valores marcados"
-                                                onclick={handleOblPresModo}>Incluir</button>
-                                        <button type="button" class={oblPresModoExcCls} data-modo="excluir"
-                                                title="Mostrar todos los modelos menos los de los valores marcados"
-                                                onclick={handleOblPresModo}>Excluir</button>
-                                    </div>
-                                    <div class="ts-ms-list">
-                                        <template for:each={oblPresOptionsView} for:item="opt">
-                                            <div key={opt.value} class={opt.optionClass}
-                                                 data-value={opt.value} onclick={handleOblPresToggle}>
-                                                <span class="ts-ms-check"></span>
-                                                <span class="ts-ms-label">{opt.label}</span>
-                                            </div>
-                                        </template>
-                                    </div>
-                                    <div class="ts-ms-foot">
-                                        <button type="button" class="slds-button slds-button_brand ts-ms-apply"
-                                                onclick={closeOblPresDd}>Aplicar</button>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                                    </div>
-                                    <div class="ts-ms-foot">
-                                        <button type="button" class="slds-button slds-button_brand ts-ms-apply"
-                                                onclick={closeOblAseOblDd}>Aplicar</button>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                        <div class="acf-filtro-cc ts-ms-wrap">
-                            <button class="ts-ms-trigger" type="button" onclick={toggleOblAseTitDd}
-                                    title="Filtrar por la empresa titular del usuario asesor de la obligación (solo en Total por asesores)">
-                                <span class="ts-ms-trigger-text">{oblAseTitTriggerLabel}</span>
-                                <span class="ts-ms-caret">▾</span>
-                            </button>
-                            <template if:true={showOblAseTitDd}>
-                                <div class="ts-ms-backdrop" onclick={closeOblAseTitDd}></div>
-                                <div class="ts-ms-panel" onclick={stopClick}>
-                                    <div class="ts-ms-actions">
-                                        <button type="button" class="ts-ms-link" onclick={handleOblAseTitTodos}>Todos</button>
-                                        <span>·</span>
-                                        <button type="button" class={oblAseTitModoIncCls} data-modo="incluir"
-                                                title="Mostrar solo las empresas titulares marcadas"
-                                                onclick={handleOblAseTitModo}>Incluir</button>
-                                        <button type="button" class={oblAseTitModoExcCls} data-modo="excluir"
-                                                title="Mostrar todas menos las marcadas"
-                                                onclick={handleOblAseTitModo}>Excluir</button>
-                                    </div>
-                                    <div class="ts-ms-list">
-                                        <template for:each={oblAseTitOptionsView} for:item="opt">
-                                            <div key={opt.value} class={opt.optionClass}
-                                                 data-value={opt.value} onclick={handleOblAseTitToggle}>
-                                                <span class="ts-ms-check"></span>
-                                                <span class="ts-ms-label">{opt.label}</span>
-                                            </div>
-                                        </template>
-                                    </div>
-                                    <div class="ts-ms-foot">
-                                        <button type="button" class="slds-button slds-button_brand ts-ms-apply"
-                                                onclick={closeOblAseTitDd}>Aplicar</button>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                        </template>
                         <div class="acf-filtro-cc ts-ms-wrap">
                             <button class="ts-ms-trigger" type="button" onclick={toggleOblTitularDd}
                                     title="Filtrar por la empresa titular gestión del contrato">
@@ -3393,172 +3449,14 @@
                                 title="Agrupar los clientes por el tipo de titular de la empresa">Agrupar por tipo de empresa</button>
                         <button class={oblAgrGrupoCls} onclick={handleOblAgrGrupo}
                                 title="Agrupar los clientes por el grupo empresarial del contrato">Agrupar por grupo</button>
+                        <button class={oblAgrTerrFisCls} onclick={handleOblAgrTerrFis}
+                                title="Agrupar los clientes por el territorio fiscal informado en el contrato contable y fiscal">Agrupar por territorio fiscal</button>
+                        <button class={oblAgrConsolCls} onclick={handleOblAgrConsol}
+                                title="Agrupar los clientes por el campo Consolidación fiscal del contrato contable y fiscal: Sí, No o sin informar">Consolidación sociedades</button>
                         <button class="acf-btn-agrupar" onclick={handleOblLimpiar}
                                 title="Dejar los filtros y botones como al llegar a la pestaña">Limpiar</button>
                     </div>
-                    <!-- Buscador por empresa a todo lo ancho con Nueva obligación a su derecha -->
-                    <div class="obl-buscador-full">
-                        <div class="obl-buscador-input">
-                            <lightning-input type="search" variant="label-hidden"
-                                             placeholder="Buscar por empresa…"
-                                             value={oblBusqueda} onchange={handleOblBusqueda}></lightning-input>
-                        </div>
-                        <lightning-button label="Nueva obligación" onclick={handleOblNuevaOpen}
-                                          title="Dar de alta una obligación tributaria nueva"></lightning-button>
-                        <!-- Filtro por situación censal AEAT (Activa/Inactiva) -->
-                        <div class="ts-ms-wrap">
-                            <button class="ts-ms-trigger" type="button" onclick={toggleOblCensoDd}
-                                    title="Filtrar por la situación censal AEAT del contrato">
-                                <span class="ts-ms-trigger-text">{oblCensoTriggerLabel}</span>
-                                <span class="ts-ms-caret">▾</span>
-                            </button>
-                            <template if:true={showOblCensoDd}>
-                                <div class="ts-ms-backdrop" onclick={closeOblCensoDd}></div>
-                                <div class="ts-ms-panel" onclick={stopClick}>
-                                    <div class="ts-ms-actions">
-                                        <button type="button" class="ts-ms-link" onclick={handleOblCensoTodos}>Todos</button>
-                                    </div>
-                                    <div class="ts-ms-list">
-                                        <template for:each={oblCensoOptionsView} for:item="opt">
-                                            <div key={opt.value} class={opt.optionClass}
-                                                 data-value={opt.value} onclick={handleOblCensoToggle}>
-                                                <span class="ts-ms-check"></span>
-                                                <span class="ts-ms-label">{opt.label}</span>
-                                            </div>
-                                        </template>
-                                    </div>
-                                    <div class="ts-ms-foot">
-                                        <button type="button" class="slds-button slds-button_brand ts-ms-apply"
-                                                onclick={closeOblCensoDd}>Aplicar</button>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                        <lightning-button-icon icon-name="utility:refresh" alternative-text="Refrescar"
-                                               title="Refrescar los datos de las cuatro subpestañas"
-                                               variant="border-filled" size="small"
-                                               onclick={handleOblRefresh}></lightning-button-icon>
                     </div>
-                    <!-- Subpestañas: la matriz de empresas o el listado plano de impuestos -->
-                    <div class="lm-subtabs obl-vista-tabs">
-                        <button class={oblVistaEmpCls} data-vista="empresas" onclick={handleOblVista}
-                                title="La matriz de clientes con sus modelos">Total por empresas</button>
-                        <button class={oblVistaAseCls} data-vista="asesores" onclick={handleOblVista}
-                                title="Totales por asesor dentro de cada periodicidad, con el desglose de empresas al ampliar">Total por asesores</button>
-                        <button class={oblVistaImpCls} data-vista="impuestos" onclick={handleOblVista}
-                                title="Una línea por obligación tributaria de los contratos del Total por empresas, con filtros por modelo y por quién presenta">Listado impuestos</button>
-                        <button class={oblVistaCalCls} data-vista="calendario" onclick={handleOblVista}
-                                title="Todos los modelos del panel con sus periodicidades y vencimientos, tengan o no registros">Catálogo modelos</button>
-                        <button class={oblVistaInfoCls} data-vista="info" onclick={handleOblVista}
-                                title="Qué se comprueba para marcar una incidencia en un contrato">Reglas incidencias</button>
-                        <span class="obl-leyenda"><span class="obl-censo-dot obl-censo-activa">A</span>
-                            Situación censal AEAT Activa</span>
-                        <span class="obl-leyenda"><span class="obl-censo-dot obl-censo-inactiva">I</span>
-                            Situación censal AEAT Inactiva</span>
-                    </div>
-                    <!-- Leyenda de territorios: el color del chip es el territorio de la
-                         obligación; la letra, su periodicidad -->
-                    <template if:true={esOblVistaConChips}>
-                        <div class="obl-leyenda-terr">
-                            <span class="obl-leyenda"><span class="obl-chip obl-chip-comun">T</span> Territorio Común</span>
-                            <span class="obl-leyenda"><span class="obl-chip obl-chip-navarra">T</span> Navarra</span>
-                            <span class="obl-leyenda"><span class="obl-chip obl-chip-gipuzkoa">T</span> Guipúzcoa</span>
-                            <span class="obl-leyenda"><span class="obl-chip obl-chip-alava">T</span> Álava</span>
-                            <span class="obl-leyenda"><span class="obl-chip obl-chip-bizkaia">T</span> Bizkaia</span>
-                            <span class="obl-leyenda"><span class="obl-chip obl-chip-canarias">T</span> Canarias</span>
-                            <span class="obl-leyenda"><span class="obl-chip obl-chip-sinterr">T</span> Sin territorio informado</span>
-                            <span class="obl-leyenda" title="Lo presenta el cliente u otro asesor, o no consta quién lo presenta"><span class="obl-leyenda-caja obl-leyenda-azul"></span> Caja azul: no lo presenta el despacho</span>
-                            <span class="obl-leyenda-terr-nota">La letra es la periodicidad: M mensual · T trimestral · A anual · A+ anual con pago a cuenta · 3x pago a cuenta · D SII</span>
-                        </div>
-                    </template>
-                    <!-- Alta de una obligación tributaria nueva -->
-                    <template if:true={oblNuevaOpen}>
-                        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small">
-                            <div class="slds-modal__container">
-                                <header class="slds-modal__header">
-                                    <h2 class="slds-modal__title">{oblModalTitulo}</h2>
-                                </header>
-                                <div class="slds-modal__content slds-p-around_medium">
-                                    <template if:true={hasOblNuevaError}>
-                                        <div class="pyg-error">
-                                            <lightning-icon icon-name="utility:error" alternative-text="Error" size="small" variant="error"></lightning-icon>
-                                            <span>{oblNuevaError}</span>
-                                        </div>
-                                    </template>
-                                    <template if:false={oblOcultarEmpresa}>
-                                        <lightning-record-picker label="Empresa" object-api-name="Account"
-                                                                 placeholder="Buscar la empresa…"
-                                                                 onchange={hOblNuevaEmpresa}></lightning-record-picker>
-                                    </template>
-                                    <div class="slds-grid slds-gutters slds-wrap">
-                                        <div class="slds-col slds-size_1-of-2">
-                                            <lightning-combobox label="Modelo" value={oblNuevaModelo} required
-                                                                options={oblNuevaModelos} onchange={hOblNuevaModelo}></lightning-combobox>
-                                        </div>
-                                        <div class="slds-col slds-size_1-of-2">
-                                            <lightning-combobox label="Modalidad" value={oblNuevaMod}
-                                                                options={oblNuevaModalidades} onchange={hOblNuevaMod}
-                                                                disabled={oblNuevaModDisabled}
-                                                                required={oblNuevaModRequerida}
-                                                                placeholder="Según el modelo elegido"></lightning-combobox>
-                                        </div>
-                                        <div class="slds-col slds-size_1-of-2">
-                                            <lightning-combobox label="Periodicidad" value={oblNuevaPer} required
-                                                                options={oblNuevaPeriodicidades} onchange={hOblNuevaPer}
-                                                                disabled={oblNuevaPerDisabled}
-                                                                placeholder="Según el modelo elegido"></lightning-combobox>
-                                        </div>
-                                        <div class="slds-col slds-size_1-of-2">
-                                            <lightning-input type="date" label="Fecha alta hacienda" required
-                                                             value={oblNuevaFecha} onchange={hOblNuevaFecha}></lightning-input>
-                                        </div>
-                                        <div class="slds-col slds-size_1-of-2">
-                                            <lightning-combobox label="Territorio" value={oblNuevaTerr} required
-                                                                options={oblNuevaTerritorios} onchange={hOblNuevaTerr}></lightning-combobox>
-                                        </div>
-                                        <div class="slds-col slds-size_1-of-2">
-                                            <lightning-combobox label="Quién presenta" value={oblNuevaPres} required
-                                                                options={oblNuevaPresentaciones} onchange={hOblNuevaPres}></lightning-combobox>
-                                        </div>
-                                        <div class="slds-col slds-size_1-of-2">
-                                            <lightning-combobox label="ERP presentación" value={oblNuevaSoft} required
-                                                                options={oblNuevaSoftwares} onchange={hOblNuevaSoft}></lightning-combobox>
-                                        </div>
-                                        <div class="slds-col slds-size_1-of-2">
-                                            <lightning-combobox label="Exonerado" value={oblNuevaExo}
-                                                                options={oblNuevaExonerados} onchange={hOblNuevaExo}
-                                                                placeholder="Sin informar"
-                                                                field-level-help="En SII, el 347 y el 390 (en Canarias, el 415 y el 425) deben estar de alta y marcados Exonerado = Sí"></lightning-combobox>
-                                        </div>
-                                        <div class="slds-col slds-size_1-of-1">
-                                            <lightning-combobox label="Asesor responsable" value={oblNuevaAsesor}
-                                                                options={oblNuevaAsesores} onchange={hOblNuevaAsesor}
-                                                                placeholder="Sin asesor responsable"></lightning-combobox>
-                                        </div>
-                                    </div>
-                                </div>
-                                <template if:false={oblEsEdicion}>
-                                    <div class="obl-nueva-aviso">
-                                        <lightning-icon icon-name="utility:warning" size="x-small" variant="warning"></lightning-icon>
-                                        <span>Si es una obligación antigua y no se sabe la fecha de alta en Hacienda,
-                                            poner por defecto el 01/01/2022. En caso contrario, buscarla: esa fecha es importante.</span>
-                                    </div>
-                                </template>
-                                <footer class="slds-modal__footer obl-nueva-pie">
-                                    <template if:true={oblNuevaSaving}>
-                                        <span class="obl-nueva-guardando">Guardando la obligación…</span>
-                                    </template>
-                                    <lightning-button label="Cancelar" onclick={handleOblNuevaClose}
-                                                      disabled={oblNuevaSaving} class="slds-m-right_x-small"></lightning-button>
-                                    <lightning-button variant="brand" label={oblNuevaGuardarLabel} onclick={handleOblNuevaGuardar}
-                                                      disabled={oblNuevaGuardarDisabled}></lightning-button>
-                                </footer>
-                            </div>
-                        </section>
-                        <div class="slds-backdrop slds-backdrop_open"></div>
-                    </template>
-                    <!-- Matriz y, si hay cliente marcado, su ficha censal -->
-                    <template if:true={esOblVistaEmpresas}>
                     <div class="obl-layout">
                         <div class="acf-card obl-matriz">
                                 <!-- La cabecera se pinta siempre: sin filas, los modelos siguen
@@ -3736,6 +3634,119 @@
                     <template if:true={esOblVistaAsesores}>
                         <div class="acf-card obl-matriz">
                             <p class="obl-nota-ase">Cada obligación cuenta para su propio asesor responsable, no para el del contrato, siempre que siga de alta, su contrato contable y fiscal esté abierto y la presente el despacho: las que presenta el cliente u otro asesor, o sin informar quién presenta, no aparecen. El número junto a cada asesor son sus obligaciones del apartado, sumando todas las columnas.</p>
+                            <!-- Filtros propios de esta vista: el asesor de cada obligación y la empresa titular de ese usuario -->
+                            <div class="acf-filtros obl-filtros obl-ase-filtros">
+                        <div class="acf-filtro-cc ts-ms-wrap">
+                            <button class="ts-ms-trigger" type="button" onclick={toggleOblAseOblDd}
+                                    title="Filtrar por el asesor responsable de cada obligación tributaria (solo en Total por asesores)">
+                                <span class="ts-ms-trigger-text">{oblAseOblTriggerLabel}</span>
+                                <span class="ts-ms-caret">▾</span>
+                            </button>
+                            <template if:true={showOblAseOblDd}>
+                                <div class="ts-ms-backdrop" onclick={closeOblAseOblDd}></div>
+                                <div class="ts-ms-panel" onclick={stopClick}>
+                                    <div class="ts-ms-actions">
+                                        <button type="button" class="ts-ms-link" onclick={handleOblAseOblTodos}>Todos</button>
+                                        <span>·</span>
+                                        <button type="button" class={oblAseOblModoIncCls} data-modo="incluir"
+                                                title="Mostrar solo los asesores marcados"
+                                                onclick={handleOblAseOblModo}>Incluir</button>
+                                        <button type="button" class={oblAseOblModoExcCls} data-modo="excluir"
+                                                title="Mostrar todos menos los asesores marcados"
+                                                onclick={handleOblAseOblModo}>Excluir</button>
+                                    </div>
+                                    <div class="ts-ms-list">
+                                        <template for:each={oblAseOblOptionsView} for:item="opt">
+                                            <div key={opt.value} class={opt.optionClass}
+                                                 data-value={opt.value} onclick={handleOblAseOblToggle}>
+                                                <span class="ts-ms-check"></span>
+                                                <span class="ts-ms-label">{opt.label}</span>
+                                            </div>
+                                        </template>
+                        <!-- Quién presenta la obligación: filtra los modelos de cada cliente en todas las vistas -->
+                        <div class="acf-filtro-cc ts-ms-wrap">
+                            <button class="ts-ms-trigger" type="button" onclick={toggleOblPresDd}
+                                    title="Filtrar por quién presenta la obligación: Despacho, Cliente, Otro asesor o sin informar">
+                                <span class="ts-ms-trigger-text">{oblPresTriggerLabel}</span>
+                                <span class="ts-ms-caret">▾</span>
+                            </button>
+                            <template if:true={showOblPresDd}>
+                                <div class="ts-ms-backdrop" onclick={closeOblPresDd}></div>
+                                <div class="ts-ms-panel" onclick={stopClick}>
+                                    <div class="ts-ms-actions">
+                                        <button type="button" class="ts-ms-link" onclick={handleOblPresTodos}>Todos</button>
+                                        <span>·</span>
+                                        <button type="button" class={oblPresModoIncCls} data-modo="incluir"
+                                                title="Mostrar solo los modelos con los valores marcados"
+                                                onclick={handleOblPresModo}>Incluir</button>
+                                        <button type="button" class={oblPresModoExcCls} data-modo="excluir"
+                                                title="Mostrar todos los modelos menos los de los valores marcados"
+                                                onclick={handleOblPresModo}>Excluir</button>
+                                    </div>
+                                    <div class="ts-ms-list">
+                                        <template for:each={oblPresOptionsView} for:item="opt">
+                                            <div key={opt.value} class={opt.optionClass}
+                                                 data-value={opt.value} onclick={handleOblPresToggle}>
+                                                <span class="ts-ms-check"></span>
+                                                <span class="ts-ms-label">{opt.label}</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="ts-ms-foot">
+                                        <button type="button" class="slds-button slds-button_brand ts-ms-apply"
+                                                onclick={closeOblPresDd}>Aplicar</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                                    </div>
+                                    <div class="ts-ms-foot">
+                                        <button type="button" class="slds-button slds-button_brand ts-ms-apply"
+                                                onclick={closeOblAseOblDd}>Aplicar</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="acf-filtro-cc ts-ms-wrap">
+                            <button class="ts-ms-trigger" type="button" onclick={toggleOblAseTitDd}
+                                    title="Filtrar por la empresa titular del usuario asesor de la obligación (solo en Total por asesores)">
+                                <span class="ts-ms-trigger-text">{oblAseTitTriggerLabel}</span>
+                                <span class="ts-ms-caret">▾</span>
+                            </button>
+                            <template if:true={showOblAseTitDd}>
+                                <div class="ts-ms-backdrop" onclick={closeOblAseTitDd}></div>
+                                <div class="ts-ms-panel" onclick={stopClick}>
+                                    <div class="ts-ms-actions">
+                                        <button type="button" class="ts-ms-link" onclick={handleOblAseTitTodos}>Todos</button>
+                                        <span>·</span>
+                                        <button type="button" class={oblAseTitModoIncCls} data-modo="incluir"
+                                                title="Mostrar solo las empresas titulares marcadas"
+                                                onclick={handleOblAseTitModo}>Incluir</button>
+                                        <button type="button" class={oblAseTitModoExcCls} data-modo="excluir"
+                                                title="Mostrar todas menos las marcadas"
+                                                onclick={handleOblAseTitModo}>Excluir</button>
+                                    </div>
+                                    <div class="ts-ms-list">
+                                        <template for:each={oblAseTitOptionsView} for:item="opt">
+                                            <div key={opt.value} class={opt.optionClass}
+                                                 data-value={opt.value} onclick={handleOblAseTitToggle}>
+                                                <span class="ts-ms-check"></span>
+                                                <span class="ts-ms-label">{opt.label}</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="ts-ms-foot">
+                                        <button type="button" class="slds-button slds-button_brand ts-ms-apply"
+                                                onclick={closeOblAseTitDd}>Aplicar</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                            </div>
+                            <template if:true={hayOblFiltrosGenerales}>
+                                <div class="obl-filtros-aviso">Se aplican {oblFiltrosGeneralesN} filtros de Total por empresas.
+                                    <button type="button" class="ts-ms-link" onclick={handleOblLimpiar}>Quitarlos</button></div>
+                            </template>
                             <div class="acf-scroll obl-scroll">
                                 <table class="acf-tabla obl-tabla obl-tabla-ase">
                                     <thead>
@@ -3892,6 +3903,10 @@
                             </template>
                         </div>
                             </div>
+                            <template if:true={hayOblFiltrosGenerales}>
+                                <div class="obl-filtros-aviso">Se aplican {oblFiltrosGeneralesN} filtros de Total por empresas.
+                                    <button type="button" class="ts-ms-link" onclick={handleOblLimpiar}>Quitarlos</button></div>
+                            </template>
                             <div class="obl-imp-total">{oblImpTotalLabel}</div>
                             <template if:true={hayOblImpRows}>
                                 <div class="acf-scroll">
@@ -3998,6 +4013,7 @@
                                             <tr><td>759 o 760</td><td>180</td><td>Retenciones de alquileres forales y su resumen anual</td></tr>
                                             <tr><td>716</td><td>193</td><td>Retenciones del capital mobiliario foral y su resumen anual</td></tr>
                                             <tr><td>320</td><td>390</td><td>IVA individual de grupo y el resumen anual. En SII no se comprueba: el 390 va por la regla del SII</td></tr>
+                                            <tr><td>330</td><td>SII</td><td>IVA mensual de Bizkaia y Guipúzcoa: solo lo presenta quien está en el SII, y con él no le corresponde el 303 (tenerlos juntos es incidencia)</td></tr>
                                             <tr><td>220</td><td>222 y 22A</td><td>Sociedades consolidado: exige los dos</td></tr>
                                         </tbody>
                                     </table>
@@ -4011,6 +4027,7 @@
                                     <div class="obl-info-titulo">5. Sociedades y personas físicas</div>
                                     <p>Si el tipo de titular <b>no es persona física</b>, el contrato debe tener el <b>200</b> (Impuesto sobre Sociedades), el <b>232</b> (operaciones vinculadas) y el <b>347</b> (operaciones con terceros). El <b>202</b> (pagos fraccionados) también, salvo que el contrato tenga <b>Consolidación fiscal = Sí</b>, porque entonces los pagos van por el grupo.</p>
                                     <p>Si el titular <b>es persona física</b>, no le corresponden el 200, el 202 ni el 232, y tampoco sus equivalentes forales 203, S90 y S91: cada uno que tenga de alta es una incidencia.</p>
+                                    <p>Si el <b>CIF de la empresa empieza por E</b> (entidad en atribución de rentas, como una comunidad de bienes), tampoco le corresponden el 200, el 202 ni el 232 aunque no sea persona física: cada uno de alta es una incidencia. El 347 sí se le exige.</p>
                                     <p><b>Territorio fiscal del contrato.</b> El modelo del Impuesto sobre Sociedades y el del pago fraccionado dependen del campo <b>Territorio fiscal</b> del contrato. Las reglas anteriores del 200 y del 202 se aplican con el modelo de cada territorio:</p>
                                     <ul>
                                         <li><b>Territorio Común, Canarias y Álava</b>, o sin territorio informado: Sociedades <b>200</b> y pago fraccionado <b>202</b>.</li>
