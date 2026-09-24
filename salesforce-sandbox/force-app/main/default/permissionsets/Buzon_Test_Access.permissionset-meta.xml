@@ -71,4 +71,8 @@
         <tab>Buzon_test__c</tab>
         <visibility>Visible</visibility>
     </tabSettings>
+    <tabSettings>
+        <tab>Buzon_Contable_Panel</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
 </PermissionSet>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Buzón Contable (panel oculto)</masterLabel>
+    <description>Panel de pagina completa con Subir facturas y OCR, fuera de areaContableFiscal para no mezclarse con produccion. Sin punto de entrada en ningun menu; solo visible via el Custom Tab oculto asociado.</description>
+    <targets>
+        <target>lightning__AppPage</target>
+    </targets>
+</LightningComponentBundle>
