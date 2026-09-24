@@ -4841,6 +4841,8 @@
                     <div class="acf-buz-toolbar">
                         <lightning-button label="Subir facturas" icon-name="utility:upload" variant="brand"
                                            onclick={handleAbrirSubirFacturas}></lightning-button>
+                        <lightning-button label="OCR" icon-name="utility:preview" variant="neutral"
+                                           onclick={handleAbrirOcr}></lightning-button>
                     </div>
                     <div class="acf-contab">
                         <!-- Columna izquierda: total, totales por tipo y por asesor -->
@@ -6540,6 +6542,25 @@
                     </header>
                     <div class="slds-modal__content slds-p-around_medium">
                         <c-test-subir-facturas-a></c-test-subir-facturas-a>
+                    </div>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
+        <!-- OCR (prototipo): lista de archivos ya subidos con vista previa y metadata, en modal -->
+        <template if:true={ocrAbierto}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_large">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                title="Cerrar" onclick={handleCerrarOcr}>
+                            <lightning-icon icon-name="utility:close" size="small" variant="inverse" alternative-text="Cerrar"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">OCR</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <c-test-ocr-buzon></c-test-ocr-buzon>
                     </div>
                 </div>
             </section>

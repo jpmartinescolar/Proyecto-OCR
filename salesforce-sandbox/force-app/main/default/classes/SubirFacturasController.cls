@@ -57,6 +57,22 @@ public with sharing class SubirFacturasController {
         return c;
     }
 
+    /**
+     * Archivos ya subidos de una empresa, para la pantalla OCR. La empresa se vuelve a validar
+     * aquí (igual que en crearRegistro): nadie ve archivos de una empresa a la que no tiene acceso.
+     */
+    @AuraEnabled
+    public static List<GcpBuzonService.RegistroOcr> listarArchivosOcr(Id empresaId) {
+        try {
+            Account a = BuzonEmpresasService.validarEmpresa(empresaId);
+            return GcpBuzonService.listarRegistros(a.CIF__c);
+        } catch (BuzonEmpresasService.BuzonException e) {
+            throw error(e.getMessage());
+        } catch (GcpBuzonService.GcpBuzonException e) {
+            throw error('No se ha podido consultar los archivos en Google. ' + e.getMessage());
+        }
+    }
+
     @AuraEnabled
     public static ResultadoDTO crearRegistro(Id empresaId, String tipo, String observaciones,
                                              String nombreArchivo, Long tamano, String mime) {

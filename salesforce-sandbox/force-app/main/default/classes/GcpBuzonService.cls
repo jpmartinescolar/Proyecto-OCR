@@ -28,6 +28,22 @@ public with sharing class GcpBuzonService {
         public String crc32c;
     }
 
+    /** Un archivo ya subido, tal como está registrado en Cloud SQL (para la pantalla OCR) */
+    public class RegistroOcr {
+        @AuraEnabled public String sfRecordId;
+        @AuraEnabled public String sfAccountId;
+        @AuraEnabled public String cif;
+        @AuraEnabled public String gcsPath;
+        @AuraEnabled public String gcsObjectId;
+        @AuraEnabled public Long size;
+        @AuraEnabled public String mime;
+        @AuraEnabled public String crc32c;
+        @AuraEnabled public Datetime createdAt;
+        @AuraEnabled public Datetime updatedAt;
+        @AuraEnabled public String nombreArchivo;
+        @AuraEnabled public String viewUrl;
+    }
+
     @TestVisible
     private static Buzon_Test_Config__mdt configOverride;
 
@@ -106,6 +122,43 @@ public with sharing class GcpBuzonService {
         c.size = res.get('size') == null ? null : Long.valueOf(String.valueOf(res.get('size')));
         c.crc32c = (String) res.get('crc32c');
         return c;
+    }
+
+    /**
+     * Lista los archivos ya subidos de una empresa (por CIF), más recientes primero, cada uno
+     * con una URL firmada de solo lectura para previsualizarlo. El cif ya debe venir validado
+     * (la empresa la valida BuzonEmpresasService antes de llamar aquí).
+     */
+    public static List<RegistroOcr> listarRegistros(String cif) {
+        if (esSimulado()) return new List<RegistroOcr>();
+        Map<String, Object> res = enviar('/records', new Map<String, Object>{
+            'sfOrgId' => UserInfo.getOrganizationId(),
+            'cif' => cif
+        });
+        List<RegistroOcr> out = new List<RegistroOcr>();
+        for (Object o : (List<Object>) res.get('registros')) {
+            Map<String, Object> m = (Map<String, Object>) o;
+            RegistroOcr r = new RegistroOcr();
+            r.sfRecordId = (String) m.get('sfRecordId');
+            r.sfAccountId = (String) m.get('sfAccountId');
+            r.cif = (String) m.get('cif');
+            r.gcsPath = (String) m.get('gcsPath');
+            r.gcsObjectId = (String) m.get('gcsObjectId');
+            r.size = m.get('size') == null ? null : Long.valueOf(String.valueOf(m.get('size')));
+            r.mime = (String) m.get('mime');
+            r.crc32c = (String) m.get('crc32c');
+            r.createdAt = parseFecha((String) m.get('createdAt'));
+            r.updatedAt = parseFecha((String) m.get('updatedAt'));
+            r.nombreArchivo = (String) m.get('nombreArchivo');
+            r.viewUrl = (String) m.get('viewUrl');
+            out.add(r);
+        }
+        return out;
+    }
+
+    private static Datetime parseFecha(String iso) {
+        if (String.isBlank(iso)) return null;
+        return (Datetime) JSON.deserialize('"' + iso + '"', Datetime.class);
     }
 
     /** Ruta {orgId}/{cif}/{recordId}/{nombre-saneado}: ordenada por empresa y reconocible sin consultar SQL */

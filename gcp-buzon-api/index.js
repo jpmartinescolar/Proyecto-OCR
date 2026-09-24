@@ -2,6 +2,7 @@
 
 const express = require('express');
 const { GoogleAuth } = require('google-auth-library');
+const { Storage } = require('@google-cloud/storage');
 const { Pool } = require('pg');
 
 const PROJECT_ID = process.env.PROJECT_ID;
@@ -11,6 +12,7 @@ const INSTANCE_CONNECTION_NAME = process.env.INSTANCE_CONNECTION_NAME;
 if (!BUCKET_NAME) throw new Error('Falta la variable de entorno BUCKET_NAME.');
 
 const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/devstorage.read_write'] });
+const storage = new Storage();
 
 // Cloud Run + Cloud SQL: conexion por socket unix montado con --add-cloudsql-instances
 const pool = new Pool({
@@ -112,6 +114,55 @@ app.post('/confirm', async (req, res) => {
     res.json({ id: obj.id, size: Number(obj.size || 0), crc32c: obj.crc32c });
   } catch (err) {
     console.error('confirm error', err);
+    res.status(500).json({ error: String((err && err.message) || err) });
+  }
+});
+
+// Lista los archivos ya subidos de una empresa (cif), mas recientes primero, cada uno con una
+// URL firmada de solo lectura (15 min) para que el navegador pueda previsualizarlo sin hacer
+// publico el bucket. El filtro por sfOrgId+cif es el mismo control que ya aplica Salesforce
+// (BuzonEmpresasService) antes de llamar aqui: esto solo devuelve lo que Apex ya autorizo.
+app.post('/records', async (req, res) => {
+  const { sfOrgId, cif } = req.body || {};
+  if (!sfOrgId || !cif) return res.status(400).json({ error: 'Faltan sfOrgId o cif.' });
+  try {
+    await ensureSchema();
+    const { rows } = await pool.query(
+      `SELECT sf_record_id, sf_account_id, sf_user_id, cif, gcs_path, gcs_object_id, size, mime, crc32c, created_at, updated_at
+       FROM buzon_uploads WHERE sf_org_id = $1 AND cif = $2 ORDER BY created_at DESC LIMIT 200`,
+      [sfOrgId, cif]
+    );
+    const registros = await Promise.all(rows.map(async (r) => {
+      let viewUrl = null;
+      try {
+        const [url] = await storage.bucket(BUCKET_NAME).file(r.gcs_path).getSignedUrl({
+          version: 'v4',
+          action: 'read',
+          expires: Date.now() + 15 * 60 * 1000
+        });
+        viewUrl = url;
+      } catch (e) {
+        console.error('No se ha podido firmar la URL de', r.gcs_path, e.message);
+      }
+      return {
+        sfRecordId: r.sf_record_id,
+        sfAccountId: r.sf_account_id,
+        sfUserId: r.sf_user_id,
+        cif: r.cif,
+        gcsPath: r.gcs_path,
+        gcsObjectId: r.gcs_object_id,
+        size: Number(r.size || 0),
+        mime: r.mime,
+        crc32c: r.crc32c,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        nombreArchivo: r.gcs_path.split('/').pop(),
+        viewUrl
+      };
+    }));
+    res.json({ registros });
+  } catch (err) {
+    console.error('records error', err);
     res.status(500).json({ error: String((err && err.message) || err) });
   }
 });

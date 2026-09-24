@@ -1,0 +1,31 @@
+.ocr-spinner { position: relative; min-height: 3rem; }
+.ocr-aviso { background: #fdf6d8; border: 1px solid #ecdba4; color: #8a5a00; padding: 0.75rem 1rem; }
+.ocr-error { background: #fef1f1; border: 1px solid #ea001e; color: #ba0517; padding: 0.75rem 1rem; }
+
+.ocr-lista { border: 1px solid #e2e6ec; border-radius: 0.5rem; max-height: 11rem; overflow-y: auto; }
+.ocr-fila {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid #f0f2f6; cursor: pointer; font-size: 0.8rem;
+}
+.ocr-fila:last-child { border-bottom: none; }
+.ocr-fila:hover { background: #f4f5f7; }
+.ocr-fila-activa { background: #eef4fd; }
+.ocr-fila-nombre { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.ocr-fila-fecha { flex: 0 0 auto; color: #5f6b7c; }
+.ocr-fila-tamano { flex: 0 0 auto; color: #5f6b7c; min-width: 4rem; text-align: right; }
+
+.ocr-detalle { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+.ocr-preview {
+    background: #f4f5f7; border: 1px solid #e2e6ec; border-radius: 0.5rem;
+    min-height: 28rem; display: flex; align-items: stretch; justify-content: center; overflow: hidden;
+}
+.ocr-iframe { width: 100%; height: 28rem; border: none; }
+.ocr-img { max-width: 100%; max-height: 28rem; margin: auto; object-fit: contain; }
+.ocr-sin-preview { margin: auto; text-align: center; color: #5f6b7c; padding: 1rem; }
+
+.ocr-metadata { background: #ffffff; border: 1px solid #e2e6ec; border-radius: 0.5rem; padding: 0.9rem 1rem; }
+.ocr-metadata-titulo { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #5f6b7c; margin-bottom: 0.6rem; }
+.ocr-meta-fila { padding: 0.35rem 0; border-bottom: 1px solid #f0f2f6; }
+.ocr-meta-fila:last-child { border-bottom: none; }
+.ocr-meta-label { font-size: 0.68rem; color: #5f6b7c; text-transform: uppercase; letter-spacing: 0.03em; }
+.ocr-meta-valor { font-size: 0.8rem; word-break: break-all; }

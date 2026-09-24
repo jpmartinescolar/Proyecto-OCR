@@ -1,0 +1,90 @@
+<template>
+    <lightning-card title="OCR · Archivos subidos (test)" icon-name="utility:preview">
+        <div class="slds-p-horizontal_medium">
+            <template lwc:if={cargando}>
+                <div class="ocr-spinner"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+            </template>
+            <template lwc:if={errorCarga}>
+                <div class="slds-text-color_error">{errorCarga}</div>
+            </template>
+
+            <template lwc:if={contexto}>
+                <!-- Empresa: mismo patrón que Subir facturas -->
+                <template lwc:if={sinEmpresas}>
+                    <div class="slds-box ocr-aviso slds-m-bottom_small">
+                        No tienes empresas asignadas. Pide que te asignen como asesor responsable
+                        o como miembro del equipo de la cuenta.
+                    </div>
+                </template>
+                <template lwc:if={empresaUnica}>
+                    <div class="slds-form-element slds-m-bottom_small">
+                        <span class="slds-form-element__label">Empresa</span>
+                        <div class="slds-form-element__static">{empresaUnica.nombre} ({empresaUnica.cif})</div>
+                    </div>
+                </template>
+                <template lwc:if={usarCombo}>
+                    <lightning-combobox class="slds-m-bottom_small" label="Empresa" required
+                                        placeholder="Selecciona la empresa" value={empresaId}
+                                        options={empresaOpciones} onchange={handleEmpresaCombo}></lightning-combobox>
+                </template>
+                <template lwc:if={usarPicker}>
+                    <lightning-record-picker class="slds-m-bottom_small" label="Empresa" required
+                                             object-api-name="Account" placeholder="Buscar empresa…"
+                                             filter={pickerFiltro} onchange={handleEmpresaPicker}></lightning-record-picker>
+                </template>
+
+                <template lwc:if={cargandoLista}>
+                    <div class="ocr-spinner"><lightning-spinner alternative-text="Cargando archivos" size="small"></lightning-spinner></div>
+                </template>
+                <template lwc:if={errorLista}>
+                    <div class="slds-box ocr-error slds-m-bottom_small">{errorLista}</div>
+                </template>
+                <template lwc:if={sinRegistros}>
+                    <div class="slds-box ocr-aviso slds-m-bottom_small">Esta empresa todavía no tiene archivos subidos.</div>
+                </template>
+
+                <template lwc:if={hayRegistros}>
+                    <!-- Lista: más recientes primero -->
+                    <div class="ocr-lista slds-m-bottom_medium">
+                        <template for:each={registros} for:item="r">
+                            <div key={r.sfRecordId} class={r.cls} data-id={r.sfRecordId} onclick={handleSeleccionar}>
+                                <span class="ocr-fila-nombre" title={r.nombreArchivo}>{r.nombreArchivo}</span>
+                                <span class="ocr-fila-fecha">{r.fechaTxt}</span>
+                                <span class="ocr-fila-tamano">{r.tamanoTxt}</span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Izquierda: vista previa · Derecha: metadata -->
+                    <template lwc:if={seleccionado}>
+                        <div class="ocr-detalle">
+                            <div class="ocr-preview">
+                                <template lwc:if={esPdf}>
+                                    <iframe src={seleccionado.viewUrl} title="Vista previa del archivo" class="ocr-iframe"></iframe>
+                                </template>
+                                <template lwc:if={esImagen}>
+                                    <img src={seleccionado.viewUrl} alt={seleccionado.nombreArchivo} class="ocr-img" />
+                                </template>
+                                <template lwc:if={sinPreview}>
+                                    <div class="ocr-sin-preview">
+                                        <p>No hay vista previa disponible para este tipo de archivo.</p>
+                                        <a href={seleccionado.viewUrl} target="_blank" rel="noopener">Abrir en una pestaña nueva</a>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="ocr-metadata">
+                                <div class="ocr-metadata-titulo">Metadata</div>
+                                <template for:each={metadatos} for:item="m">
+                                    <div key={m.label} class="ocr-meta-fila">
+                                        <div class="ocr-meta-label">{m.label}</div>
+                                        <div class="ocr-meta-valor">{m.value}</div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </template>
+            </template>
+        </div>
+    </lightning-card>
+</template>

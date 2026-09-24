@@ -4062,6 +4062,11 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
     handleAbrirSubirFacturas() { this.subirFacturasAbierto = true; }
     handleCerrarSubirFacturas() { this.subirFacturasAbierto = false; }
 
+    // OCR (prototipo): lista de archivos ya subidos con vista previa y metadata, en modal
+    @track ocrAbierto = false;
+    handleAbrirOcr() { this.ocrAbierto = true; }
+    handleCerrarOcr() { this.ocrAbierto = false; }
+
     // Filtros cruzados: tipo de documentación, asesor responsable y estado
     @track buzTipoSel = '';
     @track buzAsesorSel = '';
