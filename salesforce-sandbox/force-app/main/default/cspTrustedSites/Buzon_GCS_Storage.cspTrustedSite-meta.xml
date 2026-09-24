@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CspTrustedSite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <endpointUrl>https://storage.googleapis.com</endpointUrl>
+    <isActive>true</isActive>
+    <isApplicableToConnectSrc>true</isApplicableToConnectSrc>
+    <description>Subida resumible directa del navegador a Cloud Storage (Buzon Test / Subir facturas). Sin esto el navegador bloquea la conexion por CSP (connect-src), aunque el CORS del bucket este bien configurado.</description>
+</CspTrustedSite>
