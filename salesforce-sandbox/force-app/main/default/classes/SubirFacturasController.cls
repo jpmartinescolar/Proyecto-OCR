@@ -86,7 +86,7 @@ public with sharing class SubirFacturasController {
 
     /** Pide la sesión de subida a Google. El callout va antes del DML en la misma transacción. */
     @AuraEnabled
-    public static ResultadoDTO solicitarSesionSubida(Id recordId) {
+    public static ResultadoDTO solicitarSesionSubida(Id recordId, String origin) {
         Buzon_test__c r = cargar(recordId);
         // Subiendo también se admite: una subida interrumpida (pestaña cerrada) se vuelve a empezar
         if (!new Set<String>{ ESTADO_PENDIENTE, ESTADO_SUBIENDO, ESTADO_ERROR }.contains(r.Estado_sincronizacion__c)) {
@@ -94,7 +94,7 @@ public with sharing class SubirFacturasController {
         }
         GcpBuzonService.Sesion s;
         try {
-            s = GcpBuzonService.crearSesion(r, r.Empresa__r.CIF__c);
+            s = GcpBuzonService.crearSesion(r, r.Empresa__r.CIF__c, origin);
         } catch (GcpBuzonService.GcpBuzonException e) {
             guardarError(r, e.getMessage(), false);
             return fallo(r, 'No se ha podido preparar la subida en Google. ' + e.getMessage());

@@ -50,8 +50,13 @@ public with sharing class GcpBuzonService {
         return (mb == null ? 2048 : mb.longValue()) * 1024 * 1024;
     }
 
-    /** Pide a Cloud Run una sesión de subida resumible para el archivo del registro */
-    public static Sesion crearSesion(Buzon_test__c r, String cif) {
+    /**
+     * Pide a Cloud Run una sesión de subida resumible para el archivo del registro.
+     * origin: el origen del navegador (window.location.origin) que subirá el archivo. Google
+     * solo habilita CORS en las respuestas de la subida si la sesión se creó con ese Origin;
+     * sin esto, el navegador recibe la subida bien (200) pero bloqueada por CORS al leerla.
+     */
+    public static Sesion crearSesion(Buzon_test__c r, String cif, String origin) {
         String gcsPath = rutaGcs(UserInfo.getOrganizationId(), cif, r.Id, r.Archivo_nombre__c);
         Sesion s = new Sesion();
         s.gcsPath = gcsPath;
@@ -63,7 +68,8 @@ public with sharing class GcpBuzonService {
         Map<String, Object> res = enviar('/upload-session', new Map<String, Object>{
             'gcsPath' => gcsPath,
             'size' => r.Archivo_tamano__c,
-            'mime' => r.Archivo_tipo__c
+            'mime' => r.Archivo_tipo__c,
+            'origin' => origin
         });
         s.simulado = false;
         s.uploadUrl = (String) res.get('uploadUrl');

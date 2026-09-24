@@ -51,20 +51,25 @@ app.get('/', (_req, res) => res.status(200).send('buzon-api OK'));
 
 // Pide a Google una sesion de subida resumible para gcsPath y devuelve su URL final
 app.post('/upload-session', async (req, res) => {
-  const { gcsPath, size, mime } = req.body || {};
+  const { gcsPath, size, mime, origin } = req.body || {};
   if (!gcsPath) return res.status(400).json({ error: 'Falta gcsPath.' });
   try {
     const client = await auth.getClient();
     const initUrl = `https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(BUCKET_NAME)}/o`
       + `?uploadType=resumable&name=${encodeURIComponent(gcsPath)}`;
+    const headers = {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'X-Upload-Content-Type': mime || 'application/octet-stream',
+      'X-Upload-Content-Length': String(size || 0)
+    };
+    // Google solo habilita CORS en las respuestas de la subida si la sesion se crea con el
+    // Origin del navegador que va a subir el archivo; sin esto el PUT del navegador llega bien
+    // (200) pero el navegador bloquea la respuesta por CORS.
+    if (origin) headers.Origin = origin;
     const response = await client.request({
       url: initUrl,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'X-Upload-Content-Type': mime || 'application/octet-stream',
-        'X-Upload-Content-Length': String(size || 0)
-      },
+      headers,
       data: {},
       validateStatus: () => true
     });

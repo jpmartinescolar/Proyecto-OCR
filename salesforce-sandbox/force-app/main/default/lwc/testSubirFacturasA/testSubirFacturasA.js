@@ -169,7 +169,7 @@ export default class TestSubirFacturasA extends NavigationMixin(LightningElement
             }
 
             this.paso = 'sesion';
-            const s = await solicitarSesionSubida({ recordId: this.recordId });
+            const s = await solicitarSesionSubida({ recordId: this.recordId, origin: window.location.origin });
             if (!s.ok) throw new ErrorGuardado(s.mensaje);
 
             this.paso = 'subida';

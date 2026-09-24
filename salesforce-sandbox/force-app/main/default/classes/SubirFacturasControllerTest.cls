@@ -71,7 +71,7 @@ private class SubirFacturasControllerTest {
         System.assertEquals('Pendiente', r.estado);
         System.assert(r.numero.startsWith('BT-'), r.numero);
 
-        SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.recordId);
+        SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.recordId, 'https://test.local');
         System.assert(s.ok);
         System.assert(s.sesion.simulado);
         System.assertEquals('Subiendo', leer(r.recordId).Estado_sincronizacion__c);
@@ -117,7 +117,7 @@ private class SubirFacturasControllerTest {
         config(true);
         Buzon_test__c r = registro('Sincronizado');
         try {
-            SubirFacturasController.solicitarSesionSubida(r.Id);
+            SubirFacturasController.solicitarSesionSubida(r.Id, 'https://test.local');
             System.assert(false, 'No se puede volver a subir');
         } catch (AuraHandledException e) {
             System.assert(e.getMessage().contains('ya está en estado'), e.getMessage());
@@ -138,7 +138,7 @@ private class SubirFacturasControllerTest {
         Buzon_test__c r = registro('Pendiente');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(200, '{"uploadUrl":"https://storage.googleapis.com/upload/abc"}'));
         Test.startTest();
-        SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.Id);
+        SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.Id, 'https://test.local');
         Test.stopTest();
         System.assert(s.ok);
         System.assert(!s.sesion.simulado);
@@ -152,7 +152,7 @@ private class SubirFacturasControllerTest {
         Buzon_test__c r = registro('Pendiente');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(500, 'boom'));
         Test.startTest();
-        SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.Id);
+        SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.Id, 'https://test.local');
         Test.stopTest();
         System.assert(!s.ok, 'Devuelve ok = false en vez de lanzar, para no deshacer el estado Error');
         Buzon_test__c db = leer(r.Id);
@@ -166,7 +166,7 @@ private class SubirFacturasControllerTest {
         Buzon_test__c r = registro('Pendiente');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(200, '{}'));
         Test.startTest();
-        SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.Id);
+        SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.Id, 'https://test.local');
         Test.stopTest();
         System.assert(!s.ok);
         System.assertEquals('Error', leer(r.Id).Estado_sincronizacion__c);
