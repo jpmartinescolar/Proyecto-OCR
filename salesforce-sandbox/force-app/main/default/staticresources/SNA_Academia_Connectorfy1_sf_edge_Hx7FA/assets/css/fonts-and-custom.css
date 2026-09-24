@@ -1,0 +1,22 @@
+.div[data-region-name="content"] article.content .section__content .slds-form .slds-grid:nth-child(3) {display:none !important;}
+
+.selfServiceArticleHeaderDetail > .dot, .selfServiceArticleHeaderDetail > .article-type {display: none; }
+
+.slds-form_stacked .slds-form-element .slds-form-element__label {display: none;}
+
+.test-id__field-value .uiOutputText  {display:none !important;}
+
+.slds-section.slds-is-open .slds-section__content .forcePageBlockSectionRow:nth-child(2)  {display: none;}
+
+.slds-section.slds-is-open .slds-section__content .forcePageBlockSectionRow:nth-child(3)  {display: none;}
+
+.slds-section.slds-is-open .slds-section__content .forcePageBlockSectionRow:nth-child(4)  {display: none;}
+
+.slds-grid.slds-gutters_small.full.cols-2.forcePageBlockSectionRow {display: none;}
+
+.slds-grid.slds-gutters_small.full.cols-1.forcePageBlockSectionRow {display: inline;}
+
+.slds-form-element_readonly{
+    border-bottom:none
+}
+:root { --dxp-c-section-columns-max-width: 1170px; }
