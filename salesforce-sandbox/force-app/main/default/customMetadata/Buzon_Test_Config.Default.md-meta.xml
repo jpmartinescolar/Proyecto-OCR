@@ -14,4 +14,16 @@
         <field>Named_Credential__c</field>
         <value xsi:type="xsd:string">GCP_Buzon_Test</value>
     </values>
+    <values>
+        <field>Cloud_Run_URL__c</field>
+        <value xsi:type="xsd:string">https://buzon-api-347748579061.europe-southwest1.run.app</value>
+    </values>
+    <values>
+        <field>SA_Client_Email__c</field>
+        <value xsi:type="xsd:string">buzon-api-caller@centro-de-inteligencia-500407.iam.gserviceaccount.com</value>
+    </values>
+    <values>
+        <field>Certificate_Name__c</field>
+        <value xsi:type="xsd:string">Buzon_GCP_Caller</value>
+    </values>
 </CustomMetadata>

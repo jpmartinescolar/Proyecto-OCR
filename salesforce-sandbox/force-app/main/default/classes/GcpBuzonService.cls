@@ -111,11 +111,75 @@ public with sharing class GcpBuzonService {
         return orgId + '/' + cifLimpio + '/' + recordId + '/' + n;
     }
 
+    // Token de identidad de Google en caché (por transacción): el servicio de Cloud Run
+    // es privado, cada llamada necesita un ID token firmado con la service account de Salesforce
+    @TestVisible
+    private static String cachedIdToken;
+    @TestVisible
+    private static Long cachedIdTokenExp;
+
+    /**
+     * Firma un JWT con el certificado importado en Salesforce y lo canjea en el endpoint
+     * OAuth de Google por un ID token cuya audiencia es el propio servicio de Cloud Run
+     * (flujo "target_audience", no el JWT Bearer estándar de scope+access_token).
+     */
+    @TestVisible
+    private static String obtenerIdToken() {
+        Long ahora = System.currentTimeMillis() / 1000;
+        if (cachedIdToken != null && cachedIdTokenExp != null && ahora < (cachedIdTokenExp - 60)) {
+            return cachedIdToken;
+        }
+        Buzon_Test_Config__mdt c = config();
+        Auth.JWT jwt = new Auth.JWT();
+        jwt.setIss(c.SA_Client_Email__c);
+        jwt.setSub(c.SA_Client_Email__c);
+        jwt.setAud('https://oauth2.googleapis.com/token');
+        Map<String, Object> claims = new Map<String, Object>();
+        claims.put('target_audience', c.Cloud_Run_URL__c);
+        jwt.setAdditionalClaims(claims);
+
+        Auth.JWS jws;
+        try {
+            jws = new Auth.JWS(jwt, c.Certificate_Name__c);
+        } catch (Exception e) {
+            GcpBuzonException ex = new GcpBuzonException('No se ha podido firmar el JWT para Google: ' + e.getMessage());
+            ex.reintentable = false;
+            throw ex;
+        }
+
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint('https://oauth2.googleapis.com/token');
+        req.setMethod('POST');
+        req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
+        req.setTimeout(TIMEOUT_MS);
+        req.setBody('grant_type=' + EncodingUtil.urlEncode('urn:ietf:params:oauth:grant-type:jwt-bearer', 'UTF-8')
+            + '&assertion=' + EncodingUtil.urlEncode(jws.getCompactSerialization(), 'UTF-8'));
+
+        HttpResponse res;
+        try {
+            res = new Http().send(req);
+        } catch (CalloutException ce) {
+            GcpBuzonException e = new GcpBuzonException('No se ha podido obtener el token de Google: ' + ce.getMessage());
+            e.reintentable = true;
+            throw e;
+        }
+        if (res.getStatusCode() != 200) {
+            GcpBuzonException e = new GcpBuzonException('Google OAuth ha respondido ' + res.getStatusCode() + ': ' + res.getBody().left(300));
+            e.reintentable = res.getStatusCode() >= 500;
+            throw e;
+        }
+        Map<String, Object> respBody = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+        cachedIdToken = (String) respBody.get('id_token');
+        cachedIdTokenExp = ahora + 3300;
+        return cachedIdToken;
+    }
+
     private static Map<String, Object> enviar(String path, Map<String, Object> body) {
         HttpRequest req = new HttpRequest();
         req.setEndpoint('callout:' + config().Named_Credential__c + path);
         req.setMethod('POST');
         req.setHeader('Content-Type', 'application/json');
+        req.setHeader('Authorization', 'Bearer ' + obtenerIdToken());
         req.setTimeout(TIMEOUT_MS);
         req.setBody(JSON.serialize(body));
         HttpResponse res;

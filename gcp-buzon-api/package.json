@@ -1,0 +1,17 @@
+{
+  "name": "buzon-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API intermedia (Cloud Run) para Subir facturas: sesiones de subida resumible a Cloud Storage y confirmacion con registro en Cloud SQL.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "google-auth-library": "^9.14.0",
+    "pg": "^8.12.0"
+  }
+}
