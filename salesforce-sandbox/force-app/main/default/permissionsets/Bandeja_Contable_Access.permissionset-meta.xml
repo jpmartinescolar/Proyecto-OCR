@@ -4,75 +4,75 @@
         <apexClass>SubirFacturasController</apexClass>
         <enabled>true</enabled>
     </classAccesses>
-    <description>Acceso a las páginas de prueba de Subir facturas (Buzón test). Asignar solo a quien prueba.</description>
+    <description>Acceso a las páginas de prueba de Subir facturas (Bandeja Contable). Asignar solo a quien prueba.</description>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.Archivo_nombre__c</field>
+        <field>Bandeja_Contable__c.Archivo_nombre__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.Archivo_tamano__c</field>
+        <field>Bandeja_Contable__c.Archivo_tamano__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.Archivo_tipo__c</field>
+        <field>Bandeja_Contable__c.Archivo_tipo__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.Estado_sincronizacion__c</field>
+        <field>Bandeja_Contable__c.Estado_sincronizacion__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.GCS_ruta__c</field>
+        <field>Bandeja_Contable__c.GCS_ruta__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.Google_Id__c</field>
+        <field>Bandeja_Contable__c.Google_Id__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.Intentos__c</field>
+        <field>Bandeja_Contable__c.Intentos__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.Observaciones__c</field>
+        <field>Bandeja_Contable__c.Observaciones__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.Opcion__c</field>
+        <field>Bandeja_Contable__c.Opcion__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Buzon_test__c.Ultimo_error__c</field>
+        <field>Bandeja_Contable__c.Ultimo_error__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
-    <label>Buzón test: acceso</label>
+    <label>Bandeja Contable: acceso</label>
     <objectPermissions>
         <allowCreate>true</allowCreate>
         <allowDelete>false</allowDelete>
         <allowEdit>true</allowEdit>
         <allowRead>true</allowRead>
         <modifyAllRecords>false</modifyAllRecords>
-        <object>Buzon_test__c</object>
+        <object>Bandeja_Contable__c</object>
         <viewAllFields>false</viewAllFields>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
     <tabSettings>
-        <tab>Buzon_test__c</tab>
+        <tab>Bandeja_Contable__c</tab>
         <visibility>Visible</visibility>
     </tabSettings>
     <tabSettings>
-        <tab>Buzon_Contable_Panel</tab>
+        <tab>Bandeja_Contable_Panel</tab>
         <visibility>Visible</visibility>
     </tabSettings>
 </PermissionSet>

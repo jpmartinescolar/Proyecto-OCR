@@ -2,15 +2,15 @@
  * Empresas con las que un usuario puede trabajar en Subir facturas (pruebas A y B).
  *  - Usuario del portal: sus relaciones contacto-cuenta activas (AccountContactRelation).
  *  - Usuario interno: cuentas de las que es asesor responsable fiscal o miembro del equipo.
- *  - Con el permiso Buzon_Test_Cualquier_Empresa: cualquier cuenta que pueda ver (modo libre).
+ *  - Con el permiso Bandeja_Contable_Cualquier_Empresa: cualquier cuenta que pueda ver (modo libre).
  * La empresa que llega del navegador se vuelve a validar siempre aquí, nunca se da por buena.
  */
-public with sharing class BuzonEmpresasService {
+public with sharing class BandejaEmpresasService {
 
-    public static final String PERMISO_LIBRE = 'Buzon_Test_Cualquier_Empresa';
+    public static final String PERMISO_LIBRE = 'Bandeja_Contable_Cualquier_Empresa';
     private static final Integer MAX_EMPRESAS = 2000;
 
-    public class BuzonException extends Exception {}
+    public class BandejaException extends Exception {}
 
     public class EmpresaDTO {
         @AuraEnabled public Id id;
@@ -45,18 +45,18 @@ public with sharing class BuzonEmpresasService {
         return out;
     }
 
-    /** Devuelve la empresa si el usuario puede usarla; si no, lanza BuzonException */
+    /** Devuelve la empresa si el usuario puede usarla; si no, lanza BandejaException */
     public static Account validarEmpresa(Id empresaId) {
         if (empresaId == null || empresaId.getSObjectType() != Account.SObjectType) {
-            throw new BuzonException('La empresa no es válida.');
+            throw new BandejaException('La empresa no es válida.');
         }
         if (!esModoLibre() && !getIdsAsignados().contains(empresaId)) {
-            throw new BuzonException('No tienes permiso para subir documentación de esta empresa.');
+            throw new BandejaException('No tienes permiso para subir documentación de esta empresa.');
         }
         // USER_MODE: aunque esté asignada, tiene que poder verla con su sharing
         List<Account> acc = [SELECT Id, Name, CIF__c FROM Account WHERE Id = :empresaId WITH USER_MODE LIMIT 1];
         if (acc.isEmpty()) {
-            throw new BuzonException('No tienes permiso para subir documentación de esta empresa.');
+            throw new BandejaException('No tienes permiso para subir documentación de esta empresa.');
         }
         return acc[0];
     }

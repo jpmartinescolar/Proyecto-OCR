@@ -3,14 +3,14 @@
     <flexiPageRegions>
         <itemInstances>
             <componentInstance>
-                <componentName>testBuzonPanel</componentName>
-                <identifier>testBuzonPanel_1</identifier>
+                <componentName>testBandejaPanel</componentName>
+                <identifier>testBandejaPanel_1</identifier>
             </componentInstance>
         </itemInstances>
         <name>main</name>
         <type>Region</type>
     </flexiPageRegions>
-    <masterLabel>Buzón Contable Panel</masterLabel>
+    <masterLabel>Bandeja Contable Panel</masterLabel>
     <template>
         <name>flexipage:defaultAppHomeTemplate</name>
     </template>

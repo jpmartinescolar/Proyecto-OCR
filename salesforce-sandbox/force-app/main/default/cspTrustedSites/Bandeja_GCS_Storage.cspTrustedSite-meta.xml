@@ -5,5 +5,5 @@
     <isApplicableToConnectSrc>true</isApplicableToConnectSrc>
     <isApplicableToFrameSrc>true</isApplicableToFrameSrc>
     <isApplicableToImgSrc>true</isApplicableToImgSrc>
-    <description>Cloud Storage (Buzon Test): connect-src para la subida resumible, frame-src/img-src para previsualizar PDFs e imagenes ya subidos (pantalla OCR) via URL firmada.</description>
+    <description>Cloud Storage (Bandeja Contable): connect-src para la subida resumible, frame-src/img-src para previsualizar PDFs e imagenes ya subidos (pantalla OCR) via URL firmada.</description>
 </CspTrustedSite>

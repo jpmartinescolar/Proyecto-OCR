@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <deploymentStatus>Deployed</deploymentStatus>
-    <description>Objeto de pruebas para Subir facturas (opciones A y B). No se usa en el Buzón contable real.</description>
+    <description>Objeto de pruebas para Subir facturas (opciones A y B). Sin relación con el Buzón Contable real de areaContableFiscal.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
     <enableFeeds>false</enableFeeds>
@@ -11,13 +11,13 @@
     <enableSharing>true</enableSharing>
     <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
-    <label>Buzón test</label>
+    <label>Bandeja Contable</label>
     <nameField>
-        <displayFormat>BT-{00000}</displayFormat>
+        <displayFormat>BC-{00000}</displayFormat>
         <label>Nº</label>
         <type>AutoNumber</type>
     </nameField>
-    <pluralLabel>Buzón test</pluralLabel>
+    <pluralLabel>Bandeja Contable</pluralLabel>
     <sharingModel>Private</sharingModel>
     <visibility>Public</visibility>
 </CustomObject>

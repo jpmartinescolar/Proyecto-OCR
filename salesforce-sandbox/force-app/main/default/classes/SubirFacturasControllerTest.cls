@@ -9,7 +9,7 @@ private class SubirFacturasControllerTest {
         GoogleMock(Integer status, String body) { this.status = status; this.body = body; }
         public HttpResponse respond(HttpRequest req) {
             if (lanzar) throw new CalloutException('Read timed out');
-            System.assert(req.getEndpoint().startsWith('callout:GCP_Buzon_Test/'), req.getEndpoint());
+            System.assert(req.getEndpoint().startsWith('callout:GCP_Bandeja_Contable/'), req.getEndpoint());
             HttpResponse res = new HttpResponse();
             res.setStatusCode(status);
             res.setBody(body);
@@ -24,16 +24,16 @@ private class SubirFacturasControllerTest {
     }
 
     static void config(Boolean simulado) {
-        GcpBuzonService.configOverride = new Buzon_Test_Config__mdt(
-            Modo_simulado__c = simulado, Tamano_maximo_MB__c = 10, Named_Credential__c = 'GCP_Buzon_Test');
+        GcpBandejaService.configOverride = new Bandeja_Contable_Config__mdt(
+            Modo_simulado__c = simulado, Tamano_maximo_MB__c = 10, Named_Credential__c = 'GCP_Bandeja_Contable');
     }
 
     static Id empresaId() {
         return [SELECT Id FROM Account WHERE Name = 'Empresa test' LIMIT 1].Id;
     }
 
-    static Buzon_test__c registro(String estado) {
-        Buzon_test__c r = new Buzon_test__c(
+    static Bandeja_Contable__c registro(String estado) {
+        Bandeja_Contable__c r = new Bandeja_Contable__c(
             Empresa__c = empresaId(), Tipo_documentacion__c = 'Emitida', Opcion__c = 'A',
             Archivo_nombre__c = 'factura.pdf', Archivo_tamano__c = 1000, Archivo_tipo__c = 'application/pdf',
             Estado_sincronizacion__c = estado, Intentos__c = 0,
@@ -42,9 +42,9 @@ private class SubirFacturasControllerTest {
         return r;
     }
 
-    static Buzon_test__c leer(Id id) {
+    static Bandeja_Contable__c leer(Id id) {
         return [SELECT Estado_sincronizacion__c, GCS_ruta__c, Google_Id__c, Intentos__c, Ultimo_error__c
-                FROM Buzon_test__c WHERE Id = :id];
+                FROM Bandeja_Contable__c WHERE Id = :id];
     }
 
     static void esperarError(String tipo, String nombre, Long tamano, String mime, String texto) {
@@ -115,7 +115,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void noSeRepiteUnaSubidaSincronizada() {
         config(true);
-        Buzon_test__c r = registro('Sincronizado');
+        Bandeja_Contable__c r = registro('Sincronizado');
         try {
             SubirFacturasController.solicitarSesionSubida(r.Id, 'https://test.local');
             System.assert(false, 'No se puede volver a subir');
@@ -135,7 +135,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void sesionOk() {
         config(false);
-        Buzon_test__c r = registro('Pendiente');
+        Bandeja_Contable__c r = registro('Pendiente');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(200, '{"uploadUrl":"https://storage.googleapis.com/upload/abc"}'));
         Test.startTest();
         SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.Id, 'https://test.local');
@@ -149,13 +149,13 @@ private class SubirFacturasControllerTest {
     @isTest
     static void sesionErrorDeGoogleQuedaGuardado() {
         config(false);
-        Buzon_test__c r = registro('Pendiente');
+        Bandeja_Contable__c r = registro('Pendiente');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(500, 'boom'));
         Test.startTest();
         SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.Id, 'https://test.local');
         Test.stopTest();
         System.assert(!s.ok, 'Devuelve ok = false en vez de lanzar, para no deshacer el estado Error');
-        Buzon_test__c db = leer(r.Id);
+        Bandeja_Contable__c db = leer(r.Id);
         System.assertEquals('Error', db.Estado_sincronizacion__c);
         System.assert(db.Ultimo_error__c.contains('500'), db.Ultimo_error__c);
     }
@@ -163,7 +163,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void sesionSinUrlEsError() {
         config(false);
-        Buzon_test__c r = registro('Pendiente');
+        Bandeja_Contable__c r = registro('Pendiente');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(200, '{}'));
         Test.startTest();
         SubirFacturasController.ResultadoDTO s = SubirFacturasController.solicitarSesionSubida(r.Id, 'https://test.local');
@@ -177,7 +177,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void confirmarOk() {
         config(false);
-        Buzon_test__c r = registro('Subiendo');
+        Bandeja_Contable__c r = registro('Subiendo');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(200, '{"id":42,"size":1000,"crc32c":"AAAA"}'));
         Test.startTest();
         SubirFacturasController.ResultadoDTO c = SubirFacturasController.confirmarSubida(r.Id);
@@ -190,7 +190,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void confirmarErrorTemporalQuedaSubidoYEnCola() {
         config(false);
-        Buzon_test__c r = registro('Subiendo');
+        Bandeja_Contable__c r = registro('Subiendo');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(503, 'no disponible'));
         Test.startTest();
         SubirFacturasController.ResultadoDTO c = SubirFacturasController.confirmarSubida(r.Id);
@@ -203,7 +203,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void confirmarTimeoutEsReintentable() {
         config(false);
-        Buzon_test__c r = registro('Subiendo');
+        Bandeja_Contable__c r = registro('Subiendo');
         GoogleMock m = new GoogleMock(200, '');
         m.lanzar = true;
         Test.setMock(HttpCalloutMock.class, m);
@@ -216,13 +216,13 @@ private class SubirFacturasControllerTest {
     @isTest
     static void confirmarRechazoDefinitivoEsError() {
         config(false);
-        Buzon_test__c r = registro('Subiendo');
+        Bandeja_Contable__c r = registro('Subiendo');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(400, '{"error":"no es un PDF"}'));
         Test.startTest();
         SubirFacturasController.ResultadoDTO c = SubirFacturasController.confirmarSubida(r.Id);
         Test.stopTest();
         System.assert(!c.ok);
-        Buzon_test__c db = leer(r.Id);
+        Bandeja_Contable__c db = leer(r.Id);
         System.assertEquals('Error', db.Estado_sincronizacion__c);
         System.assertEquals(1, db.Intentos__c);
     }
@@ -230,7 +230,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void confirmarEnEstadoIncorrecto() {
         config(true);
-        Buzon_test__c r = registro('Pendiente');
+        Bandeja_Contable__c r = registro('Pendiente');
         try {
             SubirFacturasController.confirmarSubida(r.Id);
             System.assert(false, 'No se puede confirmar sin haber subido');
@@ -244,7 +244,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void marcarErrorYReintentar() {
         config(true);
-        Buzon_test__c r = registro('Subiendo');
+        Bandeja_Contable__c r = registro('Subiendo');
         SubirFacturasController.ResultadoDTO res = SubirFacturasController.marcarError(r.Id, 'Error de red');
         System.assertEquals('Error', res.estado);
         System.assertEquals('Error de red', leer(r.Id).Ultimo_error__c);
@@ -257,7 +257,7 @@ private class SubirFacturasControllerTest {
 
     @isTest
     static void registroInexistente() {
-        Buzon_test__c r = registro('Pendiente');
+        Bandeja_Contable__c r = registro('Pendiente');
         delete r;
         try {
             SubirFacturasController.marcarError(r.Id, 'x');
@@ -272,12 +272,12 @@ private class SubirFacturasControllerTest {
     @isTest
     static void colaConfirmaCuandoGoogleResponde() {
         config(false);
-        Buzon_test__c r = registro('Subido');
+        Bandeja_Contable__c r = registro('Subido');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(200, '{"id":"7"}'));
         Test.startTest();
         new GcpSyncQueueable(r.Id, 2).execute(null);
         Test.stopTest();
-        Buzon_test__c db = leer(r.Id);
+        Bandeja_Contable__c db = leer(r.Id);
         System.assertEquals('Sincronizado', db.Estado_sincronizacion__c);
         System.assertEquals(1, db.Intentos__c);
     }
@@ -285,12 +285,12 @@ private class SubirFacturasControllerTest {
     @isTest
     static void colaSigueReintentandoSiQuedanIntentos() {
         config(false);
-        Buzon_test__c r = registro('Subido');
+        Bandeja_Contable__c r = registro('Subido');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(503, 'no disponible'));
         Test.startTest();
         new GcpSyncQueueable(r.Id, 1).execute(null);
         Test.stopTest();
-        Buzon_test__c db = leer(r.Id);
+        Bandeja_Contable__c db = leer(r.Id);
         System.assertEquals('Subido', db.Estado_sincronizacion__c);
         System.assert(db.Ultimo_error__c.startsWith('Intento 1 de 3'), db.Ultimo_error__c);
     }
@@ -298,7 +298,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void colaQuedaEnErrorTrasElUltimoIntento() {
         config(false);
-        Buzon_test__c r = registro('Subido');
+        Bandeja_Contable__c r = registro('Subido');
         Test.setMock(HttpCalloutMock.class, new GoogleMock(503, 'no disponible'));
         Test.startTest();
         new GcpSyncQueueable(r.Id, GcpSyncQueueable.MAX_INTENTOS).execute(null);
@@ -309,7 +309,7 @@ private class SubirFacturasControllerTest {
     @isTest
     static void colaNoHaceNadaSiYaEstaSincronizado() {
         config(false);
-        Buzon_test__c r = registro('Sincronizado');
+        Bandeja_Contable__c r = registro('Sincronizado');
         Test.startTest();
         new GcpSyncQueueable(r.Id, 1).execute(null);
         Test.stopTest();

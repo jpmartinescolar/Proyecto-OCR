@@ -15,7 +15,7 @@
         <default>false</default>
         <label>Ticket</label>
     </customValue>
-    <description>Tipo de documento subido al buzón contable. API names estables sin tildes; las etiquetas se pueden traducir.</description>
-    <masterLabel>Tipo documentación buzón</masterLabel>
+    <description>Tipo de documento subido a la Bandeja Contable (prototipo). API names estables sin tildes; las etiquetas se pueden traducir.</description>
+    <masterLabel>Tipo documentación bandeja contable</masterLabel>
     <sorted>false</sorted>
 </GlobalValueSet>

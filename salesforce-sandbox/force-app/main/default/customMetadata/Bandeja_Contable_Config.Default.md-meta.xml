@@ -12,7 +12,7 @@
     </values>
     <values>
         <field>Named_Credential__c</field>
-        <value xsi:type="xsd:string">GCP_Buzon_Test</value>
+        <value xsi:type="xsd:string">GCP_Bandeja_Contable</value>
     </values>
     <values>
         <field>Cloud_Run_URL__c</field>

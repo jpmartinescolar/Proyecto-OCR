@@ -2,7 +2,7 @@
  * Controlador del formulario de pruebas Subir facturas, opción A (testSubirFacturasA).
  *
  * Flujo (cada paso es una transacción aparte: Apex no permite un callout después de un DML):
- *  1. crearRegistro          → Buzon_test__c en estado Pendiente
+ *  1. crearRegistro          → Bandeja_Contable__c en estado Pendiente
  *  2. solicitarSesionSubida  → callout a Google, estado Subiendo; el navegador sube el archivo a GCS
  *  3. confirmarSubida        → callout a Google, estado Sincronizado (o Subido + reintento en cola)
  *  marcarError               → el navegador informa de un fallo en la subida
@@ -33,13 +33,13 @@ public with sharing class SubirFacturasController {
         @AuraEnabled public Boolean esPortal;
         @AuraEnabled public Boolean simulado;
         @AuraEnabled public Long maxBytes;
-        @AuraEnabled public List<BuzonEmpresasService.EmpresaDTO> empresas;
+        @AuraEnabled public List<BandejaEmpresasService.EmpresaDTO> empresas;
     }
 
     /** ok = false: fallo de Google ya guardado en el registro (no se lanza excepción para no deshacer el DML) */
     public class ResultadoDTO {
         @AuraEnabled public Boolean ok = true;
-        @AuraEnabled public GcpBuzonService.Sesion sesion;
+        @AuraEnabled public GcpBandejaService.Sesion sesion;
         @AuraEnabled public Id recordId;
         @AuraEnabled public String numero;
         @AuraEnabled public String estado;
@@ -49,11 +49,11 @@ public with sharing class SubirFacturasController {
     @AuraEnabled(cacheable=true)
     public static ContextoDTO getContexto() {
         ContextoDTO c = new ContextoDTO();
-        c.modoLibre = BuzonEmpresasService.esModoLibre();
-        c.esPortal = BuzonEmpresasService.esUsuarioPortal();
-        c.simulado = GcpBuzonService.esSimulado();
-        c.maxBytes = GcpBuzonService.maxBytes();
-        c.empresas = BuzonEmpresasService.getEmpresasPermitidas();
+        c.modoLibre = BandejaEmpresasService.esModoLibre();
+        c.esPortal = BandejaEmpresasService.esUsuarioPortal();
+        c.simulado = GcpBandejaService.esSimulado();
+        c.maxBytes = GcpBandejaService.maxBytes();
+        c.empresas = BandejaEmpresasService.getEmpresasPermitidas();
         return c;
     }
 
@@ -62,13 +62,13 @@ public with sharing class SubirFacturasController {
      * aquí (igual que en crearRegistro): nadie ve archivos de una empresa a la que no tiene acceso.
      */
     @AuraEnabled
-    public static List<GcpBuzonService.RegistroOcr> listarArchivosOcr(Id empresaId) {
+    public static List<GcpBandejaService.RegistroOcr> listarArchivosOcr(Id empresaId) {
         try {
-            Account a = BuzonEmpresasService.validarEmpresa(empresaId);
-            return GcpBuzonService.listarRegistros(a.CIF__c);
-        } catch (BuzonEmpresasService.BuzonException e) {
+            Account a = BandejaEmpresasService.validarEmpresa(empresaId);
+            return GcpBandejaService.listarRegistros(a.CIF__c);
+        } catch (BandejaEmpresasService.BandejaException e) {
             throw error(e.getMessage());
-        } catch (GcpBuzonService.GcpBuzonException e) {
+        } catch (GcpBandejaService.GcpBandejaException e) {
             throw error('No se ha podido consultar los archivos en Google. ' + e.getMessage());
         }
     }
@@ -77,10 +77,10 @@ public with sharing class SubirFacturasController {
     public static ResultadoDTO crearRegistro(Id empresaId, String tipo, String observaciones,
                                              String nombreArchivo, Long tamano, String mime) {
         try {
-            BuzonEmpresasService.validarEmpresa(empresaId);
+            BandejaEmpresasService.validarEmpresa(empresaId);
             validarTipo(tipo);
             validarArchivo(nombreArchivo, tamano, mime);
-            Buzon_test__c r = new Buzon_test__c(
+            Bandeja_Contable__c r = new Bandeja_Contable__c(
                 Empresa__c = empresaId,
                 Tipo_documentacion__c = tipo,
                 Observaciones__c = observaciones,
@@ -93,7 +93,7 @@ public with sharing class SubirFacturasController {
             );
             Database.insert(r, AccessLevel.USER_MODE);
             return resultado(cargar(r.Id), null);
-        } catch (BuzonEmpresasService.BuzonException e) {
+        } catch (BandejaEmpresasService.BandejaException e) {
             throw error(e.getMessage());
         } catch (DmlException e) {
             throw error('No se ha podido guardar el registro: ' + e.getDmlMessage(0));
@@ -103,15 +103,15 @@ public with sharing class SubirFacturasController {
     /** Pide la sesión de subida a Google. El callout va antes del DML en la misma transacción. */
     @AuraEnabled
     public static ResultadoDTO solicitarSesionSubida(Id recordId, String origin) {
-        Buzon_test__c r = cargar(recordId);
+        Bandeja_Contable__c r = cargar(recordId);
         // Subiendo también se admite: una subida interrumpida (pestaña cerrada) se vuelve a empezar
         if (!new Set<String>{ ESTADO_PENDIENTE, ESTADO_SUBIENDO, ESTADO_ERROR }.contains(r.Estado_sincronizacion__c)) {
             throw error('El registro ' + r.Name + ' ya está en estado ' + r.Estado_sincronizacion__c + '.');
         }
-        GcpBuzonService.Sesion s;
+        GcpBandejaService.Sesion s;
         try {
-            s = GcpBuzonService.crearSesion(r, r.Empresa__r.CIF__c, origin);
-        } catch (GcpBuzonService.GcpBuzonException e) {
+            s = GcpBandejaService.crearSesion(r, r.Empresa__r.CIF__c, origin);
+        } catch (GcpBandejaService.GcpBandejaException e) {
             guardarError(r, e.getMessage(), false);
             return fallo(r, 'No se ha podido preparar la subida en Google. ' + e.getMessage());
         }
@@ -130,15 +130,15 @@ public with sharing class SubirFacturasController {
      */
     @AuraEnabled
     public static ResultadoDTO confirmarSubida(Id recordId) {
-        Buzon_test__c r = cargar(recordId);
+        Bandeja_Contable__c r = cargar(recordId);
         if (r.Estado_sincronizacion__c != ESTADO_SUBIENDO && r.Estado_sincronizacion__c != ESTADO_SUBIDO) {
             throw error('El registro ' + r.Name + ' no está pendiente de confirmar (estado ' + r.Estado_sincronizacion__c + ').');
         }
         try {
-            aplicarConfirmacion(r, GcpBuzonService.confirmar(r, r.Empresa__r.CIF__c));
+            aplicarConfirmacion(r, GcpBandejaService.confirmar(r, r.Empresa__r.CIF__c));
             Database.update(r, AccessLevel.USER_MODE);
             return resultado(r, 'Factura subida y sincronizada con Google.');
-        } catch (GcpBuzonService.GcpBuzonException e) {
+        } catch (GcpBandejaService.GcpBandejaException e) {
             if (e.reintentable) {
                 r.Estado_sincronizacion__c = ESTADO_SUBIDO;
                 r.Ultimo_error__c = e.getMessage();
@@ -154,7 +154,7 @@ public with sharing class SubirFacturasController {
     /** El navegador informa de que la subida a Cloud Storage ha fallado */
     @AuraEnabled
     public static ResultadoDTO marcarError(Id recordId, String mensaje) {
-        Buzon_test__c r = cargar(recordId);
+        Bandeja_Contable__c r = cargar(recordId);
         guardarError(r, String.isBlank(mensaje) ? 'Error desconocido en la subida.' : mensaje, false);
         return resultado(r, null);
     }
@@ -162,7 +162,7 @@ public with sharing class SubirFacturasController {
     /** Reintento manual de la confirmación de un registro cuyo archivo ya está en GCS */
     @AuraEnabled
     public static ResultadoDTO reintentarSincronizacion(Id recordId) {
-        Buzon_test__c r = cargar(recordId);
+        Bandeja_Contable__c r = cargar(recordId);
         if (String.isBlank(r.GCS_ruta__c) || r.Estado_sincronizacion__c == ESTADO_SINCRONIZADO) {
             throw error('Este registro no tiene una sincronización pendiente.');
         }
@@ -172,12 +172,12 @@ public with sharing class SubirFacturasController {
 
     // ===== Uso interno (también desde GcpSyncQueueable) =====
 
-    public static Buzon_test__c cargar(Id recordId) {
-        List<Buzon_test__c> rs = [
+    public static Bandeja_Contable__c cargar(Id recordId) {
+        List<Bandeja_Contable__c> rs = [
             SELECT Id, Name, Empresa__c, Empresa__r.CIF__c, Tipo_documentacion__c, Archivo_nombre__c,
                    Archivo_tamano__c, Archivo_tipo__c, GCS_ruta__c, Google_Id__c, Estado_sincronizacion__c,
                    Intentos__c, Ultimo_error__c, CreatedById
-            FROM Buzon_test__c
+            FROM Bandeja_Contable__c
             WHERE Id = :recordId
             WITH USER_MODE
             LIMIT 1
@@ -186,13 +186,13 @@ public with sharing class SubirFacturasController {
         return rs[0];
     }
 
-    public static void aplicarConfirmacion(Buzon_test__c r, GcpBuzonService.Confirmacion c) {
+    public static void aplicarConfirmacion(Bandeja_Contable__c r, GcpBandejaService.Confirmacion c) {
         r.Google_Id__c = c.googleId;
         r.Estado_sincronizacion__c = ESTADO_SINCRONIZADO;
         r.Ultimo_error__c = null;
     }
 
-    public static void guardarError(Buzon_test__c r, String mensaje, Boolean contarIntento) {
+    public static void guardarError(Bandeja_Contable__c r, String mensaje, Boolean contarIntento) {
         r.Estado_sincronizacion__c = ESTADO_ERROR;
         r.Ultimo_error__c = mensaje == null ? null : mensaje.left(32768);
         if (contarIntento) r.Intentos__c = (r.Intentos__c == null ? 0 : r.Intentos__c) + 1;
@@ -201,35 +201,35 @@ public with sharing class SubirFacturasController {
 
     @TestVisible
     private static void validarTipo(String tipo) {
-        for (Schema.PicklistEntry pe : Buzon_test__c.Tipo_documentacion__c.getDescribe().getPicklistValues()) {
+        for (Schema.PicklistEntry pe : Bandeja_Contable__c.Tipo_documentacion__c.getDescribe().getPicklistValues()) {
             if (pe.isActive() && pe.getValue() == tipo) return;
         }
-        throw new BuzonEmpresasService.BuzonException('El tipo de documentación no es válido.');
+        throw new BandejaEmpresasService.BandejaException('El tipo de documentación no es válido.');
     }
 
     /** Misma validación que en el navegador: allí es para avisar, aquí es la que cuenta */
     @TestVisible
     private static void validarArchivo(String nombre, Long tamano, String mime) {
         if (String.isBlank(nombre) || !nombre.contains('.')) {
-            throw new BuzonEmpresasService.BuzonException('Falta el archivo o no tiene extensión.');
+            throw new BandejaEmpresasService.BandejaException('Falta el archivo o no tiene extensión.');
         }
         String ext = nombre.substringAfterLast('.').toLowerCase();
         if (!MIME_POR_EXTENSION.containsKey(ext)) {
-            throw new BuzonEmpresasService.BuzonException('Formato no permitido (.' + ext + '). Solo PDF, ZIP, PNG, JPG o JPEG.');
+            throw new BandejaEmpresasService.BandejaException('Formato no permitido (.' + ext + '). Solo PDF, ZIP, PNG, JPG o JPEG.');
         }
         String m = mime == null ? '' : mime.toLowerCase();
         if (!MIME_POR_EXTENSION.get(ext).contains(m)) {
-            throw new BuzonEmpresasService.BuzonException('El tipo del archivo (' + mime + ') no coincide con su extensión.');
+            throw new BandejaEmpresasService.BandejaException('El tipo del archivo (' + mime + ') no coincide con su extensión.');
         }
         if (tamano == null || tamano <= 0) {
-            throw new BuzonEmpresasService.BuzonException('El archivo está vacío.');
+            throw new BandejaEmpresasService.BandejaException('El archivo está vacío.');
         }
-        if (tamano > GcpBuzonService.maxBytes()) {
-            throw new BuzonEmpresasService.BuzonException('El archivo supera el tamaño máximo permitido.');
+        if (tamano > GcpBandejaService.maxBytes()) {
+            throw new BandejaEmpresasService.BandejaException('El archivo supera el tamaño máximo permitido.');
         }
     }
 
-    private static ResultadoDTO resultado(Buzon_test__c r, String mensaje) {
+    private static ResultadoDTO resultado(Bandeja_Contable__c r, String mensaje) {
         ResultadoDTO res = new ResultadoDTO();
         res.recordId = r.Id;
         res.numero = r.Name;
@@ -238,7 +238,7 @@ public with sharing class SubirFacturasController {
         return res;
     }
 
-    private static ResultadoDTO fallo(Buzon_test__c r, String mensaje) {
+    private static ResultadoDTO fallo(Bandeja_Contable__c r, String mensaje) {
         ResultadoDTO res = resultado(r, mensaje);
         res.ok = false;
         return res;

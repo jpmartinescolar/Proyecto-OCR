@@ -3,14 +3,14 @@
  * El archivo nunca pasa por aquí: Apex solo pide la sesión de subida resumible y
  * confirma cuando el navegador ha terminado de subirlo a Cloud Storage.
  *
- * Con Buzon_Test_Config__mdt.Default.Modo_simulado__c = true no hay callouts:
+ * Con Bandeja_Contable_Config__mdt.Default.Modo_simulado__c = true no hay callouts:
  * se devuelven respuestas simuladas para poder probar el flujo sin Google.
  */
-public with sharing class GcpBuzonService {
+public with sharing class GcpBandejaService {
 
     private static final Integer TIMEOUT_MS = 20000;
 
-    public class GcpBuzonException extends Exception {
+    public class GcpBandejaException extends Exception {
         /** true si merece la pena reintentar (timeout, 429, 5xx); false si es un error de datos (4xx) */
         public Boolean reintentable = false;
         public Integer statusCode;
@@ -45,14 +45,14 @@ public with sharing class GcpBuzonService {
     }
 
     @TestVisible
-    private static Buzon_Test_Config__mdt configOverride;
+    private static Bandeja_Contable_Config__mdt configOverride;
 
-    public static Buzon_Test_Config__mdt config() {
+    public static Bandeja_Contable_Config__mdt config() {
         if (configOverride != null) return configOverride;
-        Buzon_Test_Config__mdt c = Buzon_Test_Config__mdt.getInstance('Default');
+        Bandeja_Contable_Config__mdt c = Bandeja_Contable_Config__mdt.getInstance('Default');
         if (c == null) {
             // Sin registro de configuración nunca se llama a Google por error
-            c = new Buzon_Test_Config__mdt(Modo_simulado__c = true, Tamano_maximo_MB__c = 2048);
+            c = new Bandeja_Contable_Config__mdt(Modo_simulado__c = true, Tamano_maximo_MB__c = 2048);
         }
         return c;
     }
@@ -72,7 +72,7 @@ public with sharing class GcpBuzonService {
      * solo habilita CORS en las respuestas de la subida si la sesión se creó con ese Origin;
      * sin esto, el navegador recibe la subida bien (200) pero bloqueada por CORS al leerla.
      */
-    public static Sesion crearSesion(Buzon_test__c r, String cif, String origin) {
+    public static Sesion crearSesion(Bandeja_Contable__c r, String cif, String origin) {
         String gcsPath = rutaGcs(UserInfo.getOrganizationId(), cif, r.Id, r.Archivo_nombre__c);
         Sesion s = new Sesion();
         s.gcsPath = gcsPath;
@@ -90,7 +90,7 @@ public with sharing class GcpBuzonService {
         s.simulado = false;
         s.uploadUrl = (String) res.get('uploadUrl');
         if (String.isBlank(s.uploadUrl)) {
-            GcpBuzonException e = new GcpBuzonException('Google no ha devuelto la sesión de subida.');
+            GcpBandejaException e = new GcpBandejaException('Google no ha devuelto la sesión de subida.');
             e.reintentable = true;
             throw e;
         }
@@ -101,7 +101,7 @@ public with sharing class GcpBuzonService {
      * Confirma la subida: Cloud Run comprueba el objeto en GCS (tamaño, crc32c, tipo real)
      * y hace UPSERT en Cloud SQL con sf_record_id como clave, así un reintento no duplica.
      */
-    public static Confirmacion confirmar(Buzon_test__c r, String cif) {
+    public static Confirmacion confirmar(Bandeja_Contable__c r, String cif) {
         Confirmacion c = new Confirmacion();
         if (esSimulado()) {
             c.googleId = 'SIM-' + r.Id;
@@ -127,7 +127,7 @@ public with sharing class GcpBuzonService {
     /**
      * Lista los archivos ya subidos de una empresa (por CIF), más recientes primero, cada uno
      * con una URL firmada de solo lectura para previsualizarlo. El cif ya debe venir validado
-     * (la empresa la valida BuzonEmpresasService antes de llamar aquí).
+     * (la empresa la valida BandejaEmpresasService antes de llamar aquí).
      */
     public static List<RegistroOcr> listarRegistros(String cif) {
         if (esSimulado()) return new List<RegistroOcr>();
@@ -188,7 +188,7 @@ public with sharing class GcpBuzonService {
         if (cachedIdToken != null && cachedIdTokenExp != null && ahora < (cachedIdTokenExp - 60)) {
             return cachedIdToken;
         }
-        Buzon_Test_Config__mdt c = config();
+        Bandeja_Contable_Config__mdt c = config();
         Auth.JWT jwt = new Auth.JWT();
         jwt.setIss(c.SA_Client_Email__c);
         jwt.setSub(c.SA_Client_Email__c);
@@ -201,7 +201,7 @@ public with sharing class GcpBuzonService {
         try {
             jws = new Auth.JWS(jwt, c.Certificate_Name__c);
         } catch (Exception e) {
-            GcpBuzonException ex = new GcpBuzonException('No se ha podido firmar el JWT para Google: ' + e.getMessage());
+            GcpBandejaException ex = new GcpBandejaException('No se ha podido firmar el JWT para Google: ' + e.getMessage());
             ex.reintentable = false;
             throw ex;
         }
@@ -218,12 +218,12 @@ public with sharing class GcpBuzonService {
         try {
             res = new Http().send(req);
         } catch (CalloutException ce) {
-            GcpBuzonException e = new GcpBuzonException('No se ha podido obtener el token de Google: ' + ce.getMessage());
+            GcpBandejaException e = new GcpBandejaException('No se ha podido obtener el token de Google: ' + ce.getMessage());
             e.reintentable = true;
             throw e;
         }
         if (res.getStatusCode() != 200) {
-            GcpBuzonException e = new GcpBuzonException('Google OAuth ha respondido ' + res.getStatusCode() + ': ' + res.getBody().left(300));
+            GcpBandejaException e = new GcpBandejaException('Google OAuth ha respondido ' + res.getStatusCode() + ': ' + res.getBody().left(300));
             e.reintentable = res.getStatusCode() >= 500;
             throw e;
         }
@@ -245,7 +245,7 @@ public with sharing class GcpBuzonService {
         try {
             res = new Http().send(req);
         } catch (CalloutException ce) {
-            GcpBuzonException e = new GcpBuzonException('No se ha podido conectar con Google: ' + ce.getMessage());
+            GcpBandejaException e = new GcpBandejaException('No se ha podido conectar con Google: ' + ce.getMessage());
             e.reintentable = true;
             throw e;
         }
@@ -256,7 +256,7 @@ public with sharing class GcpBuzonService {
                 : (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
         }
         String cuerpo = res.getBody() == null ? '' : res.getBody().left(500);
-        GcpBuzonException e = new GcpBuzonException('Google ha respondido ' + code + ': ' + cuerpo);
+        GcpBandejaException e = new GcpBandejaException('Google ha respondido ' + code + ': ' + cuerpo);
         e.statusCode = code;
         e.reintentable = code == 408 || code == 429 || code >= 500;
         throw e;

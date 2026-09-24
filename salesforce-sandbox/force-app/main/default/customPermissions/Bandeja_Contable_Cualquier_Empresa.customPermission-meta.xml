@@ -2,5 +2,5 @@
 <CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
     <description>Permite elegir cualquier empresa visible en el formulario de pruebas de Subir facturas (solo para administradores que prueban).</description>
     <isLicensed>false</isLicensed>
-    <label>Buzón test: cualquier empresa</label>
+    <label>Bandeja Contable: cualquier empresa</label>
 </CustomPermission>

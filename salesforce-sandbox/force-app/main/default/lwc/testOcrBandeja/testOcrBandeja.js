@@ -5,7 +5,7 @@ import listarArchivosOcr from '@salesforce/apex/SubirFacturasController.listarAr
 // Con más empresas que esto se usa el buscador en vez del desplegable (mismo criterio que Subir facturas)
 const MAX_EMPRESAS_COMBO = 50;
 
-export default class TestOcrBuzon extends LightningElement {
+export default class TestOcrBandeja extends LightningElement {
     contexto;
     errorCarga;
 

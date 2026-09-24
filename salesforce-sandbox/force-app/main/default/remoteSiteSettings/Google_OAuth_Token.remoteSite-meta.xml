@@ -3,5 +3,5 @@
     <disableProtocolSecurity>false</disableProtocolSecurity>
     <isActive>true</isActive>
     <url>https://oauth2.googleapis.com</url>
-    <description>Endpoint OAuth de Google para canjear el JWT firmado por un ID token (autenticación del Buzon Test contra Cloud Run privado).</description>
+    <description>Endpoint OAuth de Google para canjear el JWT firmado por un ID token (autenticación de la Bandeja Contable contra Cloud Run privado).</description>
 </RemoteSiteSetting>

@@ -1,5 +1,5 @@
 @isTest
-private class BuzonEmpresasServiceTest {
+private class BandejaEmpresasServiceTest {
 
     @TestSetup
     static void setup() {
@@ -16,7 +16,7 @@ private class BuzonEmpresasServiceTest {
 
     @isTest
     static void listaSoloLasEmpresasAsignadas() {
-        List<BuzonEmpresasService.EmpresaDTO> empresas = BuzonEmpresasService.getEmpresasPermitidas();
+        List<BandejaEmpresasService.EmpresaDTO> empresas = BandejaEmpresasService.getEmpresasPermitidas();
         System.assertEquals(1, empresas.size(), 'Solo la cuenta de la que es asesor');
         System.assertEquals('Asignada', empresas[0].nombre);
         System.assertEquals('B00000001', empresas[0].cif);
@@ -24,16 +24,16 @@ private class BuzonEmpresasServiceTest {
 
     @isTest
     static void validaEmpresaAsignada() {
-        Account a = BuzonEmpresasService.validarEmpresa(cuenta('Asignada').Id);
+        Account a = BandejaEmpresasService.validarEmpresa(cuenta('Asignada').Id);
         System.assertEquals('B00000001', a.CIF__c);
     }
 
     @isTest
     static void rechazaEmpresaNoAsignada() {
         try {
-            BuzonEmpresasService.validarEmpresa(cuenta('Ajena').Id);
+            BandejaEmpresasService.validarEmpresa(cuenta('Ajena').Id);
             System.assert(false, 'Debe rechazar una empresa no asignada');
-        } catch (BuzonEmpresasService.BuzonException e) {
+        } catch (BandejaEmpresasService.BandejaException e) {
             System.assert(e.getMessage().contains('No tienes permiso'), e.getMessage());
         }
     }
@@ -41,9 +41,9 @@ private class BuzonEmpresasServiceTest {
     @isTest
     static void rechazaIdQueNoEsDeCuenta() {
         try {
-            BuzonEmpresasService.validarEmpresa(UserInfo.getUserId());
+            BandejaEmpresasService.validarEmpresa(UserInfo.getUserId());
             System.assert(false, 'Un Id de usuario no es una empresa');
-        } catch (BuzonEmpresasService.BuzonException e) {
+        } catch (BandejaEmpresasService.BandejaException e) {
             System.assertEquals('La empresa no es válida.', e.getMessage());
         }
     }
@@ -51,15 +51,15 @@ private class BuzonEmpresasServiceTest {
     @isTest
     static void modoLibrePermiteCualquierEmpresaVisible() {
         User yo = new User(Id = UserInfo.getUserId());
-        PermissionSet ps = [SELECT Id FROM PermissionSet WHERE Name = 'Buzon_Test_Todas_Empresas'];
+        PermissionSet ps = [SELECT Id FROM PermissionSet WHERE Name = 'Bandeja_Contable_Todas_Empresas'];
         System.runAs(yo) {
             insert new PermissionSetAssignment(AssigneeId = yo.Id, PermissionSetId = ps.Id);
         }
         System.runAs(yo) {
-            System.assert(BuzonEmpresasService.esModoLibre(), 'El permiso activa el modo libre');
-            System.assertEquals(0, BuzonEmpresasService.getEmpresasPermitidas().size(),
+            System.assert(BandejaEmpresasService.esModoLibre(), 'El permiso activa el modo libre');
+            System.assertEquals(0, BandejaEmpresasService.getEmpresasPermitidas().size(),
                 'En modo libre se usa el buscador, no la lista');
-            System.assertEquals('B00000002', BuzonEmpresasService.validarEmpresa(cuenta('Ajena').Id).CIF__c);
+            System.assertEquals('B00000002', BandejaEmpresasService.validarEmpresa(cuenta('Ajena').Id).CIF__c);
         }
     }
 }

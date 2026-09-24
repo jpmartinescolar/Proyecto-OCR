@@ -2,8 +2,8 @@ import { LightningElement, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { getObjectInfo, getPicklistValues } from 'lightning/uiObjectInfoApi';
-import BUZON_TEST_OBJECT from '@salesforce/schema/Buzon_test__c';
-import TIPO_FIELD from '@salesforce/schema/Buzon_test__c.Tipo_documentacion__c';
+import BANDEJA_CONTABLE_OBJECT from '@salesforce/schema/Bandeja_Contable__c';
+import TIPO_FIELD from '@salesforce/schema/Bandeja_Contable__c.Tipo_documentacion__c';
 import getContexto from '@salesforce/apex/SubirFacturasController.getContexto';
 import crearRegistro from '@salesforce/apex/SubirFacturasController.crearRegistro';
 import solicitarSesionSubida from '@salesforce/apex/SubirFacturasController.solicitarSesionSubida';
@@ -61,7 +61,7 @@ export default class TestSubirFacturasA extends NavigationMixin(LightningElement
         }
     }
 
-    @wire(getObjectInfo, { objectApiName: BUZON_TEST_OBJECT })
+    @wire(getObjectInfo, { objectApiName: BANDEJA_CONTABLE_OBJECT })
     objectInfo;
 
     @wire(getPicklistValues, { recordTypeId: '$objectInfo.data.defaultRecordTypeId', fieldApiName: TIPO_FIELD })
@@ -222,7 +222,7 @@ export default class TestSubirFacturasA extends NavigationMixin(LightningElement
         if (!this.recordId) return;
         this[NavigationMixin.Navigate]({
             type: 'standard__recordPage',
-            attributes: { recordId: this.recordId, objectApiName: 'Buzon_test__c', actionName: 'view' }
+            attributes: { recordId: this.recordId, objectApiName: 'Bandeja_Contable__c', actionName: 'view' }
         });
     }
 

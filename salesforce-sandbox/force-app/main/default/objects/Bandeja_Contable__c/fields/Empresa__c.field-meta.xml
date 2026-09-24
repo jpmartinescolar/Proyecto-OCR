@@ -4,8 +4,8 @@
     <deleteConstraint>Restrict</deleteConstraint>
     <label>Empresa</label>
     <referenceTo>Account</referenceTo>
-    <relationshipLabel>Buzón test</relationshipLabel>
-    <relationshipName>Buzon_test</relationshipName>
+    <relationshipLabel>Bandeja Contable</relationshipLabel>
+    <relationshipName>Bandeja_Contable</relationshipName>
     <required>true</required>
     <type>Lookup</type>
 </CustomField>
