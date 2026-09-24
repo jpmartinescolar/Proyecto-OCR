@@ -1050,8 +1050,6 @@ td.rh-grupo-persona:last-child { text-align: right; }
 .obl-filtros-aviso { display: inline-block; font-size: 0.72rem; color: #8a5a00; background: #fdf6d8;
     border: 1px solid #ecdba4; border-radius: 0.4rem; padding: 0.3rem 0.6rem; margin: 0 0 0.6rem; }
 .obl-filtros-aviso .ts-ms-link { margin-left: 0.3rem; }
-/* Barra de botones sobre el resumen del Buzón contable (por ahora solo "Subir facturas") */
-.acf-buz-toolbar { display: flex; gap: 0.5rem; margin-bottom: 0.7rem; }
 .obl-filtros .acf-filtro-cc { min-width: 0; width: auto; flex: 0 0 auto; }
 .obl-filtros .ts-ms-trigger { width: auto; font-size: 0.74rem; height: 2rem;
     padding: 0 0.5rem; }
