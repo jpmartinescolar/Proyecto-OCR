@@ -4057,6 +4057,11 @@ export default class AreaContableFiscal extends NavigationMixin(LightningElement
     handleBuzRefresh() { this.cargarBuz(); }
     handleBuzBusqueda(e) { this.buzBusqueda = e.detail.value; }
 
+    // Subir facturas (prototipo de subida a Google Cloud Storage, en pruebas): formulario en modal
+    @track subirFacturasAbierto = false;
+    handleAbrirSubirFacturas() { this.subirFacturasAbierto = true; }
+    handleCerrarSubirFacturas() { this.subirFacturasAbierto = false; }
+
     // Filtros cruzados: tipo de documentación, asesor responsable y estado
     @track buzTipoSel = '';
     @track buzAsesorSel = '';

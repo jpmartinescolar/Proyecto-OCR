@@ -4838,6 +4838,10 @@
             </template>
             <template if:true={buzShow}>
                 <div class="acf-wrap">
+                    <div class="acf-buz-toolbar">
+                        <lightning-button label="Subir facturas" icon-name="utility:upload" variant="brand"
+                                           onclick={handleAbrirSubirFacturas}></lightning-button>
+                    </div>
                     <div class="acf-contab">
                         <!-- Columna izquierda: total, totales por tipo y por asesor -->
                         <div class="acf-contab-izq">
@@ -6517,6 +6521,25 @@
                     </header>
                     <div class="slds-modal__content slds-p-around_medium">
                         <lightning-flow flow-api-name="Telemarketing_Llamadas" onstatuschange={handleTmkEstado}></lightning-flow>
+                    </div>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
+        <!-- Subir facturas (prototipo de subida a Google Cloud Storage, en pruebas): formulario en modal -->
+        <template if:true={subirFacturasAbierto}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                title="Cerrar" onclick={handleCerrarSubirFacturas}>
+                            <lightning-icon icon-name="utility:close" size="small" variant="inverse" alternative-text="Cerrar"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Subir facturas</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <c-test-subir-facturas-a></c-test-subir-facturas-a>
                     </div>
                 </div>
             </section>
