@@ -7,7 +7,9 @@ export const MIME_POR_EXTENSION = {
     zip: ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip', ''],
     png: ['image/png', ''],
     jpg: ['image/jpeg', ''],
-    jpeg: ['image/jpeg', '']
+    jpeg: ['image/jpeg', ''],
+    xlsx: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip', ''],
+    xls: ['application/vnd.ms-excel', '']
 };
 
 export const ACCEPT = Object.keys(MIME_POR_EXTENSION).map((e) => '.' + e).join(',');
@@ -32,7 +34,7 @@ export function validarArchivo(file, maxBytes) {
     const ext = extension(file.name);
     const mimes = MIME_POR_EXTENSION[ext];
     if (!mimes) {
-        return 'Formato no permitido' + (ext ? ' (.' + ext + ')' : '') + '. Solo PDF, ZIP, PNG, JPG o JPEG.';
+        return 'Formato no permitido' + (ext ? ' (.' + ext + ')' : '') + '. Solo PDF, ZIP, PNG, JPG, JPEG, XLSX o XLS.';
     }
     const mime = String(file.type || '').toLowerCase();
     if (!mimes.includes(mime)) {

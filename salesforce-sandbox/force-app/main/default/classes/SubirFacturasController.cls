@@ -25,7 +25,9 @@ public with sharing class SubirFacturasController {
         'zip' => new Set<String>{ 'application/zip', 'application/x-zip-compressed', 'multipart/x-zip', '' },
         'png' => new Set<String>{ 'image/png', '' },
         'jpg' => new Set<String>{ 'image/jpeg', '' },
-        'jpeg' => new Set<String>{ 'image/jpeg', '' }
+        'jpeg' => new Set<String>{ 'image/jpeg', '' },
+        'xlsx' => new Set<String>{ 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip', '' },
+        'xls' => new Set<String>{ 'application/vnd.ms-excel', '' }
     };
 
     public class ContextoDTO {
@@ -215,7 +217,7 @@ public with sharing class SubirFacturasController {
         }
         String ext = nombre.substringAfterLast('.').toLowerCase();
         if (!MIME_POR_EXTENSION.containsKey(ext)) {
-            throw new BandejaEmpresasService.BandejaException('Formato no permitido (.' + ext + '). Solo PDF, ZIP, PNG, JPG o JPEG.');
+            throw new BandejaEmpresasService.BandejaException('Formato no permitido (.' + ext + '). Solo PDF, ZIP, PNG, JPG, JPEG, XLSX o XLS.');
         }
         String m = mime == null ? '' : mime.toLowerCase();
         if (!MIME_POR_EXTENSION.get(ext).contains(m)) {

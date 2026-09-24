@@ -25,9 +25,10 @@ const PASOS = [
 /** Error de Google que Apex ya ha guardado en el registro (no hay que llamar a marcarError) */
 class ErrorGuardado extends Error {}
 
+let clave = 0;
+
 export default class TestSubirFacturasA extends NavigationMixin(LightningElement) {
     accept = ACCEPT;
-    pasos = PASOS;
 
     contexto;
     errorCarga;
@@ -36,17 +37,10 @@ export default class TestSubirFacturasA extends NavigationMixin(LightningElement
     empresaId = '';
     tipo = '';
     observaciones = '';
-    file = null;
-    fileError = '';
+    archivos = [];
 
     trabajando = false;
-    paso = '';
-    subidos = 0;
-    error = '';
-    resultado = null;
-    // Registro creado en el intento actual: al reintentar se reutiliza en vez de crear otro
-    recordId = null;
-    numero = '';
+    canceladoPorUsuario = false;
     subida = null;
     controlSimulado = null;
 
@@ -88,107 +82,110 @@ export default class TestSubirFacturasA extends NavigationMixin(LightningElement
     get simulado() { return this.contexto && this.contexto.simulado; }
     get maxBytesTxt() { return this.contexto ? formatearBytes(this.contexto.maxBytes) : ''; }
 
-    // ===== Estado de la subida =====
-    get botonDeshabilitado() { return this.trabajando || !this.contexto || this.sinEmpresas; }
-    get fileInfo() { return this.file ? `${this.file.name} · ${formatearBytes(this.file.size)}` : ''; }
-    get progreso() { return this.file && this.file.size ? Math.round((this.subidos / this.file.size) * 100) : 0; }
-    get progresoTxt() {
-        return this.file ? `${formatearBytes(this.subidos)} de ${formatearBytes(this.file.size)} (${this.progreso} %)` : '';
+    // ===== Archivos en cola =====
+    get hayArchivos() { return this.archivos.length > 0; }
+    // Vista para la plantilla: LWC no permite comparar a.estado === 'x' dentro del HTML
+    get filasArchivos() {
+        return this.archivos.map((a) => ({
+            ...a,
+            esInvalido: a.estado === 'invalido',
+            esSubiendo: a.estado === 'subiendo',
+            esOk: a.estado === 'ok',
+            esError: a.estado === 'error',
+            mostrarProgreso: a.estado === 'subiendo',
+            permiteQuitar: a.estado !== 'subiendo',
+            permiteReintentar: a.estado === 'error' && !this.trabajando,
+            filaCls: 'stf-fila stf-fila-' + a.estado
+        }));
     }
-    get mostrarProgreso() { return this.trabajando || this.paso === 'subida'; }
-    get pasoActual() { return this.paso || 'registro'; }
-    get hayError() { return !!this.error; }
-    get puedeReintentar() { return this.hayError && !this.trabajando && !!this.file && !this.fileError; }
-    get exitoCompleto() { return this.resultado && this.resultado.estado === 'Sincronizado'; }
-    get resultadoCls() {
-        return 'slds-box slds-m-top_medium ' + (this.exitoCompleto ? 'stf-ok' : 'stf-aviso');
+    get totalArchivosTxt() {
+        const n = this.archivos.length;
+        return n === 1 ? '1 archivo' : n + ' archivos';
     }
+    get botonSubirLabel() {
+        const pendientes = this.archivos.filter((a) => a.estado === 'pendiente' || a.estado === 'error').length;
+        return pendientes > 1 ? `Subir ${pendientes} facturas` : 'Subir factura';
+    }
+    get botonDeshabilitado() {
+        if (this.trabajando || !this.contexto || this.sinEmpresas) return true;
+        return !this.archivos.some((a) => a.estado === 'pendiente' || a.estado === 'error');
+    }
+    get puedeReintentar() { return false; } // el reintento ahora es por archivo (ver reintentarUno)
 
     // ===== Campos =====
-    handleEmpresaCombo(e) { this.empresaId = e.detail.value; this.nuevoIntento(); }
-    handleEmpresaPicker(e) { this.empresaId = e.detail.recordId || ''; this.nuevoIntento(); }
-    handleTipo(e) { this.tipo = e.detail.value; this.nuevoIntento(); }
+    handleEmpresaCombo(e) { this.empresaId = e.detail.value; }
+    handleEmpresaPicker(e) { this.empresaId = e.detail.recordId || ''; }
+    handleTipo(e) { this.tipo = e.detail.value; }
     handleObservaciones(e) { this.observaciones = e.detail.value; }
 
+    // Cada selección (o soltar archivos) añade a la cola; no hay límite de cantidad
     handleArchivo(e) {
-        const files = e.target.files;
-        this.file = files && files.length ? files[0] : null;
-        this.fileError = validarArchivo(this.file, this.contexto && this.contexto.maxBytes) || '';
-        const input = e.target;
-        input.setCustomValidity(this.fileError);
-        input.reportValidity();
-        if (this.fileError) this.toast('Archivo no válido', this.fileError, 'error');
-        this.subidos = 0;
-        this.nuevoIntento();
+        const nuevos = e.target.files ? Array.from(e.target.files) : [];
+        const maxBytes = this.contexto && this.contexto.maxBytes;
+        nuevos.forEach((file) => {
+            const fileError = validarArchivo(file, maxBytes) || '';
+            this.archivos.push({
+                key: 'f' + clave++,
+                file,
+                nombre: file.name,
+                tamanoTxt: formatearBytes(file.size),
+                fileError,
+                estado: fileError ? 'invalido' : 'pendiente',
+                progreso: 0,
+                progresoTxt: '',
+                mensaje: '',
+                recordId: null,
+                numero: ''
+            });
+        });
+        this.archivos = [...this.archivos];
+        e.target.value = null; // permite volver a elegir el mismo archivo si hace falta
+        if (nuevos.some((f) => validarArchivo(f, maxBytes))) {
+            this.toast('Algún archivo no es válido', 'Revisa la lista: los archivos marcados en rojo no se subirán.', 'warning');
+        }
     }
 
-    // Si cambian los datos, el siguiente envío crea un registro nuevo (el anterior queda como histórico)
-    nuevoIntento() {
-        if (this.trabajando) return;
-        this.recordId = null;
-        this.numero = '';
-        this.error = '';
-        this.resultado = null;
-        this.paso = '';
+    quitarArchivo(e) {
+        const key = e.currentTarget.dataset.key;
+        this.archivos = this.archivos.filter((a) => a.key !== key || a.estado === 'subiendo');
+    }
+
+    reintentarUno(e) {
+        const key = e.currentTarget.dataset.key;
+        const item = this.archivos.find((a) => a.key === key);
+        if (item) {
+            item.estado = 'pendiente';
+            item.mensaje = '';
+            this.archivos = [...this.archivos];
+            this.handleSubir();
+        }
     }
 
     validarFormulario() {
-        const campos = [...this.template.querySelectorAll('lightning-combobox, lightning-textarea, lightning-input')];
+        const campos = [...this.template.querySelectorAll('lightning-combobox, lightning-textarea')];
         const camposOk = campos.reduce((ok, c) => c.reportValidity() && ok, true);
         if (!this.empresaId) {
             this.toast('Falta la empresa', 'Selecciona la empresa.', 'error');
             return false;
         }
-        if (!this.file || this.fileError) {
-            this.toast('Falta el archivo', this.fileError || 'Adjunta un fichero.', 'error');
+        if (!this.archivos.some((a) => a.estado === 'pendiente' || a.estado === 'error')) {
+            this.toast('Falta el archivo', 'Adjunta al menos un fichero válido.', 'error');
             return false;
         }
         return camposOk;
     }
 
-    // ===== Flujo: registro → sesión → subida → confirmación =====
+    // ===== Flujo: registro → sesión → subida → confirmación, uno por uno =====
     async handleSubir() {
-        if (!this.validarFormulario()) return;
+        if (this.trabajando || !this.validarFormulario()) return;
         this.trabajando = true;
-        this.error = '';
-        this.resultado = null;
-        this.subidos = 0;
+        this.canceladoPorUsuario = false;
         try {
-            if (!this.recordId) {
-                this.paso = 'registro';
-                const r = await crearRegistro({
-                    empresaId: this.empresaId,
-                    tipo: this.tipo,
-                    observaciones: this.observaciones,
-                    nombreArchivo: this.file.name,
-                    tamano: this.file.size,
-                    mime: this.file.type
-                });
-                this.recordId = r.recordId;
-                this.numero = r.numero;
+            for (const item of this.archivos) {
+                if (this.canceladoPorUsuario) break;
+                if (item.estado !== 'pendiente' && item.estado !== 'error') continue;
+                await this.subirUno(item);
             }
-
-            this.paso = 'sesion';
-            const s = await solicitarSesionSubida({ recordId: this.recordId, origin: window.location.origin });
-            if (!s.ok) throw new ErrorGuardado(s.mensaje);
-
-            this.paso = 'subida';
-            const onProgreso = (subidos) => { this.subidos = subidos; };
-            if (s.sesion.simulado) {
-                this.controlSimulado = { cancelada: false };
-                await simularSubida(this.file, onProgreso, this.controlSimulado);
-            } else {
-                this.subida = new SubidaResumible(this.file, s.sesion.uploadUrl, onProgreso);
-                await this.subida.iniciar();
-            }
-
-            this.paso = 'confirmacion';
-            const c = await confirmarSubida({ recordId: this.recordId });
-            if (!c.ok) throw new ErrorGuardado(c.mensaje);
-            this.resultado = c;
-            this.toast(c.numero, c.mensaje, c.estado === 'Sincronizado' ? 'success' : 'warning');
-        } catch (e) {
-            await this.gestionarError(e);
         } finally {
             this.trabajando = false;
             this.subida = null;
@@ -196,33 +193,91 @@ export default class TestSubirFacturasA extends NavigationMixin(LightningElement
         }
     }
 
-    async gestionarError(e) {
+    async subirUno(item) {
+        item.estado = 'subiendo';
+        item.paso = 'registro';
+        item.mensaje = '';
+        this.archivos = [...this.archivos];
+        try {
+            if (!item.recordId) {
+                const r = await crearRegistro({
+                    empresaId: this.empresaId,
+                    tipo: this.tipo,
+                    observaciones: this.observaciones,
+                    nombreArchivo: item.file.name,
+                    tamano: item.file.size,
+                    mime: item.file.type
+                });
+                item.recordId = r.recordId;
+                item.numero = r.numero;
+            }
+
+            item.paso = 'sesion';
+            this.actualizarItem(item);
+            const s = await solicitarSesionSubida({ recordId: item.recordId, origin: window.location.origin });
+            if (!s.ok) throw new ErrorGuardado(s.mensaje);
+
+            item.paso = 'subida';
+            const onProgreso = (subidos) => {
+                item.progreso = item.file.size ? Math.round((subidos / item.file.size) * 100) : 0;
+                item.progresoTxt = `${formatearBytes(subidos)} de ${formatearBytes(item.file.size)} (${item.progreso} %)`;
+                this.actualizarItem(item);
+            };
+            if (s.sesion.simulado) {
+                this.controlSimulado = { cancelada: false };
+                await simularSubida(item.file, onProgreso, this.controlSimulado);
+            } else {
+                this.subida = new SubidaResumible(item.file, s.sesion.uploadUrl, onProgreso);
+                await this.subida.iniciar();
+            }
+
+            item.paso = 'confirmacion';
+            this.actualizarItem(item);
+            const c = await confirmarSubida({ recordId: item.recordId });
+            if (!c.ok) throw new ErrorGuardado(c.mensaje);
+            item.estado = 'ok';
+            item.numero = c.numero;
+            item.mensaje = c.mensaje;
+            this.actualizarItem(item);
+        } catch (e) {
+            await this.gestionarError(item, e);
+        }
+    }
+
+    async gestionarError(item, e) {
         const mensaje = e instanceof SubidaCancelada ? e.message : this.reduceError(e);
-        this.error = mensaje;
+        item.estado = 'error';
+        item.mensaje = mensaje;
+        this.actualizarItem(item);
         // Los fallos del navegador (subida a GCS) se guardan en el registro desde aquí;
         // los de Google ya los ha guardado Apex, y los de validación no tienen registro
-        if (this.recordId && !(e instanceof ErrorGuardado) && this.paso === 'subida') {
+        if (item.recordId && !(e instanceof ErrorGuardado) && item.paso === 'subida') {
             try {
-                await marcarError({ recordId: this.recordId, mensaje });
+                await marcarError({ recordId: item.recordId, mensaje });
             } catch (err) {
-                this.error = mensaje + ' (Tampoco se ha podido guardar el error: ' + this.reduceError(err) + ')';
+                item.mensaje = mensaje + ' (Tampoco se ha podido guardar el error: ' + this.reduceError(err) + ')';
+                this.actualizarItem(item);
             }
         }
-        this.toast('No se ha podido subir la factura', this.error, 'error');
+    }
+
+    actualizarItem(item) {
+        this.archivos = this.archivos.map((a) => (a.key === item.key ? { ...item } : a));
     }
 
     handleCancelar() {
+        this.canceladoPorUsuario = true;
         if (this.subida) this.subida.cancelar();
         if (this.controlSimulado) this.controlSimulado.cancelada = true;
     }
 
-    handleReintentar() { this.handleSubir(); }
-
-    handleAbrirRegistro() {
-        if (!this.recordId) return;
+    handleAbrirRegistro(e) {
+        const key = e.currentTarget.dataset.key;
+        const item = this.archivos.find((a) => a.key === key);
+        if (!item || !item.recordId) return;
         this[NavigationMixin.Navigate]({
             type: 'standard__recordPage',
-            attributes: { recordId: this.recordId, objectApiName: 'Bandeja_Contable__c', actionName: 'view' }
+            attributes: { recordId: item.recordId, objectApiName: 'Bandeja_Contable__c', actionName: 'view' }
         });
     }
 

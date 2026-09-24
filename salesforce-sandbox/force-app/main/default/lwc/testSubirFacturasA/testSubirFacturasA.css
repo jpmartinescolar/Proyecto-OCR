@@ -4,3 +4,17 @@
 .stf-ok { background: #e3f5e6; border-color: #1d6f42; color: #1d6f42; }
 .stf-aviso { background: #fdf6e8; border-color: #b26a00; color: #6b4400; }
 .stf-error { background: #fef1f1; border-color: #ba0517; color: #ba0517; }
+
+.stf-lista-titulo { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #5f6b7c; }
+.stf-lista { border: 1px solid #e2e6ec; border-radius: 0.5rem; max-height: 16rem; overflow-y: auto; margin-top: 0.35rem; }
+.stf-fila { padding: 0.5rem 0.75rem; border-bottom: 1px solid #f0f2f6; }
+.stf-fila:last-child { border-bottom: none; }
+.stf-fila-cabecera { display: flex; align-items: center; gap: 0.5rem; }
+.stf-fila-nombre { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.82rem; font-weight: 600; }
+.stf-fila-tamano { flex: 0 0 auto; font-size: 0.74rem; color: #5f6b7c; }
+.stf-fila-msg { font-size: 0.74rem; margin-top: 0.25rem; }
+.stf-fila-msg-ok { color: #1d6f42; }
+.stf-fila-msg-error { color: #ba0517; }
+.stf-fila-invalido .stf-fila-nombre { color: #ba0517; text-decoration: line-through; }
+.stf-fila-ok { background: #f4fbf5; }
+.stf-fila-error { background: #fef8f8; }

@@ -49,66 +49,60 @@
                                     value={observaciones} disabled={trabajando}
                                     onchange={handleObservaciones}></lightning-textarea>
 
-                <!-- Archivo -->
-                <lightning-input type="file" label="Adjuntar fichero" required accept={accept}
+                <!-- Archivos: sin límite de cantidad, se pueden ir añadiendo en varias tandas -->
+                <lightning-input type="file" label="Adjuntar ficheros" multiple accept={accept}
                                  disabled={trabajando} onchange={handleArchivo}></lightning-input>
                 <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
-                    PDF, ZIP, PNG, JPG o JPEG. Máximo {maxBytesTxt}.
+                    PDF, ZIP, PNG, JPG, JPEG, XLSX o XLS. Sin límite de archivos. Máximo {maxBytesTxt} por archivo.
                 </div>
-                <template lwc:if={fileInfo}>
-                    <div class="slds-m-top_x-small stf-file">{fileInfo}</div>
-                </template>
 
-                <!-- Progreso -->
-                <template lwc:if={mostrarProgreso}>
-                    <div class="slds-m-top_medium">
-                        <lightning-progress-indicator current-step={pasoActual} type="path" variant="base">
-                            <template for:each={pasos} for:item="p">
-                                <lightning-progress-step key={p.key} label={p.label} value={p.key}></lightning-progress-step>
-                            </template>
-                        </lightning-progress-indicator>
-                        <div class="slds-m-top_small">
-                            <lightning-progress-bar value={progreso} size="large"></lightning-progress-bar>
-                            <div class="slds-text-body_small slds-m-top_xx-small">{progresoTxt}</div>
-                        </div>
-                    </div>
-                </template>
-
-                <!-- Error -->
-                <template lwc:if={hayError}>
-                    <div class="slds-box stf-error slds-m-top_medium">
-                        <div>{error}</div>
-                        <template lwc:if={numero}>
-                            <div class="slds-text-body_small slds-m-top_xx-small">
-                                El registro {numero} queda guardado con el error para poder revisarlo.
+                <template lwc:if={hayArchivos}>
+                    <div class="stf-lista-titulo slds-m-top_medium">{totalArchivosTxt}</div>
+                    <div class="stf-lista">
+                        <template for:each={filasArchivos} for:item="a">
+                            <div key={a.key} class={a.filaCls}>
+                                <div class="stf-fila-cabecera">
+                                    <div class="stf-fila-nombre" title={a.nombre}>{a.nombre}</div>
+                                    <div class="stf-fila-tamano">{a.tamanoTxt}</div>
+                                    <template lwc:if={a.permiteQuitar}>
+                                        <lightning-button-icon icon-name="utility:close" variant="bare"
+                                            alternative-text="Quitar" title="Quitar de la lista"
+                                            data-key={a.key} onclick={quitarArchivo}></lightning-button-icon>
+                                    </template>
+                                </div>
+                                <template lwc:if={a.esInvalido}>
+                                    <div class="stf-fila-msg stf-fila-msg-error">{a.fileError}</div>
+                                </template>
+                                <template lwc:if={a.mostrarProgreso}>
+                                    <lightning-progress-bar value={a.progreso} size="small"></lightning-progress-bar>
+                                    <div class="stf-fila-msg">{a.progresoTxt}</div>
+                                </template>
+                                <template lwc:if={a.esOk}>
+                                    <div class="stf-fila-msg stf-fila-msg-ok">
+                                        <a href="javascript:void(0);" data-key={a.key} onclick={handleAbrirRegistro}>{a.numero}</a>
+                                        · {a.mensaje}
+                                    </div>
+                                </template>
+                                <template lwc:if={a.esError}>
+                                    <div class="stf-fila-msg stf-fila-msg-error">
+                                        {a.mensaje}
+                                        <template lwc:if={a.permiteReintentar}>
+                                            <a href="javascript:void(0);" data-key={a.key} onclick={reintentarUno}>Reintentar</a>
+                                        </template>
+                                    </div>
+                                </template>
                             </div>
                         </template>
-                    </div>
-                </template>
-
-                <!-- Resultado -->
-                <template lwc:if={resultado}>
-                    <div class={resultadoCls}>
-                        <div><strong>{resultado.numero}</strong> · {resultado.estado}</div>
-                        <div class="slds-text-body_small">{resultado.mensaje}</div>
                     </div>
                 </template>
             </template>
         </div>
 
         <div slot="footer" class="stf-footer">
-            <template lwc:if={numero}>
-                <lightning-button variant="base" label={numero} title="Abrir el registro"
-                                  onclick={handleAbrirRegistro}></lightning-button>
-            </template>
             <template lwc:if={trabajando}>
                 <lightning-button label="Cancelar" onclick={handleCancelar}></lightning-button>
             </template>
-            <template lwc:if={puedeReintentar}>
-                <lightning-button label="Reintentar" icon-name="utility:refresh"
-                                  onclick={handleReintentar}></lightning-button>
-            </template>
-            <lightning-button variant="brand" label="Subir factura" icon-name="utility:upload"
+            <lightning-button variant="brand" label={botonSubirLabel} icon-name="utility:upload"
                               disabled={botonDeshabilitado} onclick={handleSubir}></lightning-button>
         </div>
     </lightning-card>

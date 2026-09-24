@@ -9,6 +9,8 @@ describe('validarArchivo', () => {
         expect(validarArchivo(archivo('f.ZIP', 'application/x-zip-compressed', 10), 5 * MB)).toBeNull();
         expect(validarArchivo(archivo('f.png', 'image/png', 10), 5 * MB)).toBeNull();
         expect(validarArchivo(archivo('f.jpeg', 'image/jpeg', 10), 5 * MB)).toBeNull();
+        expect(validarArchivo(archivo('f.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 10), 5 * MB)).toBeNull();
+        expect(validarArchivo(archivo('f.xls', 'application/vnd.ms-excel', 10), 5 * MB)).toBeNull();
     });
 
     it('acepta MIME vacío (el navegador no siempre lo sabe)', () => {
@@ -47,6 +49,6 @@ describe('utilidades', () => {
     });
 
     it('accept del input', () => {
-        expect(ACCEPT).toBe('.pdf,.zip,.png,.jpg,.jpeg');
+        expect(ACCEPT).toBe('.pdf,.zip,.png,.jpg,.jpeg,.xlsx,.xls');
     });
 });
