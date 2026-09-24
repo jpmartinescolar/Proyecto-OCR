@@ -1,0 +1,59 @@
+/* ---------- Cabeceras a varias líneas (componente tabla de amortización) ---------- */
+c-tabla-amortizacion-inmovilizado lightning-datatable thead th,
+c-tabla-amortizacion-inmovilizado .slds-cell-fixed,
+c-amortizacion-masiva lightning-datatable thead th,
+c-amortizacion-masiva .slds-cell-fixed {
+    white-space: normal !important;
+    vertical-align: top !important;
+}
+
+c-tabla-amortizacion-inmovilizado lightning-datatable thead th .slds-truncate,
+c-tabla-amortizacion-inmovilizado .slds-cell-fixed .slds-truncate,
+c-amortizacion-masiva lightning-datatable thead th .slds-truncate,
+c-amortizacion-masiva .slds-cell-fixed .slds-truncate {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.25 !important;
+}
+
+/* ---------- Colores de columnas (tabla de amortización individual) ---------- */
+c-tabla-amortizacion-inmovilizado td.celda-maximo,
+c-tabla-amortizacion-inmovilizado td.celda-maximo .slds-truncate {
+    color: #c23934 !important;
+    font-weight: 600 !important;
+}
+
+c-tabla-amortizacion-inmovilizado td.celda-residual,
+c-tabla-amortizacion-inmovilizado td.celda-residual .slds-truncate {
+    color: #0070d2 !important;
+    font-weight: 600 !important;
+}
+
+c-tabla-amortizacion-inmovilizado td.slds-text-color_destructive,
+c-tabla-amortizacion-inmovilizado td.slds-text-color_destructive .slds-truncate {
+    color: #c23934 !important;
+    font-weight: 600 !important;
+}
+
+/* ---------- Desglose por empresa (wizard amortización masiva) ---------- */
+c-amortizacion-masiva td.col-ok        { color: #2e844a !important; font-weight: 600 !important; }
+c-amortizacion-masiva td.col-parcial   { color: #0070d2 !important; font-weight: 600 !important; }
+c-amortizacion-masiva td.col-duplicado { color: #fe9339 !important; font-weight: 600 !important; }
+c-amortizacion-masiva td.col-fuera     { color: #706e6b !important; }
+c-amortizacion-masiva td.col-error     { color: #c23934 !important; font-weight: 600 !important; }
+c-amortizacion-masiva td.col-importe   { font-weight: 600 !important; }
+
+/* Ocultar el botón en filas padre (empresa) */
+c-amortizacion-masiva td.celda-boton-oculta lightning-primitive-cell-button,
+c-amortizacion-masiva td.celda-boton-oculta .slds-button,
+c-amortizacion-masiva td.celda-boton-oculta button {
+    display: none !important;
+}
+
+/* Estilo fila empresa (negrita y fondo suave para distinguir) */
+c-amortizacion-masiva td.fila-empresa,
+c-amortizacion-masiva td.fila-empresa .slds-truncate {
+    font-weight: 700 !important;
+    background-color: #f4f6f9 !important;
+}

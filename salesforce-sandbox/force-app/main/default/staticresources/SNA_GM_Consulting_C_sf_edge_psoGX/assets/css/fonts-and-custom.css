@@ -1,0 +1,75 @@
+.comm-navigation {    
+    font-family:Arial;
+    font-size:18px;
+}
+
+.bedrockLghtIdeas .slds-notify {
+    display: none!important;
+}
+
+article.content .forcePageBlockSectionRow ~ .forcePageBlockSectionRow{
+display:none;
+}
+
+ccnavmenus-nav-menu c-tree-item[aria-selected=true]  div[ccnavmenus-treeitem_treeitem]  > span[ccnavmenus-treeitem_treeitem]{
+    border-left: 5px rgb(63, 142, 72) solid;
+    padding:0px 0px 0px 5px;
+}
+
+
+.comm-page-custom-inicio .siteforceServiceBody .cCenterPanel {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.comm-page-custom-inicio .siteforceContentArea .comm-layout-column:not(:empty) {
+  padding: 0 !important;
+}
+
+.comm-page-custom-inicio .slds-col_padded, 
+.comm-page-custom-inicio .slds-col--padded {
+  padding: 0 !important;
+}
+
+.comm-page-custom-inicio .slds-m-top--x-large {
+  margin-top: 0 !important;
+}
+
+.comm-page-custom-inicio .slds.tokenPadding.testautonumdataInterviewsList .slds-button.slds-button--neutral {
+  visibility: hidden;
+}
+
+.comm-page-custom-inicio .siteforceStarterBody .cCenterPanel {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.comm-page-custom-inicio .slds-p-horizontal_medium, 
+.comm-page-custom-inicio .slds-p-horizontal--medium {
+  padding: 0 !important;
+}
+
+/* 🔒 Solo afecta al contenido de los artículos de Knowledge */
+.selfServiceArticleLayout .slds-rich-text-editor__output,
+.selfServiceArticleLayout .slds-rich-text-editor__output * {
+    font-family:  Arial, sans-serif !important;
+    font-size: 15px !important;
+    color: #222 !important;
+    line-height: 1.6em !important;
+ margin-top: 3px !important;
+    margin-bottom: 3px !important;
+}
+
+/* Incluye texto dentro de tablas */
+.selfServiceArticleLayout .slds-rich-text-editor__output table,
+.selfServiceArticleLayout .slds-rich-text-editor__output table td,
+.selfServiceArticleLayout .slds-rich-text-editor__output table th,
+.selfServiceArticleLayout .slds-rich-text-editor__output table p,
+.selfServiceArticleLayout .slds-rich-text-editor__output table span,
+.selfServiceArticleLayout .slds-rich-text-editor__output table div {
+    font-family:  Arial, sans-serif !important;
+    font-size: 14px !important;
+    color: #222 !important;
+    line-height: 1.6em !important;
+}
+:root { --dxp-c-section-columns-max-width: 1170px; }
