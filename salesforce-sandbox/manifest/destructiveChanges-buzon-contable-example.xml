@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Manifest de referencia para revertir por completo los componentes NUEVOS
+  introducidos por la rama test/buzon-contable, en caso de que el deploy al
+  Sandbox falle o cause un problema y haya que hacer rollback.
+
+  Esto NO borra nada por si solo. Ver DEPLOYMENT.md ("Plan de rollback") para
+  el comando exacto de despliegue que lo usa.
+
+  No incluye los componentes MODIFICADOS por error (areaContableFiscal,
+  StaticResources): esos no son nuevos, se revierten restaurando la version
+  anterior con git show, no borrandolos.
+-->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>BuzonEmpresasService</members>
+        <members>BuzonEmpresasServiceTest</members>
+        <members>GcpBuzonService</members>
+        <members>GcpBuzonServiceTest</members>
+        <members>GcpSyncQueueable</members>
+        <members>SubirFacturasController</members>
+        <members>SubirFacturasControllerTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>testSubirFacturasA</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>Buzon_Test_Config.Default</members>
+        <name>CustomMetadata</name>
+    </types>
+    <types>
+        <members>Buzon_Test_Cualquier_Empresa</members>
+        <name>CustomPermission</name>
+    </types>
+    <types>
+        <members>Buzon_Test_Access</members>
+        <members>Buzon_Test_Todas_Empresas</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>Test_Subir_Facturas_A</members>
+        <name>FlexiPage</name>
+    </types>
+    <types>
+        <members>Tipo_Documentacion_Buzon</members>
+        <name>GlobalValueSet</name>
+    </types>
+    <types>
+        <members>Buzon_test__c</members>
+        <name>CustomTab</name>
+    </types>
+    <!--
+      Estos dos van al final: borrar el CustomObject y el CustomMetadata Type
+      arrastra automaticamente todos sus campos (Buzon_test__c tiene 12,
+      Buzon_Test_Config__mdt tiene 3). Hacerlo antes de borrar lo de arriba
+      puede fallar por dependencias (tab, flexipage y permission sets los
+      referencian).
+    -->
+    <types>
+        <members>Buzon_test__c</members>
+        <members>Buzon_Test_Config__mdt</members>
+        <name>CustomObject</name>
+    </types>
+    <version>67.0</version>
+</Package>
