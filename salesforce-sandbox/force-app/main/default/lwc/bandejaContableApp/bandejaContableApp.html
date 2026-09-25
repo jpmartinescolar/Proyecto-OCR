@@ -1,0 +1,30 @@
+<template>
+    <div class="bc-app">
+        <nav class="bc-nav">
+            <span class="bc-nav-marca">Gestión Contable</span>
+            <span class={claseTabBandeja} onclick={irABandeja}>Bandeja contable</span>
+            <span class={claseTabOcr} onclick={irAOcr}>OCR</span>
+        </nav>
+
+        <div class="bc-contenido">
+            <template lwc:if={esLista}>
+                <c-bandeja-contable-listado onnavegar={handleNavegar}></c-bandeja-contable-listado>
+            </template>
+            <template lwc:if={esRegistro}>
+                <c-bandeja-contable-registro bandeja-id={bandejaId} onnavegar={handleNavegar}></c-bandeja-contable-registro>
+            </template>
+            <template lwc:if={esDocumento}>
+                <c-bandeja-contable-documento bandeja-id={bandejaId} documento-id={docId} origen={tab}
+                                              onnavegar={handleNavegar}></c-bandeja-contable-documento>
+            </template>
+            <template lwc:if={esOcr}>
+                <c-bandeja-contable-ocr empresa-id={empresaId} agrupar={agruparPorEmpresa}
+                                        onnavegar={handleNavegar}></c-bandeja-contable-ocr>
+            </template>
+            <template lwc:if={esEmpresa}>
+                <c-bandeja-contable-empresa empresa-id={empresaId} tab={tab}
+                                            onnavegar={handleNavegar}></c-bandeja-contable-empresa>
+            </template>
+        </div>
+    </div>
+</template>

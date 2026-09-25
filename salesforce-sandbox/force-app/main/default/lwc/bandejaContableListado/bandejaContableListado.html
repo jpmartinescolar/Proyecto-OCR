@@ -1,0 +1,70 @@
+<template>
+    <main class="bc-main">
+        <section class="bc-card">
+            <div class="bc-cabecera">
+                <div class="bc-icono"><lightning-icon icon-name="utility:inbox" size="small" variant="inverse"></lightning-icon></div>
+                <div class="bc-titulos">
+                    <div class="bc-eyebrow">Bandeja contable</div>
+                    <h1 class="bc-titulo">Todas las bandejas</h1>
+                </div>
+                <button class="bc-boton" onclick={handleNuevo}>Nuevo</button>
+            </div>
+            <div class="bc-barra">
+                <span>{contadorTxt}</span>
+                <lightning-button-icon icon-name="utility:refresh" variant="bare" alternative-text="Actualizar"
+                                       title="Actualizar" onclick={cargar}></lightning-button-icon>
+                <div class="bc-filtros">
+                    <template for:each={filtros} for:item="f">
+                        <button key={f.valor} class={f.clase} data-valor={f.valor} onclick={handleFiltro}>{f.valor}</button>
+                    </template>
+                </div>
+                <input class="bc-buscar" type="search" placeholder="Buscar en esta lista…" value={busqueda} oninput={handleBuscar}>
+            </div>
+
+            <template lwc:if={cargando}>
+                <div class="bc-spinner"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+            </template>
+            <template lwc:if={error}>
+                <div class="bc-vacio bc-rojo">{error}</div>
+            </template>
+            <template lwc:if={sinFilas}>
+                <div class="bc-vacio">No hay bandejas con este filtro. Pulsa «Nuevo» para crear una.</div>
+            </template>
+
+            <template lwc:if={hayFilas}>
+                <div class="bc-tabla-wrap">
+                    <table class="bc-tabla">
+                        <thead>
+                            <tr>
+                                <th class="bc-primera">Fecha de creación</th>
+                                <th>Nº bandeja</th>
+                                <th>Empresa</th>
+                                <th>Tipo de facturas</th>
+                                <th class="bc-centro">Nº archivos</th>
+                                <th>Origen</th>
+                                <th>Subida</th>
+                                <th>Estado</th>
+                                <th class="bc-ultima">Creado por</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={filas} for:item="b">
+                                <tr key={b.id}>
+                                    <td class="bc-primera bc-num bc-nowrap">{b.fechaTxt}</td>
+                                    <td><a class="bc-enlace" href="#" data-id={b.id} onclick={abrirBandeja}>{b.numero}</a></td>
+                                    <td><a class="bc-enlace-neutro" href="#" data-id={b.id} onclick={abrirBandeja}>{b.empresa}</a></td>
+                                    <td>{b.tipo}</td>
+                                    <td class="bc-centro bc-num bc-fuerte">{b.archivos}</td>
+                                    <td class="bc-nowrap">{b.origen}</td>
+                                    <td><span class={b.claseSubida}>{b.estadoSubida}</span></td>
+                                    <td><span class={b.claseEstado}>{b.estado}</span></td>
+                                    <td class="bc-ultima">{b.creadoPor}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+        </section>
+    </main>
+</template>

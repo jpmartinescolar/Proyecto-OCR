@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CspTrustedSite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Google Cloud Storage (Bandeja Contable): connect-src para la subida resumible desde el navegador; frame-src e img-src para previsualizar archivos con URL firmada.</description>
+    <endpointUrl>https://storage.googleapis.com</endpointUrl>
+    <isActive>true</isActive>
+    <isApplicableToConnectSrc>true</isApplicableToConnectSrc>
+    <isApplicableToFrameSrc>true</isApplicableToFrameSrc>
+    <isApplicableToImgSrc>true</isApplicableToImgSrc>
+</CspTrustedSite>

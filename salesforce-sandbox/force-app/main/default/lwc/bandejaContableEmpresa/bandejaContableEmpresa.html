@@ -1,0 +1,166 @@
+<template>
+    <main class="bc-main">
+        <template lwc:if={cargando}>
+            <div class="bc-card"><div class="bc-spinner"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div></div>
+        </template>
+        <template lwc:if={error}>
+            <div class="bc-card"><div class="bc-vacio bc-rojo">{error}</div></div>
+        </template>
+
+        <template lwc:if={empresa}>
+            <section class="bc-card emp-cabecera">
+                <div class="bc-cabecera bc-cabecera-sin-borde">
+                    <div class="bc-icono bc-icono-grande"><lightning-icon icon-name="utility:company" size="small" variant="inverse"></lightning-icon></div>
+                    <div class="bc-titulos">
+                        <div class="bc-migas"><span>Empresas</span><span>/</span><span>{empresa.cif}</span></div>
+                        <h1 class="bc-titulo bc-titulo-grande">{empresa.nombre}</h1>
+                    </div>
+                    <div class="bc-acciones">
+                        <span class="bc-pill">IVA régimen general</span>
+                        <span class="bc-pill">Operador intracomunitario</span>
+                        <span class="bc-pill bc-pill-info">{reglasActivasTxt}</span>
+                    </div>
+                </div>
+                <div class="bc-tabs">
+                    <template for:each={pestanas} for:item="t">
+                        <button key={t.valor} class={t.clase} data-valor={t.valor} onclick={handlePestana}>{t.label}</button>
+                    </template>
+                </div>
+            </section>
+
+            <template lwc:if={enSkills}>
+                <div class="emp-aviso"><span class="bc-ejemplo">Datos de ejemplo</span> El perfil fiscal, las reglas y las skills vendrán del backend de Google; los cambios de esta pantalla solo se mantienen en la sesión.</div>
+                <div class="bc-grid-2">
+                    <section class="bc-card">
+                        <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Perfil fiscal</span><button class="bc-boton-sec bc-boton-peq" onclick={sinBackend}>Editar</button></div>
+                        <div class="emp-perfil">
+                            <template for:each={perfil} for:item="p">
+                                <div key={p.label} class="bc-campo"><span class="bc-campo-label">{p.label}</span><span class="bc-campo-valor">{p.valor}</span></div>
+                            </template>
+                        </div>
+                    </section>
+
+                    <section class="bc-card">
+                        <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Reglas propuestas</span><span class="bc-card-nota">Aprendidas de las correcciones</span></div>
+                        <template lwc:if={hayPropuestas}>
+                            <div class="emp-lista">
+                                <template for:each={propuestas} for:item="p">
+                                    <div key={p.prov} class="emp-propuesta">
+                                        <div class="emp-propuesta-texto">
+                                            <span class="bc-fuerte">{p.prov}</span>
+                                            <span class="emp-texto">{p.text}</span>
+                                            <span class="bc-card-nota">{p.why}</span>
+                                        </div>
+                                        <div class="bc-acciones">
+                                            <button class="bc-boton-sec bc-boton-peq" data-i={p.i} onclick={descartarPropuesta}>Descartar</button>
+                                            <button class="bc-boton bc-boton-peq" data-i={p.i} onclick={aceptarPropuesta}>Aceptar</button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                        <template lwc:else>
+                            <div class="bc-vacio">No hay reglas pendientes de revisar.</div>
+                        </template>
+                    </section>
+
+                    <section class="bc-card emp-ancho">
+                        <div class="bc-card-titulo">
+                            <span class="bc-card-titulo-texto">Reglas por proveedor</span>
+                            <span class="bc-card-nota">{reglasInfo}</span>
+                            <button class="bc-boton bc-boton-peq" onclick={sinBackend}>Nueva regla</button>
+                        </div>
+                        <div class="bc-tabla-wrap">
+                            <table class="bc-tabla bc-tabla-peq">
+                                <thead>
+                                    <tr>
+                                        <th class="bc-primera">Activa</th><th>NIF</th><th>Proveedor</th><th>Cuenta</th><th>Tipo IVA</th>
+                                        <th class="bc-derecha">IVA deducible</th><th>Observaciones</th><th class="bc-ultima">Origen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={reglas} for:item="r">
+                                        <tr key={r.nif} class={r.claseFila}>
+                                            <td class="bc-primera"><button class={r.claseToggle} data-i={r.i} onclick={toggleRegla} title="Activar o desactivar"></button></td>
+                                            <td class="bc-num">{r.nif}</td>
+                                            <td class="bc-fuerte">{r.prov}</td>
+                                            <td class="bc-nowrap"><span class="emp-cuenta">{r.cuenta}</span> {r.desc}</td>
+                                            <td class="bc-nowrap">{r.iva}</td>
+                                            <td class="bc-derecha bc-num">{r.dedTxt}</td>
+                                            <td>{r.nota}</td>
+                                            <td class="bc-ultima"><span class={r.claseOrigen}>{r.origen}</span></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="bc-card">
+                        <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Reglas de validación</span></div>
+                        <div class="emp-lista">
+                            <template for:each={validaciones} for:item="v">
+                                <div key={v.t} class="emp-validacion">
+                                    <button class={v.claseToggle} data-i={v.i} onclick={toggleValidacion} title="Activar o desactivar"></button>
+                                    <span class={v.claseTexto}>{v.t}</span>
+                                </div>
+                            </template>
+                        </div>
+                    </section>
+
+                    <section class="bc-card emp-ancho">
+                        <div class="bc-card-titulo">
+                            <span class="bc-card-titulo-texto">Skills</span>
+                            <span class="bc-card-nota">Comentarios y criterios del cliente que la IA aplica al procesar</span>
+                            <button class="bc-boton bc-boton-peq" onclick={sinBackend}>Nueva skill</button>
+                        </div>
+                        <div class="emp-skills">
+                            <template for:each={skills} for:item="s">
+                                <div key={s.num} class="emp-skill">
+                                    <div class="emp-skill-cab">
+                                        <span class="emp-skill-num">{s.num}</span>
+                                        <span class="emp-skill-titulo">{s.title}</span>
+                                        <span class="bc-pill bc-pill-peq">{s.alcance}</span>
+                                    </div>
+                                    <span class="emp-texto">{s.text}</span>
+                                </div>
+                            </template>
+                        </div>
+                    </section>
+                </div>
+            </template>
+
+            <template lwc:else>
+                <section class="bc-card">
+                    <template lwc:if={hayBandejas}>
+                        <div class="bc-tabla-wrap">
+                            <table class="bc-tabla">
+                                <thead>
+                                    <tr>
+                                        <th class="bc-primera">Nº bandeja</th><th>Tipo de facturas</th><th class="bc-centro">Nº archivos</th>
+                                        <th>Subida</th><th>Estado</th><th class="bc-ultima">Fecha de creación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={filasBandejas} for:item="b">
+                                        <tr key={b.id}>
+                                            <td class="bc-primera"><a class="bc-enlace" href="#" data-id={b.id} onclick={abrirBandeja}>{b.numero}</a></td>
+                                            <td>{b.tipo}</td>
+                                            <td class="bc-centro bc-num bc-fuerte">{b.archivos}</td>
+                                            <td>{b.estadoSubida}</td>
+                                            <td><span class={b.claseEstado}>{b.estado}</span></td>
+                                            <td class="bc-ultima bc-num">{b.fechaTxt}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                    <template lwc:else>
+                        <div class="bc-vacio">Esta empresa todavía no tiene bandejas.</div>
+                    </template>
+                </section>
+            </template>
+        </template>
+    </main>
+</template>

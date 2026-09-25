@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Un envío de documentación contable de una empresa (cabecera). Cada archivo del envío es un Bandeja_Contable_Archivo__c; los archivos se guardan en Google Cloud Storage y sus metadatos en Cloud SQL.</description>
+    <enableActivities>false</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <enableSharing>true</enableSharing>
+    <enableStreamingApi>true</enableStreamingApi>
+    <externalSharingModel>Private</externalSharingModel>
+    <label>Bandeja Contable</label>
+    <nameField>
+        <displayFormat>BC-{00000}</displayFormat>
+        <label>Nº bandeja</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>Bandejas Contables</pluralLabel>
+    <sharingModel>Private</sharingModel>
+    <visibility>Public</visibility>
+</CustomObject>

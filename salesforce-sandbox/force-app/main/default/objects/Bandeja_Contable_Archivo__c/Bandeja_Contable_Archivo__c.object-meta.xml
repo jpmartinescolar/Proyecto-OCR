@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Un archivo de una Bandeja Contable. El archivo está en Google Cloud Storage (GCS_ruta__c) y su registro en Cloud SQL (Google_Id__c); aquí se guarda el seguimiento de la subida.</description>
+    <enableActivities>false</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>false</enableSearch>
+    <enableSharing>true</enableSharing>
+    <enableStreamingApi>true</enableStreamingApi>
+    <externalSharingModel>ControlledByParent</externalSharingModel>
+    <label>Archivo de Bandeja Contable</label>
+    <nameField>
+        <displayFormat>BCA-{000000}</displayFormat>
+        <label>Nº archivo</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>Archivos de Bandeja Contable</pluralLabel>
+    <sharingModel>ControlledByParent</sharingModel>
+    <visibility>Public</visibility>
+</CustomObject>

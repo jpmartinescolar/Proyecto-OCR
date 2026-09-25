@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RemoteSiteSetting xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Endpoint OAuth de Google donde Apex canjea el JWT firmado con el certificado Bandeja_Contable_GCP por un ID token para llamar a Cloud Run.</description>
+    <disableProtocolSecurity>false</disableProtocolSecurity>
+    <isActive>true</isActive>
+    <url>https://oauth2.googleapis.com</url>
+</RemoteSiteSetting>

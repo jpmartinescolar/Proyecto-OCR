@@ -1,0 +1,40 @@
+/* Colores CIDP (Claude Design: colors_and_type.css) */
+:host {
+    --bc-brand-deep: #0e3a66;
+    --bc-ink-2: #3a4a60;
+    --bc-ink-3: #6b7a8f;
+    --bc-line: #d8e3ee;
+    --bc-paper-2: #f5f8fb;
+    --bc-success: #1f8a5b;
+    --bc-success-soft: #e1f4ea;
+    --bc-danger: #c93a3a;
+    --bc-danger-soft: #fbe6e6;
+    --bc-warm-soft: #fff1da;
+    --bc-warm-ink: #8a5a10;
+}
+
+.bcn { display: flex; flex-direction: column; gap: 0.75rem; }
+.bcn-spinner { position: relative; min-height: 4rem; }
+.bcn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.75rem; }
+.bcn-ayuda { font-size: 0.75rem; color: var(--bc-ink-3); margin-top: -0.5rem; }
+
+.bcn-aviso { padding: 0.5rem 0.75rem; border-radius: 0.5rem; background: var(--bc-warm-soft); color: var(--bc-warm-ink); font-size: 0.8125rem; }
+.bcn-aviso-error { background: var(--bc-danger-soft); color: var(--bc-danger); }
+
+.bcn-resumen { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; background: var(--bc-paper-2); font-weight: 600; }
+
+.bcn-lista-titulo { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--bc-ink-3); }
+.bcn-lista { border: 1px solid var(--bc-line); border-radius: 0.5rem; max-height: 18rem; overflow-y: auto; margin-top: -0.4rem; }
+.bcn-fila { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--bc-line); }
+.bcn-fila:last-child { border-bottom: none; }
+.bcn-fila-cabecera { display: flex; align-items: center; gap: 0.5rem; }
+.bcn-fila-nombre { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.82rem; font-weight: 600; }
+.bcn-fila-tamano { flex: 0 0 auto; font-size: 0.74rem; color: var(--bc-ink-3); }
+.bcn-fila-msg { font-size: 0.74rem; margin-top: 0.25rem; color: var(--bc-ink-2); }
+.bcn-fila-msg-ok { color: var(--bc-success); }
+.bcn-fila-msg-error { color: var(--bc-danger); }
+.bcn-fila-invalido .bcn-fila-nombre { color: var(--bc-danger); text-decoration: line-through; }
+.bcn-fila-ok { background: var(--bc-success-soft); }
+.bcn-fila-error { background: var(--bc-danger-soft); }
+
+.bcn-acciones { display: flex; justify-content: flex-end; gap: 0.5rem; }

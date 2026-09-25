@@ -1,0 +1,11 @@
+@import 'c/bandejaContableEstilos';
+
+.reg-hueco { height: 12px; }
+.reg-archivos { padding: 8px 24px 16px; display: flex; flex-direction: column; }
+.reg-archivo { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--bc-line); }
+.reg-archivo:last-child { border-bottom: none; }
+.reg-tipo { width: 36px; height: 44px; border-radius: 4px; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; flex-shrink: 0; }
+.reg-archivo-info { flex: 1; min-width: 0; }
+.reg-archivo-nombre { font-size: 14px; font-weight: 600; color: var(--bc-ink-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reg-archivo-meta { font-size: 12px; color: var(--bc-ink-3); }
+.reg-archivo-error { font-size: 12px; color: var(--bc-danger); }

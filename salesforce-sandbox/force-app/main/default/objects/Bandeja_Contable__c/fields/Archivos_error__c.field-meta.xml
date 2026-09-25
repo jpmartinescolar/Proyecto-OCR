@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Archivos_error__c</fullName>
+    <label>Nº archivos con error</label>
+    <summaryFilterItems>
+        <field>Bandeja_Contable_Archivo__c.Estado__c</field>
+        <operation>equals</operation>
+        <value>Error</value>
+    </summaryFilterItems>
+    <summaryForeignKey>Bandeja_Contable_Archivo__c.Bandeja__c</summaryForeignKey>
+    <summaryOperation>count</summaryOperation>
+    <type>Summary</type>
+</CustomField>

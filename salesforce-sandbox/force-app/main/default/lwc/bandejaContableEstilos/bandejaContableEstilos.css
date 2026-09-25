@@ -1,0 +1,151 @@
+/*
+ * Estilos compartidos de la Bandeja Contable (tokens y piezas del diseño CIDP de Claude Design:
+ * colors_and_type.css + Bandeja Contable.dc.html). Se importan desde cada componente con
+ *   @import 'c/bandejaContableEstilos';
+ */
+:host {
+    --bc-brand-deep: #0e3a66;
+    --bc-brand-primary: #0078ff;
+    --bc-brand-cyan: #1fa9cb;
+    --bc-brand-sky: #6fc8e0;
+    --bc-ink-1: #0f1b2d;
+    --bc-ink-2: #3a4a60;
+    --bc-ink-3: #6b7a8f;
+    --bc-ink-4: #9ca9bc;
+    --bc-paper: #ffffff;
+    --bc-paper-2: #f5f8fb;
+    --bc-paper-3: #e9f1f8;
+    --bc-paper-4: #dce8f4;
+    --bc-line: #d8e3ee;
+    --bc-line-strong: #b7c7d9;
+    --bc-warm: #f4a93c;
+    --bc-warm-soft: #fff1da;
+    --bc-warm-ink: #8a5a10;
+    --bc-success: #1f8a5b;
+    --bc-success-soft: #e1f4ea;
+    --bc-danger: #c93a3a;
+    --bc-danger-soft: #fbe6e6;
+    --bc-info-soft: #e1eeff;
+    --bc-font-display: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --bc-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --bc-shadow-sm: 0 1px 2px rgba(15, 27, 45, 0.06);
+    --bc-shadow-md: 0 4px 12px rgba(15, 27, 45, 0.08);
+    display: block;
+    font-family: var(--bc-font-body);
+    color: var(--bc-ink-1);
+}
+
+/* ===== Contenedores ===== */
+.bc-main { display: flex; flex-direction: column; gap: 16px; max-width: 1440px; margin: 0 auto; padding-bottom: 40px; }
+.bc-main-ancho { max-width: 1920px; }
+.bc-card { background: var(--bc-paper); border: 1px solid var(--bc-line); border-radius: 12px; box-shadow: var(--bc-shadow-sm); overflow: hidden; }
+.bc-card-pad { padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+.bc-card-titulo { padding: 14px 20px; border-bottom: 1px solid var(--bc-line); display: flex; align-items: center; gap: 8px; }
+.bc-card-titulo-texto { font-family: var(--bc-font-display); font-weight: 700; font-size: 15px; color: var(--bc-brand-deep); flex: 1; }
+.bc-card-nota { font-size: 12px; color: var(--bc-ink-3); }
+.bc-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 16px; align-items: start; }
+.bc-col { display: flex; flex-direction: column; gap: 16px; }
+
+/* ===== Cabeceras ===== */
+.bc-cabecera { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px 24px; border-bottom: 1px solid var(--bc-line); }
+.bc-cabecera-sin-borde { padding: 0; border: none; }
+.bc-icono { width: 40px; height: 40px; border-radius: 8px; background: var(--bc-brand-deep); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.bc-icono-grande { width: 44px; height: 44px; }
+.bc-titulos { flex: 1; min-width: 220px; }
+.bc-eyebrow { font-size: 12px; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.bc-titulo { margin: 2px 0 0; font-family: var(--bc-font-display); font-size: 20px; font-weight: 700; color: var(--bc-ink-1); }
+.bc-titulo-grande { font-size: 22px; }
+.bc-migas { font-size: 13px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; color: var(--bc-ink-3); }
+.bc-acciones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.bc-barra { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 24px; border-bottom: 1px solid var(--bc-line); font-size: 13px; color: var(--bc-ink-3); }
+
+/* ===== Enlaces y botones ===== */
+.bc-enlace { font-weight: 600; color: var(--bc-brand-primary); cursor: pointer; text-decoration: none; }
+.bc-enlace:hover { color: var(--bc-brand-deep); text-decoration: underline; }
+.bc-enlace-neutro { color: var(--bc-ink-1); cursor: pointer; text-decoration: none; }
+.bc-enlace-neutro:hover { color: var(--bc-brand-deep); text-decoration: underline; }
+.bc-boton { font: 600 14px var(--bc-font-body); padding: 9px 16px; border-radius: 8px; border: none; background: var(--bc-brand-primary); color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.bc-boton:hover { background: var(--bc-brand-deep); }
+.bc-boton-sec { font: 600 14px var(--bc-font-body); padding: 9px 16px; border-radius: 8px; border: 1px solid var(--bc-line-strong); background: var(--bc-paper); color: var(--bc-brand-deep); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.bc-boton-sec:hover { background: var(--bc-paper-2); }
+.bc-boton-sec[disabled], .bc-boton[disabled] { opacity: 0.5; cursor: not-allowed; }
+.bc-boton-activo { background: var(--bc-brand-deep); color: #fff; border-color: var(--bc-brand-deep); }
+.bc-boton-activo:hover { background: var(--bc-brand-deep); }
+.bc-boton-peq { font-size: 13px; padding: 5px 12px; }
+.bc-boton-mini { font-size: 12px; padding: 4px 10px; }
+.bc-boton-peligro { color: var(--bc-danger); }
+.bc-boton-linea { border: 1px dashed var(--bc-line-strong); background: var(--bc-paper); color: var(--bc-brand-primary); font: 600 12px var(--bc-font-body); padding: 4px 10px; border-radius: 8px; cursor: pointer; margin-top: 6px; }
+.bc-boton-linea:hover { border-color: var(--bc-brand-primary); }
+.bc-boton-quitar { width: 26px; height: 26px; border: none; border-radius: 4px; background: transparent; color: var(--bc-ink-3); cursor: pointer; font-size: 18px; line-height: 1; padding: 0; }
+.bc-boton-quitar:hover { background: var(--bc-danger-soft); color: var(--bc-danger); }
+.bc-flecha { font: 600 14px var(--bc-font-body); width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--bc-line-strong); background: var(--bc-paper); color: var(--bc-brand-deep); cursor: pointer; }
+
+/* Filtros tipo píldora */
+.bc-filtros { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.bc-chip { font: 600 13px var(--bc-font-body); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--bc-line-strong); background: var(--bc-paper); color: var(--bc-ink-2); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.bc-chip-on { background: var(--bc-brand-deep); color: #fff; border-color: var(--bc-brand-deep); }
+.bc-chip-filtro { background: var(--bc-paper-3); color: var(--bc-brand-deep); }
+.bc-buscar { font: 14px var(--bc-font-body); padding: 7px 12px; border-radius: 8px; border: 1px solid var(--bc-line-strong); width: 220px; outline: none; }
+.bc-buscar:focus { border-color: var(--bc-brand-primary); }
+
+/* Pestañas */
+.bc-tabs { display: flex; gap: 4px; }
+.bc-tab { font: 500 14px var(--bc-font-body); padding: 10px 14px; border: none; background: transparent; color: var(--bc-ink-2); border-bottom: 3px solid transparent; cursor: pointer; }
+.bc-tab-on { font-weight: 600; color: var(--bc-brand-deep); border-bottom-color: var(--bc-brand-primary); }
+
+/* ===== Píldoras de estado ===== */
+.bc-pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; background: var(--bc-paper-3); color: var(--bc-brand-deep); }
+.bc-pill-peq { font-size: 11px; padding: 1px 8px; }
+.bc-pill-ok { background: var(--bc-success-soft); color: var(--bc-success); }
+.bc-pill-error { background: var(--bc-danger-soft); color: var(--bc-danger); }
+.bc-pill-pendiente { background: var(--bc-warm-soft); color: var(--bc-warm-ink); }
+.bc-pill-info { background: var(--bc-info-soft); color: var(--bc-brand-deep); }
+.bc-pill-brand { background: var(--bc-brand-primary); color: #fff; }
+.bc-ejemplo { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--bc-warm-soft); color: var(--bc-warm-ink); white-space: nowrap; }
+
+/* ===== Tablas ===== */
+.bc-tabla-wrap { overflow-x: auto; }
+.bc-tabla { width: 100%; border-collapse: collapse; font-size: 14px; }
+.bc-tabla-peq { font-size: 13px; }
+.bc-tabla thead tr { background: var(--bc-paper-2); color: var(--bc-ink-3); font-size: 12px; text-align: left; }
+.bc-tabla th { padding: 10px 12px; font-weight: 600; }
+.bc-tabla td { padding: 12px; color: var(--bc-ink-2); border-top: 1px solid var(--bc-line); }
+.bc-tabla-peq td { padding: 10px 12px; }
+.bc-tabla tbody tr:hover { background: var(--bc-paper-2); }
+.bc-tabla .bc-primera { padding-left: 24px; }
+.bc-tabla .bc-ultima { padding-right: 24px; }
+.bc-derecha { text-align: right; }
+.bc-centro { text-align: center; }
+.bc-num { font-variant-numeric: tabular-nums; }
+.bc-nowrap { white-space: nowrap; }
+.bc-fuerte { color: var(--bc-ink-1) !important; font-weight: 600; }
+.bc-rojo { color: var(--bc-danger) !important; }
+.bc-vacio { padding: 18px 24px; font-size: 13px; color: var(--bc-ink-3); }
+.bc-spinner { position: relative; min-height: 5rem; }
+
+/* ===== Campos de ficha ===== */
+.bc-grupo { padding: 16px 24px 8px; }
+.bc-grupo-titulo { font-size: 12px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.bc-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+.bc-campo { padding: 10px 0; border-bottom: 1px solid var(--bc-line); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.bc-campo-ancho { grid-column: 1 / -1; }
+.bc-campo-label { font-size: 12px; color: var(--bc-ink-3); }
+.bc-campo-valor { font-size: 14px; color: var(--bc-ink-1); font-weight: 500; overflow-wrap: anywhere; }
+.bc-campo-link { color: var(--bc-brand-primary); font-weight: 600; }
+.bc-campo-ok { color: var(--bc-success); font-weight: 600; }
+
+/* Pasos */
+.bc-pasos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.bc-paso { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--bc-ink-3); }
+.bc-paso-barra { height: 6px; border-radius: 999px; background: var(--bc-paper-4); }
+.bc-paso-hecho { color: var(--bc-brand-deep); }
+.bc-paso-hecho .bc-paso-barra { background: var(--bc-brand-primary); }
+.bc-paso-actual { color: var(--bc-brand-deep); }
+.bc-paso-actual .bc-paso-barra { background: var(--bc-brand-cyan); }
+
+/* Interruptor */
+.bc-toggle { width: 34px; height: 20px; border-radius: 999px; border: none; background: var(--bc-paper-4); position: relative; cursor: pointer; padding: 0; flex-shrink: 0; }
+.bc-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px; background: #fff; box-shadow: var(--bc-shadow-sm); transition: left 150ms; }
+.bc-toggle-on { background: var(--bc-brand-primary); }
+.bc-toggle-on::after { left: 16px; }
+.bc-apagado { opacity: 0.5; }

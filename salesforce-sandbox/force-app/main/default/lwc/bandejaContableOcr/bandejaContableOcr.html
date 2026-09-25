@@ -1,0 +1,105 @@
+<template>
+    <main class="bc-main">
+        <section class="bc-card">
+            <div class="bc-cabecera">
+                <div class="bc-icono"><lightning-icon icon-name={iconoTitulo} size="small" variant="inverse"></lightning-icon></div>
+                <div class="bc-titulos">
+                    <div class="bc-eyebrow">OCR · Listado documentos</div>
+                    <h1 class="bc-titulo">{titulo}</h1>
+                </div>
+                <span class="bc-ejemplo" title="Los documentos los generará el OCR de Google; ahora son de ejemplo a partir de los archivos subidos">Datos de ejemplo</span>
+                <button class={claseAgrupar} onclick={toggleAgrupar}>
+                    <lightning-icon icon-name="utility:company" size="x-small"></lightning-icon>Agrupar por empresas
+                </button>
+                <template lwc:if={empresaFiltro}>
+                    <button class="bc-chip bc-chip-filtro" onclick={quitarEmpresa}>Empresa: {empresaFiltro} <span>×</span></button>
+                </template>
+            </div>
+
+            <template lwc:if={cargando}>
+                <div class="bc-spinner"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+            </template>
+            <template lwc:if={error}>
+                <div class="bc-vacio bc-rojo">{error}</div>
+            </template>
+
+            <!-- 04 · Agrupado por empresa -->
+            <template lwc:if={agrupar}>
+                <div class="bc-barra">{contadorEmpresas}</div>
+                <template lwc:if={sinEmpresas}>
+                    <div class="bc-vacio">Todavía no hay documentos OCR.</div>
+                </template>
+                <template lwc:if={hayEmpresas}>
+                    <div class="bc-tabla-wrap">
+                        <table class="bc-tabla">
+                            <thead>
+                                <tr>
+                                    <th class="bc-primera">Empresa</th>
+                                    <th class="bc-derecha">Pendientes</th>
+                                    <th class="bc-derecha bc-ultima">Total OCR documentos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={empresas} for:item="e">
+                                    <tr key={e.id}>
+                                        <td class="bc-primera"><a class="bc-enlace" href="#" data-id={e.id} onclick={filtrarEmpresa}>{e.empresa}</a></td>
+                                        <td class="bc-derecha bc-num">{e.pendientes}</td>
+                                        <td class="bc-derecha bc-num bc-fuerte bc-ultima">{e.total}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+            </template>
+
+            <!-- 03 · Todos los documentos -->
+            <template lwc:else>
+                <div class="bc-barra">
+                    <span>{contadorTxt}</span>
+                    <div class="bc-filtros">
+                        <template for:each={filtros} for:item="f">
+                            <button key={f.valor} class={f.clase} data-valor={f.valor} onclick={handleFiltro}>{f.valor}</button>
+                        </template>
+                    </div>
+                    <input class="bc-buscar" type="search" placeholder="Buscar en esta lista…" value={busqueda} oninput={handleBuscar}>
+                </div>
+                <template lwc:if={sinFilas}>
+                    <div class="bc-vacio">No hay documentos con este filtro.</div>
+                </template>
+                <template lwc:if={hayFilas}>
+                    <div class="bc-tabla-wrap">
+                        <table class="bc-tabla">
+                            <thead>
+                                <tr>
+                                    <th class="bc-primera">Fecha de creación</th>
+                                    <th class="bc-derecha">Nº días</th>
+                                    <th>Nº documento</th>
+                                    <th>Nombre del archivo</th>
+                                    <th>Tipo</th>
+                                    <th>Estado</th>
+                                    <th>Bandeja contable</th>
+                                    <th class="bc-ultima">Empresa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={filas} for:item="d">
+                                    <tr key={d.id}>
+                                        <td class="bc-primera bc-num bc-nowrap">{d.fechaTxt}</td>
+                                        <td class={d.claseDias}>{d.dias}</td>
+                                        <td><a class="bc-enlace" href="#" data-id={d.id} onclick={abrirDocumento}>{d.numero}</a></td>
+                                        <td class="bc-fuerte">{d.nombre}</td>
+                                        <td>{d.formato}</td>
+                                        <td><span class={d.claseEstado}>{d.estado}</span></td>
+                                        <td><a class="bc-enlace" href="#" data-id={d.bandejaId} onclick={abrirBandeja}>{d.bandejaNumero}</a></td>
+                                        <td class="bc-ultima"><a class="bc-enlace-neutro" href="#" data-id={d.empresaId} onclick={abrirEmpresa}>{d.empresa}</a></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+            </template>
+        </section>
+    </main>
+</template>

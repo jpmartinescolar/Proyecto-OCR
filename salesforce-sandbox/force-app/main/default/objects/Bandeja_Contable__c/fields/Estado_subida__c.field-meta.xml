@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Estado_subida__c</fullName>
+    <description>Resumen de la subida de los archivos, calculado a partir de sus estados.</description>
+    <formula>IF(Archivos_total__c = 0, &quot;Sin archivos&quot;,
+IF(Archivos_sincronizados__c = Archivos_total__c, &quot;Completada&quot;,
+IF(Archivos_error__c &gt; 0, &quot;Con errores&quot;, &quot;En curso&quot;)))</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Estado de la subida</label>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

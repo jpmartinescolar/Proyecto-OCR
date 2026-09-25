@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Estado__c</fullName>
+    <description>Pendiente: registrado en Salesforce. Subiendo: sesión de subida creada. Subido: el archivo está en Cloud Storage pero Google aún no lo ha confirmado (se reintenta en cola). Sincronizado: registrado en Cloud SQL. Error: fallo definitivo (ver Ultimo_error__c).</description>
+    <label>Estado</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Pendiente</fullName>
+                <default>true</default>
+                <label>Pendiente</label>
+            </value>
+            <value>
+                <fullName>Subiendo</fullName>
+                <default>false</default>
+                <label>Subiendo</label>
+            </value>
+            <value>
+                <fullName>Subido</fullName>
+                <default>false</default>
+                <label>Subido</label>
+            </value>
+            <value>
+                <fullName>Sincronizado</fullName>
+                <default>false</default>
+                <label>Sincronizado</label>
+            </value>
+            <value>
+                <fullName>Error</fullName>
+                <default>false</default>
+                <label>Error</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

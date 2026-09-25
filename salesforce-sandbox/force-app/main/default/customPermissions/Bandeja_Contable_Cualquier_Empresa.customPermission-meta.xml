@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Permite trabajar en la Bandeja Contable con cualquier empresa visible, no solo con las asignadas (asesor responsable o equipo de cuenta).</description>
+    <isLicensed>false</isLicensed>
+    <label>Bandeja Contable: cualquier empresa</label>
+</CustomPermission>

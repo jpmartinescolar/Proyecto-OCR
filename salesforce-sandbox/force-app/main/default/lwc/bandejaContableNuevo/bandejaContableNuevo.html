@@ -1,0 +1,109 @@
+<template>
+    <div class="bcn">
+        <template lwc:if={cargando}>
+            <div class="bcn-spinner"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div>
+        </template>
+        <template lwc:if={errorCarga}>
+            <div class="bcn-aviso bcn-aviso-error">{errorCarga}</div>
+        </template>
+
+        <template lwc:if={contexto}>
+            <template lwc:if={sinEmpresas}>
+                <div class="bcn-aviso">
+                    No tienes empresas asignadas. Pide que te asignen como asesor responsable
+                    o como miembro del equipo de la cuenta.
+                </div>
+            </template>
+
+            <div class="bcn-grid">
+                <template lwc:if={empresaUnica}>
+                    <div class="slds-form-element">
+                        <span class="slds-form-element__label">Empresa</span>
+                        <div class="slds-form-element__static">{empresaUnica.nombre} ({empresaUnica.cif})</div>
+                    </div>
+                </template>
+                <template lwc:if={usarCombo}>
+                    <lightning-combobox label="Empresa" required placeholder="Selecciona la empresa"
+                                        value={empresaId} options={empresaOpciones} disabled={formularioBloqueado}
+                                        onchange={handleEmpresaCombo}></lightning-combobox>
+                </template>
+                <template lwc:if={usarPicker}>
+                    <lightning-record-picker label="Empresa" required object-api-name="Account"
+                                             placeholder="Buscar empresa…" filter={pickerFiltro}
+                                             disabled={formularioBloqueado}
+                                             onchange={handleEmpresaPicker}></lightning-record-picker>
+                </template>
+
+                <lightning-combobox label="Tipo de documentación" required placeholder="Selecciona el tipo"
+                                    value={tipo} options={tipoOpciones} disabled={formularioBloqueado}
+                                    onchange={handleTipo}></lightning-combobox>
+            </div>
+
+            <lightning-textarea class="bcn-campo" label="Observaciones" max-length="32768" value={observaciones}
+                                disabled={formularioBloqueado} onchange={handleObservaciones}></lightning-textarea>
+
+            <template lwc:if={bandejaCreada}>
+                <div class="bcn-resumen">
+                    <lightning-icon icon-name="utility:inbox" size="x-small"></lightning-icon>
+                    <a href="javascript:void(0);" onclick={handleAbrirBandeja}>{resumen}</a>
+                </div>
+            </template>
+            <template lwc:else>
+                <lightning-input class="bcn-campo" type="file" label="Adjuntar archivos" multiple accept={accept}
+                                 disabled={trabajando} onchange={handleArchivo}></lightning-input>
+                <div class="bcn-ayuda">
+                    PDF, ZIP, PNG, JPG, JPEG, XLSX o XLS. Puedes añadir varios archivos. Máximo {maxBytesTxt} por archivo.
+                </div>
+            </template>
+
+            <template lwc:if={hayArchivos}>
+                <div class="bcn-lista-titulo">{totalArchivosTxt}</div>
+                <div class="bcn-lista">
+                    <template for:each={filasArchivos} for:item="a">
+                        <div key={a.key} class={a.filaCls}>
+                            <div class="bcn-fila-cabecera">
+                                <div class="bcn-fila-nombre" title={a.nombre}>{a.nombre}</div>
+                                <div class="bcn-fila-tamano">{a.tamanoTxt}</div>
+                                <template lwc:if={a.permiteQuitar}>
+                                    <lightning-button-icon icon-name="utility:close" variant="bare"
+                                        alternative-text="Quitar" title="Quitar de la lista"
+                                        data-key={a.key} onclick={quitarArchivo}></lightning-button-icon>
+                                </template>
+                            </div>
+                            <template lwc:if={a.esInvalido}>
+                                <div class="bcn-fila-msg bcn-fila-msg-error">{a.fileError}</div>
+                            </template>
+                            <template lwc:if={a.mostrarProgreso}>
+                                <lightning-progress-bar value={a.progreso} size="small"></lightning-progress-bar>
+                                <div class="bcn-fila-msg">{a.progresoTxt}</div>
+                            </template>
+                            <template lwc:if={a.esOk}>
+                                <div class="bcn-fila-msg bcn-fila-msg-ok">{a.mensaje}</div>
+                            </template>
+                            <template lwc:if={a.esError}>
+                                <div class="bcn-fila-msg bcn-fila-msg-error">
+                                    {a.mensaje}
+                                    <template lwc:if={a.permiteReintentar}>
+                                        <a href="javascript:void(0);" data-key={a.key} onclick={reintentarUno}>Reintentar</a>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <template lwc:if={errorFormulario}>
+                <div class="bcn-aviso bcn-aviso-error">{errorFormulario}</div>
+            </template>
+
+            <div class="bcn-acciones">
+                <template lwc:if={trabajando}>
+                    <lightning-button label="Cancelar" onclick={handleCancelar}></lightning-button>
+                </template>
+                <lightning-button variant="brand" label={botonSubirLabel} icon-name="utility:upload"
+                                  disabled={botonDeshabilitado} onclick={handleSubir}></lightning-button>
+            </div>
+        </template>
+    </div>
+</template>

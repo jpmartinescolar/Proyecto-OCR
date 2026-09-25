@@ -1,2 +1,20 @@
 .sf/
 .sfdx/
+**/.sf/
+**/.sfdx/
+
+# Dependencias y variables de entorno locales
+node_modules/
+.env
+.env.*
+
+# Credenciales: claves de service account de Google y certificados
+*-key.json
+*.p12
+*.pem
+*.key
+*.crt
+*.jks
+
+# Handoffs de Claude Design (se consultan en local, no se versionan)
+*-handoff.zip

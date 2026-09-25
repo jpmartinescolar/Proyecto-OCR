@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>67.0</apiVersion>
+    <isExposed>false</isExposed>
+    <masterLabel>Bandeja Contable: nueva bandeja</masterLabel>
+    <description>Formulario de nueva Bandeja Contable con subida resumible de varios archivos directamente a Google Cloud Storage.</description>
+</LightningComponentBundle>

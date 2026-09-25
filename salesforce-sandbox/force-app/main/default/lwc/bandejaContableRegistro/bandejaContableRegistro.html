@@ -1,0 +1,123 @@
+<template>
+    <main class="bc-main">
+        <template lwc:if={cargando}>
+            <div class="bc-card"><div class="bc-spinner"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div></div>
+        </template>
+        <template lwc:if={error}>
+            <div class="bc-card"><div class="bc-vacio bc-rojo">{error}</div></div>
+        </template>
+
+        <template lwc:if={detalle}>
+            <section class="bc-card bc-card-pad">
+                <div class="bc-cabecera bc-cabecera-sin-borde">
+                    <div class="bc-icono bc-icono-grande"><lightning-icon icon-name="utility:inbox" size="small" variant="inverse"></lightning-icon></div>
+                    <div class="bc-titulos">
+                        <div class="bc-migas">
+                            <a class="bc-enlace" href="#" onclick={irALista}>Bandeja contable</a><span>/</span><span>{r.numero}</span>
+                        </div>
+                        <h1 class="bc-titulo bc-titulo-grande">{titulo}</h1>
+                    </div>
+                    <div class="bc-acciones">
+                        <button class="bc-boton-sec" onclick={handleEditar}>Editar</button>
+                        <button class="bc-boton-sec" disabled title="Disponible cuando exista el procesamiento OCR en Google">Reprocesar OCR</button>
+                    </div>
+                </div>
+                <div class="bc-pasos">
+                    <template for:each={pasos} for:item="p">
+                        <div key={p.label} class={p.clase}><div class="bc-paso-barra"></div>{p.label}</div>
+                    </template>
+                </div>
+            </section>
+
+            <div class="bc-grid-2">
+                <section class="bc-card">
+                    <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Detalles del registro</span></div>
+                    <template for:each={grupos} for:item="g">
+                        <div key={g.titulo} class="bc-grupo">
+                            <div class="bc-grupo-titulo">{g.titulo}</div>
+                            <div class="bc-campos">
+                                <template for:each={g.campos} for:item="c">
+                                    <div key={c.key} class={c.clase}>
+                                        <span class="bc-campo-label">{c.label}</span>
+                                        <template lwc:if={c.esEnlaceEmpresa}>
+                                            <a class="bc-enlace" href="#" onclick={irAEmpresa}>{c.valor}</a>
+                                        </template>
+                                        <template lwc:else>
+                                            <span class={c.claseValor}>{c.valor}</span>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                    <div class="reg-hueco"></div>
+                </section>
+
+                <div class="bc-col">
+                    <section class="bc-card">
+                        <div class="bc-card-titulo">
+                            <span class="bc-card-titulo-texto">{tituloArchivos}</span>
+                            <span class="bc-card-nota">{origenTxt}</span>
+                        </div>
+                        <div class="reg-archivos">
+                            <template for:each={archivos} for:item="a">
+                                <div key={a.id} class="reg-archivo">
+                                    <div class="reg-tipo" style={a.estiloTipo}>{a.ext}</div>
+                                    <div class="reg-archivo-info">
+                                        <div class="reg-archivo-nombre" title={a.nombre}>{a.nombre}</div>
+                                        <div class="reg-archivo-meta">{a.meta}</div>
+                                        <template lwc:if={a.error}><div class="reg-archivo-error">{a.error}</div></template>
+                                    </div>
+                                    <template lwc:if={a.noSincronizado}><span class={a.claseEstado}>{a.estado}</span></template>
+                                    <template lwc:if={a.url}>
+                                        <a class="bc-enlace" href={a.url} target="_blank" rel="noopener">Descargar</a>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                        <template lwc:if={errorGoogle}>
+                            <div class="bc-vacio bc-rojo">No se han podido obtener los enlaces de descarga: {errorGoogle}</div>
+                        </template>
+                    </section>
+
+                    <section class="bc-card">
+                        <div class="bc-card-titulo">
+                            <span class="bc-card-titulo-texto">{tituloDocumentos}</span>
+                            <span class="bc-ejemplo" title="El desglose lo hará Google con el OCR; estos documentos son de ejemplo">Datos de ejemplo</span>
+                            <span class="bc-card-nota">1 registro por factura</span>
+                        </div>
+                        <template lwc:if={hayDocumentos}>
+                            <div class="bc-tabla-wrap">
+                                <table class="bc-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="bc-primera">Nº documento</th>
+                                            <th>Nombre del archivo</th>
+                                            <th>Tipo</th>
+                                            <th>Formato</th>
+                                            <th class="bc-ultima">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={documentos} for:item="d">
+                                            <tr key={d.id}>
+                                                <td class="bc-primera"><a class="bc-enlace" href="#" data-id={d.id} onclick={abrirDocumento}>{d.numero}</a></td>
+                                                <td class="bc-fuerte">{d.nombre}</td>
+                                                <td><span class="bc-pill">{d.categoria}</span></td>
+                                                <td>{d.formato}</td>
+                                                <td class="bc-ultima"><span class={d.claseEstado}>{d.estado}</span></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                        <template lwc:else>
+                            <div class="bc-vacio">Todavía no hay documentos: aparecerán cuando los archivos estén registrados en Google.</div>
+                        </template>
+                    </section>
+                </div>
+            </div>
+        </template>
+    </main>
+</template>

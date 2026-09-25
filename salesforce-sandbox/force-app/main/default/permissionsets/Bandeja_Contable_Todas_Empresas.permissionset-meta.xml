@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customPermissions>
+        <enabled>true</enabled>
+        <name>Bandeja_Contable_Cualquier_Empresa</name>
+    </customPermissions>
+    <description>Complemento de Bandeja Contable: Asesor. Permite elegir cualquier empresa visible, no solo las asignadas.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Bandeja Contable: todas las empresas</label>
+</PermissionSet>

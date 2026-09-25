@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Default</label>
+    <protected>false</protected>
+    <values>
+        <field>Tamano_maximo_MB__c</field>
+        <value xsi:type="xsd:double">2048</value>
+    </values>
+    <values>
+        <field>Named_Credential__c</field>
+        <value xsi:type="xsd:string">Bandeja_Contable_GCP</value>
+    </values>
+    <values>
+        <field>Cloud_Run_URL__c</field>
+        <value xsi:type="xsd:string">https://bandeja-contable-api-dev-347748579061.europe-southwest1.run.app</value>
+    </values>
+    <values>
+        <field>SA_Client_Email__c</field>
+        <value xsi:type="xsd:string">bandeja-contable-caller-dev@centro-de-inteligencia-500407.iam.gserviceaccount.com</value>
+    </values>
+    <values>
+        <field>Certificate_Name__c</field>
+        <value xsi:type="xsd:string">Bandeja_Contable_GCP</value>
+    </values>
+</CustomMetadata>

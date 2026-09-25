@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Componentes de la Bandeja Contable. Desplegar SIEMPRE con este manifest (nunca con package.xml),
+  para no pisar metadata que otros cambian directamente en la org (p. ej. areaContableFiscal):
+
+    sf project deploy validate -x manifest/bandeja-contable.xml -o sandbox -l RunSpecifiedTests \
+      -t BandejaContableControllerTest -t BandejaContableGcpServiceTest -t BandejaContableEmpresasServiceTest
+    sf project deploy start    -x manifest/bandeja-contable.xml -o sandbox -l RunSpecifiedTests \
+      -t BandejaContableControllerTest -t BandejaContableGcpServiceTest -t BandejaContableEmpresasServiceTest
+-->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>BandejaContableController</members>
+        <members>BandejaContableControllerTest</members>
+        <members>BandejaContableEmpresasService</members>
+        <members>BandejaContableEmpresasServiceTest</members>
+        <members>BandejaContableGcpMock</members>
+        <members>BandejaContableGcpService</members>
+        <members>BandejaContableGcpServiceTest</members>
+        <members>BandejaContableSyncQueueable</members>
+        <members>BandejaContableTestData</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_GCS</members>
+        <name>CspTrustedSite</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_Config__mdt.Certificate_Name__c</members>
+        <members>Bandeja_Contable_Config__mdt.Cloud_Run_URL__c</members>
+        <members>Bandeja_Contable_Config__mdt.Named_Credential__c</members>
+        <members>Bandeja_Contable_Config__mdt.SA_Client_Email__c</members>
+        <members>Bandeja_Contable_Config__mdt.Tamano_maximo_MB__c</members>
+        <members>Bandeja_Contable_Archivo__c.Bandeja__c</members>
+        <members>Bandeja_Contable_Archivo__c.Estado__c</members>
+        <members>Bandeja_Contable_Archivo__c.GCS_ruta__c</members>
+        <members>Bandeja_Contable_Archivo__c.Google_Id__c</members>
+        <members>Bandeja_Contable_Archivo__c.Intentos__c</members>
+        <members>Bandeja_Contable_Archivo__c.Nombre__c</members>
+        <members>Bandeja_Contable_Archivo__c.Tamano__c</members>
+        <members>Bandeja_Contable_Archivo__c.Tipo_mime__c</members>
+        <members>Bandeja_Contable_Archivo__c.Ultimo_error__c</members>
+        <members>Bandeja_Contable__c.Archivos_error__c</members>
+        <members>Bandeja_Contable__c.Archivos_sincronizados__c</members>
+        <members>Bandeja_Contable__c.Archivos_total__c</members>
+        <members>Bandeja_Contable__c.Documentos_total__c</members>
+        <members>Bandeja_Contable__c.Empresa__c</members>
+        <members>Bandeja_Contable__c.Estado__c</members>
+        <members>Bandeja_Contable__c.Estado_subida__c</members>
+        <members>Bandeja_Contable__c.Google_Id__c</members>
+        <members>Bandeja_Contable__c.Observaciones__c</members>
+        <members>Bandeja_Contable__c.Origen__c</members>
+        <members>Bandeja_Contable__c.Tipo_documentacion__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_Config.Default</members>
+        <name>CustomMetadata</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_Archivo__c</members>
+        <members>Bandeja_Contable_Config__mdt</members>
+        <members>Bandeja_Contable__c</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_Cualquier_Empresa</members>
+        <name>CustomPermission</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable</members>
+        <members>Bandeja_Contable__c</members>
+        <name>CustomTab</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable</members>
+        <name>FlexiPage</name>
+    </types>
+    <types>
+        <members>Tipo_Documentacion_Bandeja_Contable</members>
+        <name>GlobalValueSet</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_Archivo__c-Archivo de Bandeja Contable Layout</members>
+        <members>Bandeja_Contable__c-Bandeja Contable Layout</members>
+        <name>Layout</name>
+    </types>
+    <types>
+        <members>bandejaContableApp</members>
+        <members>bandejaContableDocumento</members>
+        <members>bandejaContableEmpresa</members>
+        <members>bandejaContableEstilos</members>
+        <members>bandejaContableListado</members>
+        <members>bandejaContableMock</members>
+        <members>bandejaContableNuevo</members>
+        <members>bandejaContableNuevoModal</members>
+        <members>bandejaContableOcr</members>
+        <members>bandejaContableRegistro</members>
+        <members>bandejaContableUtils</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_GCP</members>
+        <name>NamedCredential</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_Asesor</members>
+        <members>Bandeja_Contable_Todas_Empresas</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_Google_OAuth</members>
+        <name>RemoteSiteSetting</name>
+    </types>
+    <version>67.0</version>
+</Package>

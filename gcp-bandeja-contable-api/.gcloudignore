@@ -1,0 +1,5 @@
+node_modules/
+infra/
+cors-*.json
+README.md
+.gcloudignore

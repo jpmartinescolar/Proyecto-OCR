@@ -1,0 +1,11 @@
+[
+  {
+    "origin": [
+      "https://comunidad--full.sandbox.lightning.force.com",
+      "https://comunidad--full.sandbox.my.salesforce.com"
+    ],
+    "method": ["PUT", "GET", "HEAD"],
+    "responseHeader": ["Content-Type", "Content-Range", "Range", "x-goog-resumable"],
+    "maxAgeSeconds": 3600
+  }
+]

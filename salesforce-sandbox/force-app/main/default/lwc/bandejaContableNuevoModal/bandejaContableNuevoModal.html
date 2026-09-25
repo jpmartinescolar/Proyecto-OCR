@@ -1,0 +1,10 @@
+<template>
+    <lightning-modal-header label="Nueva bandeja contable"></lightning-modal-header>
+    <lightning-modal-body>
+        <c-bandeja-contable-nuevo ontrabajando={handleTrabajando}
+                                  onfinalizado={handleFinalizado}></c-bandeja-contable-nuevo>
+    </lightning-modal-body>
+    <lightning-modal-footer>
+        <lightning-button label={cerrarLabel} disabled={trabajando} onclick={handleCerrar}></lightning-button>
+    </lightning-modal-footer>
+</template>

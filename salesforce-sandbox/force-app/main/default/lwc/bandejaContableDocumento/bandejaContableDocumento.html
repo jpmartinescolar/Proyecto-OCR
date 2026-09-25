@@ -1,0 +1,308 @@
+<template>
+    <main class="bc-main bc-main-ancho">
+        <template lwc:if={cargando}>
+            <div class="bc-card"><div class="bc-spinner"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div></div>
+        </template>
+        <template lwc:if={error}>
+            <div class="bc-card">
+                <div class="bc-vacio bc-rojo">{error}</div>
+                <div class="bc-vacio"><a class="bc-enlace" href="#" onclick={volverABandeja}>Volver a la bandeja</a></div>
+            </div>
+        </template>
+
+        <template lwc:if={listo}>
+            <!-- Barra superior -->
+            <section class="bc-card doc-barra">
+                <div class="doc-barra-migas">
+                    <div class="bc-migas">
+                        <a class="bc-enlace" href="#" onclick={irALista}>
+                            <template lwc:if={v.desdeOcr}>OCR</template><template lwc:else>Bandeja contable</template>
+                        </a>
+                        <span>/</span>
+                        <a class="bc-enlace" href="#" onclick={volverABandeja}>{v.doc.bandejaNumero} · {v.doc.empresa}</a>
+                        <span>/</span>
+                        <span class="bc-fuerte">{v.doc.numero} · {v.doc.nombre}</span>
+                        <span class={v.doc.claseEstado}>{v.doc.estado}</span>
+                        <span class="bc-ejemplo">Datos de ejemplo</span>
+                    </div>
+                </div>
+                <div class="doc-software">
+                    <span class="doc-software-label">Software cliente</span>
+                    <span class="doc-software-valor">{v.software}</span>
+                </div>
+                <div class="doc-nav">
+                    <button class="bc-flecha" title="Anterior" onclick={anterior}>‹</button>
+                    <span>{v.pos}</span>
+                    <button class="bc-flecha" title="Siguiente" onclick={siguiente}>›</button>
+                </div>
+            </section>
+
+            <div class="doc-columnas">
+                <!-- Columna 1: visor -->
+                <section class="bc-card doc-visor">
+                    <div class="doc-visor-barra">
+                        <span class="doc-visor-titulo">Documento original · {v.doc.formato}</span>
+                        <template lwc:if={v.verOriginalPosible}>
+                            <button class={v.claseVistaOcr} onclick={verOcr}>Vista OCR</button>
+                            <button class={v.claseVistaOriginal} onclick={verOriginal}>Archivo original</button>
+                        </template>
+                        <button class="doc-herramienta" onclick={menosZoom} title="Reducir">−</button>
+                        <span>{v.zoomTxt}</span>
+                        <button class="doc-herramienta" onclick={masZoom} title="Ampliar">+</button>
+                        <button class="doc-herramienta" onclick={girar}>Girar</button>
+                        <span>Pág. 1/1</span>
+                        <template lwc:if={v.archivoUrl}>
+                            <a class="doc-descargar" href={v.archivoUrl} target="_blank" rel="noopener" title="Descargar el archivo original">
+                                <lightning-icon icon-name="utility:download" size="xx-small"></lightning-icon>Descargar
+                            </a>
+                        </template>
+                    </div>
+
+                    <template lwc:if={v.enVistaOcr}>
+                        <div class="doc-leyenda">
+                            <span class="doc-leyenda-titulo">Campos extraídos</span>
+                            <span class="doc-leyenda-item"><span class="doc-muestra doc-muestra-azul"></span>Proveedor</span>
+                            <span class="doc-leyenda-item"><span class="doc-muestra doc-muestra-verde"></span>Cliente</span>
+                            <span class="doc-leyenda-item"><span class="doc-muestra doc-muestra-amarillo"></span>Conceptos y cantidades</span>
+                        </div>
+                        <div class="doc-mesa">
+                            <div class="doc-papel" style={v.estiloPapel}>
+                                <div class="doc-fila-sep">
+                                    <div class="doc-bloque">
+                                        <span class="doc-marca doc-emisor" style={v.hl.emisor}>{v.x.emisor}</span>
+                                        <div>NIF <span class="doc-marca" style={v.hl.nif}>{v.x.nif}</span></div>
+                                        <span class="doc-marca" style={v.estiloFijo.azul}>{v.x.dir}</span>
+                                    </div>
+                                    <div class="doc-bloque doc-bloque-der">
+                                        <div class="doc-kind">{v.x.kind}</div>
+                                        <div>Nº <span class="doc-marca" style={v.hl.numero}>{v.x.numero}</span></div>
+                                    </div>
+                                </div>
+                                <div class="doc-fila-sep">
+                                    <div class="doc-bloque">
+                                        <template lwc:if={v.conCliente}>
+                                            <div class="doc-gris">Cliente</div>
+                                            <span class="doc-marca doc-fuerte" style={v.estiloFijo.verde}>{v.clienteNombre}</span>
+                                            <div>NIF <span class="doc-marca" style={v.estiloFijo.verde}>{v.clienteCif}</span></div>
+                                        </template>
+                                        <template lwc:if={v.x.sumin}>
+                                            <div class="doc-gris">Dirección de suministro</div>
+                                            <span class="doc-marca" style={v.estiloFijo.verde}>{v.x.sumin}</span>
+                                        </template>
+                                    </div>
+                                    <div class="doc-bloque doc-bloque-der">
+                                        <div class="doc-gris">Fecha</div>
+                                        <span class="doc-marca doc-fuerte" style={v.hl.fecha}>{v.x.fecha}</span>
+                                    </div>
+                                </div>
+                                <div class="doc-lineas">
+                                    <div class="doc-linea doc-gris"><span class="doc-flex">Concepto</span><span>Importe</span></div>
+                                    <template for:each={v.x.lineas} for:item="l">
+                                        <div key={l.key} class="doc-linea">
+                                            <span class="doc-flex"><span class="doc-marca" style={v.estiloFijo.amarillo}>{l.c}</span></span>
+                                            <span class="doc-marca" style={v.estiloFijo.amarillo}>{l.i}</span>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="doc-totales">
+                                    <template for:each={v.ivaPreview} for:item="p">
+                                        <div key={p.key} class="doc-totales-bloque">
+                                            <div class="doc-linea"><span class="doc-flex">Base imponible <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.base} €</span></div>
+                                            <div class="doc-linea"><span class="doc-flex">IVA <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.cuota} €</span></div>
+                                        </div>
+                                    </template>
+                                    <div class="doc-linea doc-total"><span class="doc-flex">TOTAL</span><span class="doc-marca" style={v.hl.total}>{v.x.total} €</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template lwc:else>
+                        <div class="doc-mesa">
+                            <template lwc:if={v.esPdf}>
+                                <iframe class="doc-iframe" src={v.archivoUrl} title="Archivo original"></iframe>
+                            </template>
+                            <template lwc:if={v.esImagen}>
+                                <img class="doc-imagen" src={v.archivoUrl} alt={v.doc.archivoNombre} style={v.estiloPapel}>
+                            </template>
+                        </div>
+                    </template>
+                </section>
+
+                <!-- Columna 2: condiciones CRM y skills -->
+                <section class="bc-card doc-crm">
+                    <div class="doc-col-titulo"><span class="bc-card-titulo-texto">Condiciones CRM y Skills</span></div>
+                    <div class="doc-crm-cuerpo">
+                        <div class="doc-caja">
+                            <div class="doc-caja-titulo"><span class="doc-flex">Domicilio fiscal</span>
+                                <template lwc:if={v.domicilio.ejemplo}><span class="doc-caja-nota">Ejemplo</span></template>
+                                <template lwc:else><span class="doc-caja-nota">Salesforce</span></template>
+                            </div>
+                            <div class="doc-caja-texto">{v.domicilio.l1}, {v.domicilio.l2}</div>
+                        </div>
+                        <div class="doc-caja">
+                            <div class="doc-caja-titulo"><span class="doc-flex">Locales afectos</span></div>
+                            <template for:each={v.locales} for:item="l">
+                                <div key={l.ref} class="doc-local">
+                                    <div class="doc-local-cab"><span class="doc-flex doc-fuerte">{l.uso}</span><span class="bc-pill bc-pill-peq bc-pill-ok">{l.af}</span></div>
+                                    <span class="doc-local-dir">{l.dir}</span>
+                                    <span class="doc-local-ref">Ref. catastral {l.ref}</span>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="doc-caja">
+                            <div class="doc-caja-titulo"><span class="doc-flex">Perfil fiscal</span><span class="doc-caja-nota">CRM</span></div>
+                            <template for:each={v.perfil} for:item="p">
+                                <div key={p.label} class="doc-par"><span class="doc-flex doc-par-label">{p.label}</span><span class="doc-par-valor">{p.valor}</span></div>
+                            </template>
+                        </div>
+                        <div class="doc-caja">
+                            <div class="doc-caja-titulo"><span class="doc-flex">Actividades económicas (IAE)</span></div>
+                            <div class="doc-iae doc-iae-cab"><span>Epígrafe</span><span>Fecha alta</span><span>Descripción</span></div>
+                            <template for:each={v.iae} for:item="a">
+                                <div key={a.ep} class="doc-iae"><span class="doc-iae-ep">{a.ep}</span><span class="doc-par-label">{a.alta}</span><span>{a.desc}</span></div>
+                            </template>
+                        </div>
+                        <div class="doc-caja">
+                            <div class="doc-caja-titulo"><span class="doc-flex">Skills <span class="doc-caja-nota">{v.skillsTxt}</span></span>
+                                <a class="bc-enlace doc-caja-nota" href="#" onclick={verSkills}>Ver todas</a>
+                            </div>
+                            <template for:each={v.skills} for:item="s">
+                                <div key={s.num} class={s.clase}>
+                                    <div class="doc-skill-cab">
+                                        <span class="doc-skill-num">{s.num}</span>
+                                        <span class="doc-flex doc-skill-titulo">{s.title}</span>
+                                        <template lwc:if={s.aplica}><span class="bc-pill bc-pill-peq bc-pill-brand">Aplica</span></template>
+                                    </div>
+                                    <span class="doc-skill-texto">{s.text}</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Columna 3: datos extraídos -->
+                <section class="bc-card doc-datos">
+                    <div class="doc-col-titulo">
+                        <span class="bc-card-titulo-texto">Datos extraídos (OCR)</span>
+                        <span class="doc-etiqueta">Tipo de factura</span>
+                        <div class={v.claseTipos}>
+                            <template for:each={v.tipos} for:item="t">
+                                <button key={t.t} class={t.clase} data-t={t.t} onclick={handleTipo}>{t.t}</button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class={v.fiscal.clase}>
+                        <div class="doc-fiscal-cab">
+                            <lightning-icon icon-name="utility:warning" size="xx-small" class="doc-fiscal-icono"></lightning-icon>
+                            <span>Capa fiscal · {v.fiscal.titulo}</span>
+                        </div>
+                        <template for:each={v.fiscal.avisos} for:item="w">
+                            <div key={w.key} class="doc-fiscal-item">
+                                <span class={w.claseTag}>{w.tag}</span>
+                                <span class="doc-fuerte">{w.title}</span>
+                                <span class="doc-fiscal-texto">{w.text}</span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <template lwc:if={v.alerta}>
+                        <div class={v.alerta.clase}>{v.alerta.texto}</div>
+                    </template>
+
+                    <template for:each={v.grupos} for:item="g">
+                        <div key={g.titulo} class="doc-seccion">
+                            <div class="doc-seccion-titulo">{g.titulo}</div>
+                            <div class="doc-campos" style={g.estiloGrid}>
+                                <template for:each={g.campos} for:item="f">
+                                    <label key={f.k} class="doc-campo" data-k={f.k} onmouseenter={entrar} onmouseleave={salir}>
+                                        <span class="doc-campo-label">{f.label}</span>
+                                        <input class="doc-input" value={f.valor} data-k={f.k} onchange={handleCampo}>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div class="doc-seccion">
+                        <div class="doc-seccion-cab"><span class="doc-seccion-titulo doc-flex">Desglose de IVA</span><span class="bc-card-nota">{v.ivaTipos}</span></div>
+                        <div class="doc-tabla">
+                            <div class="doc-iva-fila doc-tabla-cab"><span>Base imponible (€)</span><span>Tipo IVA (%)</span><span>Cuota IVA (€)</span><span></span></div>
+                            <template for:each={v.filasIva} for:item="r">
+                                <div key={r.key} class={r.claseFila} data-k={r.key} onmouseenter={entrar} onmouseleave={salir}>
+                                    <input class="doc-input doc-input-num" value={r.base} data-i={r.i} data-k="base" onchange={handleIva}>
+                                    <input class="doc-input doc-input-num" value={r.pct} data-i={r.i} data-k="pct" onchange={handleIva}>
+                                    <input class={r.claseCuota} value={r.cuota} data-i={r.i} data-k="cuota" onchange={handleIva}>
+                                    <button class="bc-boton-quitar" title="Quitar línea" data-i={r.i} onclick={quitarIva}>×</button>
+                                </div>
+                            </template>
+                            <div class="doc-iva-fila doc-tabla-pie"><span class="bc-derecha">{v.sumaBase}</span><span class="bc-card-nota">Total</span><span class="bc-derecha">{v.sumaCuota}</span><span></span></div>
+                        </div>
+                        <button class="bc-boton-linea" onclick={anadirIva}>+ Añadir tipo de IVA</button>
+                    </div>
+
+                    <div class="doc-seccion">
+                        <div class="doc-seccion-titulo">Totales</div>
+                        <div class="doc-campos doc-campos-4">
+                            <label class="doc-campo"><span class="doc-campo-label">Base imponible (€)</span><input class="doc-input doc-input-num" value={v.sumaBase} readonly></label>
+                            <label class="doc-campo"><span class="doc-campo-label">Total IVA (€)</span><input class="doc-input doc-input-num" value={v.sumaCuota} readonly></label>
+                            <label class="doc-campo"><span class="doc-campo-label">Retención IRPF (€)</span><input class="doc-input doc-input-num" value={v.irpf} data-k="irpf" onchange={handleCampo}></label>
+                            <label class="doc-campo" data-k="total" onmouseenter={entrar} onmouseleave={salir}><span class="doc-campo-label">Total factura (€)</span><input class="doc-input doc-input-num" value={v.total} data-k="total" onchange={handleCampo}></label>
+                        </div>
+                    </div>
+
+                    <template lwc:if={v.aprendizaje.preguntar}>
+                        <div class="doc-aviso doc-aviso-info doc-aprender">
+                            <span class="doc-flex">Has cambiado la cuenta a <b>{v.aprendizaje.cuenta}</b> para <b>{v.aprendizaje.proveedor}</b>. ¿Aplicar siempre para este proveedor?</span>
+                            <button class="bc-boton-sec bc-boton-mini" onclick={soloEstaVez}>Solo esta vez</button>
+                            <button class="bc-boton bc-boton-mini" onclick={aplicarSiempre}>Aplicar siempre</button>
+                        </div>
+                    </template>
+                    <template lwc:if={v.aprendizaje.hecho}>
+                        <div class="doc-aviso doc-aviso-ok">
+                            <b>Regla guardada</b><span class="doc-flex">Las próximas facturas de este proveedor irán a esta cuenta.</span>
+                            <a class="bc-enlace" href="#" onclick={verSkills}>Ver regla</a>
+                        </div>
+                    </template>
+
+                    <div class="doc-seccion">
+                        <div class="doc-seccion-cab"><span class="doc-seccion-titulo doc-flex">Propuesta de asiento contable</span><span class={v.asiento.claseBadge}>{v.asiento.badge}</span></div>
+                        <div class="doc-tabla doc-tabla-peq">
+                            <div class="doc-asiento-fila doc-tabla-cab"><span>Cuenta</span><span>Concepto</span><span class="bc-derecha">Debe (€)</span><span class="bc-derecha">Haber (€)</span><span></span></div>
+                            <template for:each={v.asiento.filas} for:item="a">
+                                <div key={a.key} class="doc-asiento-fila bc-num">
+                                    <span class="doc-cuenta">{a.cuenta}</span>
+                                    <span class="doc-concepto">{a.concepto}</span>
+                                    <span class="bc-derecha">{a.debe}</span>
+                                    <span class="bc-derecha">{a.haber}</span>
+                                    <span></span>
+                                </div>
+                            </template>
+                            <template for:each={v.asiento.extra} for:item="x">
+                                <div key={x.key} class="doc-asiento-fila doc-asiento-extra">
+                                    <input class="doc-input doc-input-peq" placeholder="Cuenta" value={x.cuenta} data-i={x.i} data-k="cuenta" onchange={handleLineaExtra}>
+                                    <input class="doc-input doc-input-peq" placeholder="Concepto" value={x.concepto} data-i={x.i} data-k="concepto" onchange={handleLineaExtra}>
+                                    <input class="doc-input doc-input-peq doc-input-num" placeholder="0,00" value={x.debe} data-i={x.i} data-k="debe" onchange={handleLineaExtra}>
+                                    <input class="doc-input doc-input-peq doc-input-num" placeholder="0,00" value={x.haber} data-i={x.i} data-k="haber" onchange={handleLineaExtra}>
+                                    <button class="bc-boton-quitar" title="Quitar línea" data-i={x.i} onclick={quitarLinea}>×</button>
+                                </div>
+                            </template>
+                            <div class="doc-asiento-fila doc-tabla-pie bc-num"><span></span><span class="bc-card-nota">Sumas</span><span class="bc-derecha">{v.asiento.debe}</span><span class="bc-derecha">{v.asiento.haber}</span><span></span></div>
+                        </div>
+                        <button class="bc-boton-linea" onclick={anadirLinea}>+ Añadir línea</button>
+                        <div class="doc-nota">Fecha del asiento {v.asiento.fecha} · Diario de compras · Se genera al validar</div>
+                    </div>
+
+                    <div class={v.cuadre.clase}><b>{v.cuadre.titulo}</b><span>{v.cuadre.texto}</span></div>
+
+                    <div class="doc-acciones">
+                        <button class="bc-boton-sec bc-boton-peq bc-boton-peligro" onclick={rechazar}>Rechazar</button>
+                        <button class="bc-boton-sec bc-boton-peq" onclick={guardarBorrador}>Guardar borrador</button>
+                        <button class="bc-boton-sec bc-boton-peq" onclick={volverABandeja}>Cancelar</button>
+                        <button class="bc-boton bc-boton-peq" onclick={validar}>Validar y siguiente</button>
+                    </div>
+                </section>
+            </div>
+        </template>
+    </main>
+</template>
