@@ -22,7 +22,8 @@ Backlog del proyecto. Marcar `[x]` al terminar y mover a "Hecho" con la fecha.
 - [ ] Subidas abandonadas: regla de ciclo de vida del bucket + conciliación (notificaciones de Storage).
 - [ ] Validar el contenido real y pasar antivirus antes del OCR (parte en Fase 1).
 - [ ] Política de retención y borrado (RGPD + normativa mercantil/fiscal).
-- [ ] El backend debe validar que la ruta corresponde a la org/bandeja/archivo.
+- [ ] Retención bloqueada en el bucket raw de producción (los originales son evidencia).
+- [ ] Reencolar archivos que queden en `RECIBIDO` con incidencia `ENCOLAR_FALLIDO` (endpoint o tarea periódica).
 - [ ] Monitorización: logs estructurados, alertas en Cloud Run, aviso al administrador cuando un archivo queda en Error (TODO en `BandejaContableSyncQueueable`).
 - [ ] Token OIDC en Platform Cache.
 - [ ] Rotar el certificado `Bandeja_Contable_GCP` antes del **25/09/2027**.
@@ -36,4 +37,10 @@ Backlog del proyecto. Marcar `[x]` al terminar y mover a "Hecho" con la fecha.
 - [ ] Origen Email (ingesta de correos).
 
 ## Hecho
+- 2026-09-28 · Fase 1, pasos 1–2:
+  - buckets raw/docs y cola de Cloud Tasks;
+  - rutas decididas por Google, sin CIF ni nombre: resuelve también la validación de la ruta en el backend;
+  - nombre original en metadatos y en la descarga;
+  - esquema SQL v2.
+  - Probado de extremo a extremo con la bandeja "Prueba paso 2" (`aBfS80000000gQfKAI`). Los archivos de BC-00005 se borraron con el bucket antiguo.
 - 2026-09-25 · Modelo, subida a Google, 6 pantallas del diseño con datos de ejemplo, entorno dev de Google, autenticación por certificado, prueba de extremo a extremo (BC-00005).

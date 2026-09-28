@@ -165,7 +165,7 @@ DOCS (derivados; regenerables; nunca se sobrescriben: cada reproceso escribe en 
 |---|---|---|
 | 0 | Documentación (`CLAUDE.md`, `docs/`) | Hecho 28/09 |
 | 1 | Infraestructura dev: buckets raw/docs, cola de Cloud Tasks (europe-west1), SA del procesador. El Cloud Run del procesador se crea en el paso 3 y el bucket antiguo se retira en el paso 2 | Hecho 28/09 |
-| 2 | Rutas sin CIF ni nombre + metadatos + `Content-Disposition`; esquema SQL v2 (`archivos` ampliada, `procesamientos`, `documentos`, `incidencias`) | Pendiente |
+| 2 | Rutas sin CIF ni nombre, decididas por Google en `/upload-session`; metadatos y `Content-Disposition`; esquema SQL v2 (`esquema.sql`: `archivos` ampliada, `procesamientos`, `documentos`, `incidencias`); `/confirm` encola cuando exista el procesador; bucket antiguo retirado. Probado de extremo a extremo | Hecho 28/09 |
 | 3 | Procesador sin IA: tipo, validación, ZIP, páginas, texto, blancos, protección → documentos provisionales e incidencias | Pendiente |
 | 4 | Clasificador intercambiable: Gemini 2.5 Flash-Lite y Claude Haiku 4.5 en Vertex, comparados con muestras | Pendiente |
 | 5 | Integración con Salesforce: endpoints de documentos, aviso de vuelta, pantallas con datos reales | Pendiente |

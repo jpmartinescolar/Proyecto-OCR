@@ -142,7 +142,8 @@ private class BandejaContableControllerTest {
         System.runAs(BandejaContableTestData.asesor()) {
             BandejaContableGcpMock.configurar();
             BandejaContableGcpMock mock = new BandejaContableGcpMock()
-                .responder('/upload-session', 200, '{"uploadUrl":"https://storage.googleapis.com/sesion"}');
+                .responder('/upload-session', 200, '{"uploadUrl":"https://storage.googleapis.com/sesion",'
+                    + '"gcsPath":"org/bandeja/arc_01TEST.pdf","archivoId":"arc_01TEST","bandejaId":"bnd_01TEST"}');
             Test.setMock(HttpCalloutMock.class, mock);
             Bandeja_Contable_Archivo__c a = leer('pendiente.pdf');
 
@@ -154,10 +155,20 @@ private class BandejaContableControllerTest {
             Assert.areEqual('https://storage.googleapis.com/sesion', r.uploadUrl);
             Bandeja_Contable_Archivo__c d = leer('pendiente.pdf');
             Assert.areEqual('Subiendo', d.Estado__c);
-            Assert.isTrue(d.GCS_ruta__c.contains('/B00000001/' + a.Bandeja__c + '/' + a.Id + '/pendiente.pdf'), d.GCS_ruta__c);
+            Assert.areEqual('org/bandeja/arc_01TEST.pdf', d.GCS_ruta__c, 'La ruta la decide Google');
+            Assert.areEqual('arc_01TEST', d.Google_Id__c);
+            Assert.areEqual('bnd_01TEST', d.Bandeja__r.Google_Id__c);
             Map<String, Object> body = (Map<String, Object>) JSON.deserializeUntyped(mock.peticiones[0].getBody());
+            Map<String, Object> bandeja = (Map<String, Object>) body.get('bandeja');
+            Map<String, Object> archivo = (Map<String, Object>) body.get('archivo');
             Assert.areEqual('https://test.local', body.get('origin'));
-            Assert.areEqual(1000, body.get('size'));
+            Assert.areEqual(UserInfo.getOrganizationId(), body.get('sfOrgId'));
+            Assert.areEqual('B00000001', bandeja.get('cif'));
+            Assert.areEqual('Recibida', bandeja.get('tipo'));
+            Assert.areEqual('Marzo', bandeja.get('observaciones'));
+            Assert.areEqual(a.Id, archivo.get('sfId'));
+            Assert.areEqual('pendiente.pdf', archivo.get('nombre'));
+            Assert.areEqual(1000, archivo.get('size'));
         }
     }
 
@@ -208,15 +219,10 @@ private class BandejaContableControllerTest {
             Assert.areEqual('42', d.Google_Id__c);
             Assert.areEqual('7', d.Bandeja__r.Google_Id__c);
 
+            // La confirmación solo identifica el archivo: Google ya lo tiene registrado desde la sesión
             Map<String, Object> body = (Map<String, Object>) JSON.deserializeUntyped(mock.peticiones[0].getBody());
-            Map<String, Object> bandeja = (Map<String, Object>) body.get('bandeja');
-            Map<String, Object> archivo = (Map<String, Object>) body.get('archivo');
             Assert.areEqual(UserInfo.getOrganizationId(), body.get('sfOrgId'));
-            Assert.areEqual('B00000001', bandeja.get('cif'));
-            Assert.areEqual('Recibida', bandeja.get('tipo'));
-            Assert.areEqual('Marzo', bandeja.get('observaciones'));
-            Assert.areEqual(d.Id, archivo.get('sfId'));
-            Assert.areEqual('subiendo.pdf', archivo.get('nombre'));
+            Assert.areEqual(d.Id, body.get('sfArchivoId'));
         }
     }
 

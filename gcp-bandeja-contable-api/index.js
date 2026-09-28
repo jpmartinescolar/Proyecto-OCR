@@ -3,93 +3,105 @@
 const express = require('express');
 const { GoogleAuth } = require('google-auth-library');
 const { Storage } = require('@google-cloud/storage');
-const { Pool } = require('pg');
+const { pool, prepararEsquema, transaccion } = require('./db');
+const { nuevoId } = require('./ids');
+const { procesadorConfigurado, encolarProcesamiento } = require('./tareas');
 
-const REQUIRED_ENV = ['BUCKET_NAME', 'INSTANCE_CONNECTION_NAME', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
+const REQUIRED_ENV = ['BUCKET_RAW', 'BUCKET_DOCS', 'INSTANCE_CONNECTION_NAME', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
 const missing = REQUIRED_ENV.filter((k) => !process.env[k]);
 if (missing.length) throw new Error(`Faltan variables de entorno: ${missing.join(', ')}`);
 
-const { PROJECT_ID, BUCKET_NAME, INSTANCE_CONNECTION_NAME } = process.env;
+const { PROJECT_ID, BUCKET_RAW } = process.env;
 const SIGNED_URL_MINUTES = 15;
 
 const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/devstorage.read_write'] });
 const storage = new Storage();
-
-// Cloud Run + Cloud SQL: conexion por socket unix montado con --add-cloudsql-instances
-const pool = new Pool({
-  host: `/cloudsql/${INSTANCE_CONNECTION_NAME}`,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  max: 5
-});
-
-// bandejas = Bandeja_Contable__c (un envio) y archivos = Bandeja_Contable_Archivo__c (un archivo del envio).
-// Cada fila guarda los Id de Salesforce y Salesforce guarda el id de la fila (Google_Id__c).
-async function ensureSchema() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS bandejas (
-      id BIGSERIAL PRIMARY KEY,
-      sf_org_id TEXT NOT NULL,
-      sf_bandeja_id TEXT UNIQUE NOT NULL,
-      numero TEXT,
-      sf_account_id TEXT,
-      cif TEXT,
-      tipo TEXT,
-      observaciones TEXT,
-      origen TEXT,
-      sf_user_id TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    );
-    CREATE INDEX IF NOT EXISTS bandejas_org_cif_idx ON bandejas (sf_org_id, cif, created_at DESC);
-
-    CREATE TABLE IF NOT EXISTS archivos (
-      id BIGSERIAL PRIMARY KEY,
-      bandeja_id BIGINT NOT NULL REFERENCES bandejas (id),
-      sf_org_id TEXT NOT NULL,
-      sf_archivo_id TEXT UNIQUE NOT NULL,
-      sf_bandeja_id TEXT NOT NULL,
-      sf_account_id TEXT,
-      cif TEXT,
-      sf_user_id TEXT,
-      nombre TEXT,
-      gcs_path TEXT NOT NULL,
-      gcs_object_id TEXT,
-      size BIGINT,
-      mime TEXT,
-      crc32c TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    );
-    CREATE INDEX IF NOT EXISTS archivos_bandeja_idx ON archivos (sf_org_id, sf_bandeja_id);
-    CREATE INDEX IF NOT EXISTS archivos_org_cif_idx ON archivos (sf_org_id, cif, created_at DESC);
-  `);
-}
 
 const app = express();
 app.use(express.json());
 
 app.get('/', (_req, res) => res.status(200).send('bandeja-contable-api OK'));
 
-// La autenticacion la hace Cloud Run (servicio privado + IAM invoker):
+// La autenticación la hace Cloud Run (servicio privado + IAM invoker):
 // Salesforce llama con un ID token de Google firmado con su certificado.
 
-// Pide a Google una sesion de subida resumible para gcsPath y devuelve su URL final
+/** "pdf" a partir del nombre (en minúsculas y solo alfanumérico); "" si no tiene */
+function extensionDe(nombre) {
+  const m = /\.([A-Za-z0-9]{1,10})$/.exec(String(nombre || ''));
+  return m ? m[1].toLowerCase() : '';
+}
+
+/** Content-Disposition con el nombre original (RFC 5987: admite tildes y espacios) */
+function disposicion(tipo, nombre) {
+  return `${tipo}; filename*=UTF-8''${encodeURIComponent(nombre)}`;
+}
+
+/**
+ * Registra la bandeja y el archivo en Cloud SQL y pide a Cloud Storage una sesión de subida
+ * resumible. La ruta la decide Google: {sfOrgId}/{sfBandejaId}/{archivoId}.{ext}, sin CIF ni nombre del
+ * cliente; el nombre original queda en SQL y en los metadatos del objeto. Si el archivo ya estaba
+ * registrado y aún no se subió (reintento), se reutilizan su id y su ruta.
+ */
 app.post('/upload-session', async (req, res) => {
-  const { gcsPath, size, mime, origin } = req.body || {};
-  if (!gcsPath) return res.status(400).json({ error: 'Falta gcsPath.' });
-  if (!(Number(size) > 0)) return res.status(400).json({ error: 'Falta size o no es valido.' });
+  const { sfOrgId, bandeja, archivo, origin } = req.body || {};
+  if (!sfOrgId || !bandeja || !bandeja.sfId || !archivo || !archivo.sfId || !archivo.nombre) {
+    return res.status(400).json({ error: 'Faltan sfOrgId, bandeja.sfId, archivo.sfId o archivo.nombre.' });
+  }
+  const size = Number(archivo.size);
+  if (!(size > 0)) return res.status(400).json({ error: 'Falta archivo.size o no es válido.' });
+
   try {
+    const registro = await transaccion(async (db) => {
+      const b = await db.query(
+        `INSERT INTO bandejas (id, sf_org_id, sf_bandeja_id, numero, sf_account_id, cif, tipo, observaciones, origen, sf_user_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+         ON CONFLICT (sf_bandeja_id) DO UPDATE SET
+           numero = EXCLUDED.numero, sf_account_id = EXCLUDED.sf_account_id, cif = EXCLUDED.cif, tipo = EXCLUDED.tipo,
+           observaciones = EXCLUDED.observaciones, origen = EXCLUDED.origen, updated_at = now()
+         RETURNING id`,
+        [nuevoId('bandeja'), sfOrgId, bandeja.sfId, bandeja.numero, bandeja.sfAccountId, bandeja.cif, bandeja.tipo,
+          bandeja.observaciones, bandeja.origen, bandeja.sfUserId]
+      );
+      const bandejaId = b.rows[0].id;
+
+      const existente = await db.query('SELECT id, objeto, estado FROM archivos WHERE sf_archivo_id = $1', [archivo.sfId]);
+      if (existente.rows.length) {
+        const a = existente.rows[0];
+        if (a.estado !== 'SUBIENDO') return { conflicto: a.estado };
+        await db.query(
+          'UPDATE archivos SET nombre_original = $2, mime_declarado = $3, tamano = $4, updated_at = now() WHERE id = $1',
+          [a.id, archivo.nombre, archivo.mime || null, size]
+        );
+        return { bandejaId, archivoId: a.id, objeto: a.objeto };
+      }
+
+      const archivoId = nuevoId('archivo');
+      const ext = extensionDe(archivo.nombre);
+      const objeto = `${sfOrgId}/${bandeja.sfId}/${archivoId}${ext ? '.' + ext : ''}`;
+      await db.query(
+        `INSERT INTO archivos (id, bandeja_id, origen, sf_org_id, sf_archivo_id, sf_bandeja_id, sf_account_id, cif, sf_user_id,
+                               nombre_original, bucket, objeto, mime_declarado, extension, tamano, estado)
+         VALUES ($1,$2,'SUBIDO',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'SUBIENDO')`,
+        [archivoId, bandejaId, sfOrgId, archivo.sfId, bandeja.sfId, bandeja.sfAccountId, bandeja.cif,
+          archivo.sfUserId || bandeja.sfUserId, archivo.nombre, BUCKET_RAW, objeto, archivo.mime || null, ext || null, size]
+      );
+      return { bandejaId, archivoId, objeto };
+    });
+
+    if (registro.conflicto) {
+      return res.status(409).json({ error: `El archivo ya está registrado en Google (estado ${registro.conflicto}).` });
+    }
+
     const client = await auth.getClient();
-    const initUrl = `https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(BUCKET_NAME)}/o`
-      + `?uploadType=resumable&name=${encodeURIComponent(gcsPath)}`;
+    const initUrl = `https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(BUCKET_RAW)}/o`
+      + `?uploadType=resumable&name=${encodeURIComponent(registro.objeto)}`;
+    const mime = archivo.mime || 'application/octet-stream';
     const headers = {
       'Content-Type': 'application/json; charset=UTF-8',
-      'X-Upload-Content-Type': mime || 'application/octet-stream',
+      'X-Upload-Content-Type': mime,
       'X-Upload-Content-Length': String(size)
     };
-    // Google solo habilita CORS en las respuestas de la subida si la sesion se crea con el
+    // Google solo habilita CORS en las respuestas de la subida si la sesión se crea con el
     // Origin del navegador que va a subir el archivo; sin esto el PUT del navegador llega bien
     // (200) pero el navegador bloquea la respuesta por CORS.
     if (origin) headers.Origin = origin;
@@ -97,136 +109,141 @@ app.post('/upload-session', async (req, res) => {
       url: initUrl,
       method: 'POST',
       headers,
-      data: {},
+      // Metadatos del objeto: el nombre original y los Id viajan con el archivo; al abrirlo o
+      // descargarlo el navegador muestra el nombre del cliente aunque la ruta sea otra.
+      data: {
+        contentType: mime,
+        contentDisposition: disposicion('inline', archivo.nombre),
+        metadata: {
+          'nombre-original': archivo.nombre,
+          'archivo-id': registro.archivoId,
+          'sf-archivo-id': archivo.sfId,
+          'sf-bandeja-id': bandeja.sfId
+        }
+      },
       validateStatus: () => true
     });
     const location = response.headers && (response.headers.location || response.headers.Location);
     if (response.status < 200 || response.status >= 300 || !location) {
       console.error('upload-session: Google respondio', response.status, response.data);
-      return res.status(502).json({ error: 'Google no ha devuelto la sesion de subida.' });
+      return res.status(502).json({ error: 'Google no ha devuelto la sesión de subida.' });
     }
-    res.json({ uploadUrl: location });
+    res.json({ uploadUrl: location, gcsPath: registro.objeto, archivoId: registro.archivoId, bandejaId: registro.bandejaId });
   } catch (err) {
     console.error('upload-session error', err);
-    res.status(500).json({ error: 'Error interno al crear la sesion de subida.' });
+    res.status(500).json({ error: 'Error interno al crear la sesión de subida.' });
   }
 });
 
-// Comprueba el objeto ya subido a GCS y registra en Cloud SQL la bandeja y el archivo (upsert por
-// sus Id de Salesforce: un reintento no duplica). Devuelve los id de Google para guardarlos en Salesforce.
+/**
+ * El navegador ha terminado la subida: se comprueba el objeto en Cloud Storage, el archivo pasa a
+ * RECIBIDO y se encola su procesamiento (EN_COLA). Idempotente: confirmar dos veces no encola dos veces.
+ */
 app.post('/confirm', async (req, res) => {
-  const { sfOrgId, bandeja, archivo } = req.body || {};
-  if (!sfOrgId || !bandeja || !bandeja.sfId || !archivo || !archivo.sfId || !archivo.gcsPath) {
-    return res.status(400).json({ error: 'Faltan sfOrgId, bandeja.sfId, archivo.sfId o archivo.gcsPath.' });
-  }
-  let db;
+  const { sfOrgId, sfArchivoId } = req.body || {};
+  if (!sfOrgId || !sfArchivoId) return res.status(400).json({ error: 'Faltan sfOrgId o sfArchivoId.' });
   try {
-    const client = await auth.getClient();
-    const metaUrl = `https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(BUCKET_NAME)}/o/${encodeURIComponent(archivo.gcsPath)}`;
-    const response = await client.request({ url: metaUrl, method: 'GET', validateStatus: () => true });
-    if (response.status !== 200) {
-      return res.status(404).json({ error: 'El archivo todavia no esta en Cloud Storage.' });
-    }
-    const obj = response.data;
-    const size = Number(obj.size || 0);
+    const { rows } = await pool.query(
+      'SELECT id, bandeja_id, bucket, objeto, estado FROM archivos WHERE sf_archivo_id = $1 AND sf_org_id = $2',
+      [sfArchivoId, sfOrgId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'El archivo no está registrado en Google.' });
+    const a = rows[0];
 
-    db = await pool.connect();
-    await db.query('BEGIN');
-    const b = await db.query(
-      `INSERT INTO bandejas (sf_org_id, sf_bandeja_id, numero, sf_account_id, cif, tipo, observaciones, origen, sf_user_id, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now())
-       ON CONFLICT (sf_bandeja_id) DO UPDATE SET
-         numero = EXCLUDED.numero,
-         sf_account_id = EXCLUDED.sf_account_id,
-         cif = EXCLUDED.cif,
-         tipo = EXCLUDED.tipo,
-         observaciones = EXCLUDED.observaciones,
-         origen = EXCLUDED.origen,
-         updated_at = now()
-       RETURNING id`,
-      [sfOrgId, bandeja.sfId, bandeja.numero, bandeja.sfAccountId, bandeja.cif, bandeja.tipo,
-        bandeja.observaciones, bandeja.origen, bandeja.sfUserId]
-    );
-    const bandejaId = b.rows[0].id;
-    // Se guardan tipo y tamano tal como constan en Cloud Storage para el objeto ya subido
-    const a = await db.query(
-      `INSERT INTO archivos
-         (bandeja_id, sf_org_id, sf_archivo_id, sf_bandeja_id, sf_account_id, cif, sf_user_id, nombre,
-          gcs_path, gcs_object_id, size, mime, crc32c, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, now())
-       ON CONFLICT (sf_archivo_id) DO UPDATE SET
-         nombre = EXCLUDED.nombre,
-         gcs_path = EXCLUDED.gcs_path,
-         gcs_object_id = EXCLUDED.gcs_object_id,
-         size = EXCLUDED.size,
-         mime = EXCLUDED.mime,
-         crc32c = EXCLUDED.crc32c,
-         updated_at = now()
-       RETURNING id`,
-      [bandejaId, sfOrgId, archivo.sfId, bandeja.sfId, bandeja.sfAccountId, bandeja.cif, archivo.sfUserId,
-        archivo.nombre, archivo.gcsPath, obj.id, size, obj.contentType, obj.crc32c]
-    );
-    await db.query('COMMIT');
+    let meta;
+    try {
+      [meta] = await storage.bucket(a.bucket).file(a.objeto).getMetadata();
+    } catch (e) {
+      if (e.code === 404) return res.status(404).json({ error: 'El archivo todavía no está en Cloud Storage.' });
+      throw e;
+    }
+
+    let estado = a.estado;
+    if (estado === 'SUBIENDO') {
+      await pool.query(
+        `UPDATE archivos SET tamano = $2, crc32c = $3, gcs_generation = $4, estado = 'RECIBIDO', updated_at = now() WHERE id = $1`,
+        [a.id, Number(meta.size || 0), meta.crc32c, String(meta.generation)]
+      );
+      estado = 'RECIBIDO';
+    }
+
+    if (estado === 'RECIBIDO' && procesadorConfigurado()) {
+      try {
+        await encolarProcesamiento(a.id);
+        await pool.query(`UPDATE archivos SET estado = 'EN_COLA', updated_at = now() WHERE id = $1 AND estado = 'RECIBIDO'`, [a.id]);
+        estado = 'EN_COLA';
+      } catch (e) {
+        // El archivo está a salvo en Cloud Storage: se registra la incidencia y se podrá volver a encolar
+        console.error('No se ha podido encolar el procesamiento de', a.id, e.message);
+        await pool.query(
+          `INSERT INTO incidencias (codigo, gravedad, archivo_id, detalle) VALUES ('ENCOLAR_FALLIDO', 'AVISO', $1, $2)`,
+          [a.id, JSON.stringify({ error: e.message })]
+        );
+      }
+    }
+
     res.json({
-      bandejaId: String(bandejaId),
-      archivoId: String(a.rows[0].id),
-      gcsObjectId: obj.id,
-      size,
-      crc32c: obj.crc32c
+      bandejaId: a.bandeja_id,
+      archivoId: a.id,
+      gcsObjectId: `${a.bucket}/${a.objeto}/${meta.generation}`,
+      size: Number(meta.size || 0),
+      crc32c: meta.crc32c,
+      estado
     });
   } catch (err) {
-    if (db) await db.query('ROLLBACK').catch(() => {});
     console.error('confirm error', err);
     res.status(500).json({ error: 'Error interno al confirmar la subida.' });
-  } finally {
-    if (db) db.release();
   }
 });
 
-// Lista los archivos de una bandeja (sfBandejaId) o de una empresa (cif), mas recientes primero,
-// cada uno con una URL firmada de solo lectura para previsualizarlo sin hacer publico el bucket.
-// Salesforce ya ha comprobado que el usuario puede ver esa bandeja o empresa antes de llamar aqui.
+async function urlFirmada(bucket, objeto, disposicionRespuesta) {
+  const [url] = await storage.bucket(bucket).file(objeto).getSignedUrl({
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + SIGNED_URL_MINUTES * 60 * 1000,
+    responseDisposition: disposicionRespuesta
+  });
+  return url;
+}
+
+/**
+ * Archivos subidos de una bandeja, con dos URL firmadas de solo lectura: viewUrl (se abre en el
+ * navegador) y descargaUrl (se descarga con el nombre original). Salesforce ya ha comprobado que el
+ * usuario puede ver esa bandeja antes de llamar aquí.
+ */
 app.post('/records', async (req, res) => {
-  const { sfOrgId, sfBandejaId, cif } = req.body || {};
-  if (!sfOrgId || (!sfBandejaId && !cif)) {
-    return res.status(400).json({ error: 'Faltan sfOrgId y sfBandejaId o cif.' });
-  }
+  const { sfOrgId, sfBandejaId } = req.body || {};
+  if (!sfOrgId || !sfBandejaId) return res.status(400).json({ error: 'Faltan sfOrgId o sfBandejaId.' });
   try {
-    const filtro = sfBandejaId ? 'sf_bandeja_id = $2' : 'cif = $2';
     const { rows } = await pool.query(
-      `SELECT id, sf_archivo_id, sf_bandeja_id, sf_account_id, sf_user_id, cif, nombre, gcs_path, gcs_object_id,
-              size, mime, crc32c, created_at, updated_at
-       FROM archivos WHERE sf_org_id = $1 AND ${filtro} ORDER BY created_at DESC LIMIT 200`,
-      [sfOrgId, sfBandejaId || cif]
+      `SELECT id, sf_archivo_id, sf_bandeja_id, nombre_original, bucket, objeto, tamano, mime_declarado, mime_detectado,
+              estado, created_at
+       FROM archivos WHERE sf_org_id = $1 AND sf_bandeja_id = $2 AND origen = 'SUBIDO' ORDER BY created_at`,
+      [sfOrgId, sfBandejaId]
     );
     const registros = await Promise.all(rows.map(async (r) => {
       let viewUrl = null;
-      try {
-        const [url] = await storage.bucket(BUCKET_NAME).file(r.gcs_path).getSignedUrl({
-          version: 'v4',
-          action: 'read',
-          expires: Date.now() + SIGNED_URL_MINUTES * 60 * 1000
-        });
-        viewUrl = url;
-      } catch (e) {
-        console.error('No se ha podido firmar la URL de', r.gcs_path, e.message);
+      let descargaUrl = null;
+      if (r.estado !== 'SUBIENDO') {
+        try {
+          viewUrl = await urlFirmada(r.bucket, r.objeto, disposicion('inline', r.nombre_original));
+          descargaUrl = await urlFirmada(r.bucket, r.objeto, disposicion('attachment', r.nombre_original));
+        } catch (e) {
+          console.error('No se ha podido firmar la URL de', r.objeto, e.message);
+        }
       }
       return {
-        id: String(r.id),
+        id: r.id,
         sfArchivoId: r.sf_archivo_id,
         sfBandejaId: r.sf_bandeja_id,
-        sfAccountId: r.sf_account_id,
-        sfUserId: r.sf_user_id,
-        cif: r.cif,
-        nombre: r.nombre,
-        gcsPath: r.gcs_path,
-        gcsObjectId: r.gcs_object_id,
-        size: Number(r.size || 0),
-        mime: r.mime,
-        crc32c: r.crc32c,
+        nombre: r.nombre_original,
+        gcsPath: r.objeto,
+        size: Number(r.tamano || 0),
+        mime: r.mime_detectado || r.mime_declarado,
+        estado: r.estado,
         createdAt: r.created_at,
-        updatedAt: r.updated_at,
-        viewUrl
+        viewUrl,
+        descargaUrl
       };
     }));
     res.json({ registros });
@@ -237,7 +254,7 @@ app.post('/records', async (req, res) => {
 });
 
 const port = process.env.PORT || 8080;
-ensureSchema()
+prepararEsquema()
   .then(() => {
     app.listen(port, () => console.log(`bandeja-contable-api escuchando en el puerto ${port} (proyecto ${PROJECT_ID || '?'})`));
   })

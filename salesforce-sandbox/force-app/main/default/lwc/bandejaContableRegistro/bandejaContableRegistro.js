@@ -37,7 +37,7 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
         // Las URL de descarga vienen de Google (firmadas, 15 min); si falla, la ficha se ve igual
         try {
             const archivos = await listarArchivosGoogle({ bandejaId: this.bandejaId });
-            this.urls = Object.fromEntries(archivos.map((a) => [a.archivoId, a.viewUrl]));
+            this.urls = Object.fromEntries(archivos.map((a) => [a.archivoId, a.descargaUrl || a.viewUrl]));
             this.errorGoogle = null;
         } catch (e) {
             this.errorGoogle = mensajeError(e);

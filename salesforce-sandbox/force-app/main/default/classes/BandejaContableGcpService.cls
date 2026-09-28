@@ -19,7 +19,10 @@ public with sharing class BandejaContableGcpService {
 
     public class Sesion {
         public String uploadUrl;
+        /** Ruta del objeto en el bucket de originales; la decide Google (sin CIF ni nombre del cliente) */
         public String gcsPath;
+        public String archivoGoogleId;
+        public String bandejaGoogleId;
     }
 
     public class Confirmacion {
@@ -27,9 +30,11 @@ public with sharing class BandejaContableGcpService {
         public String archivoGoogleId;
         public Long size;
         public String crc32c;
+        /** Estado del archivo en Google tras confirmar (RECIBIDO, EN_COLA…) */
+        public String estadoGoogle;
     }
 
-    /** Un archivo tal como está registrado en Cloud SQL, con URL firmada para previsualizarlo */
+    /** Un archivo tal como está registrado en Cloud SQL, con URL firmadas para verlo y descargarlo */
     public class ArchivoGoogle {
         @AuraEnabled public String googleId;
         @AuraEnabled public String archivoId;
@@ -38,8 +43,12 @@ public with sharing class BandejaContableGcpService {
         @AuraEnabled public String gcsPath;
         @AuraEnabled public Long size;
         @AuraEnabled public String mime;
+        @AuraEnabled public String estado;
         @AuraEnabled public Datetime createdAt;
+        /** Se abre en el navegador (visor) */
         @AuraEnabled public String viewUrl;
+        /** Se descarga con el nombre original del cliente */
+        @AuraEnabled public String descargaUrl;
     }
 
     @TestVisible
@@ -60,36 +69,14 @@ public with sharing class BandejaContableGcpService {
     }
 
     /**
-     * Pide a Cloud Run una sesión de subida resumible para el archivo.
+     * Registra la bandeja y el archivo en Google y pide una sesión de subida resumible. Google decide
+     * la ruta del objeto y devuelve sus id. El archivo debe venir con los campos de su bandeja (Bandeja__r).
      * origin: el origen del navegador (window.location.origin) que subirá el archivo. Google solo
      * habilita CORS en las respuestas de la subida si la sesión se creó con ese Origin.
      */
-    public static Sesion crearSesion(Bandeja_Contable_Archivo__c a, String cif, String origin) {
-        Sesion s = new Sesion();
-        s.gcsPath = rutaGcs(UserInfo.getOrganizationId(), cif, a.Bandeja__c, a.Id, a.Nombre__c);
-        Map<String, Object> res = enviar('/upload-session', new Map<String, Object>{
-            'gcsPath' => s.gcsPath,
-            'size' => a.Tamano__c,
-            'mime' => a.Tipo_mime__c,
-            'origin' => origin
-        });
-        s.uploadUrl = (String) res.get('uploadUrl');
-        if (String.isBlank(s.uploadUrl)) {
-            GcpException e = new GcpException('Google no ha devuelto la sesión de subida.');
-            e.reintentable = true;
-            throw e;
-        }
-        return s;
-    }
-
-    /**
-     * Confirma la subida: Cloud Run comprueba el objeto en Cloud Storage y registra en Cloud SQL la
-     * bandeja y el archivo con sus Id de Salesforce (upsert: un reintento no duplica).
-     * El archivo debe venir con los campos de su bandeja (Bandeja__r) cargados.
-     */
-    public static Confirmacion confirmar(Bandeja_Contable_Archivo__c a) {
+    public static Sesion crearSesion(Bandeja_Contable_Archivo__c a, String origin) {
         Bandeja_Contable__c b = a.Bandeja__r;
-        Map<String, Object> res = enviar('/confirm', new Map<String, Object>{
+        Map<String, Object> res = enviar('/upload-session', new Map<String, Object>{
             'sfOrgId' => UserInfo.getOrganizationId(),
             'bandeja' => new Map<String, Object>{
                 'sfId' => b.Id,
@@ -104,15 +91,40 @@ public with sharing class BandejaContableGcpService {
             'archivo' => new Map<String, Object>{
                 'sfId' => a.Id,
                 'nombre' => a.Nombre__c,
-                'gcsPath' => a.GCS_ruta__c,
+                'size' => a.Tamano__c,
+                'mime' => a.Tipo_mime__c,
                 'sfUserId' => a.CreatedById
-            }
+            },
+            'origin' => origin
+        });
+        Sesion s = new Sesion();
+        s.uploadUrl = (String) res.get('uploadUrl');
+        s.gcsPath = (String) res.get('gcsPath');
+        s.archivoGoogleId = (String) res.get('archivoId');
+        s.bandejaGoogleId = (String) res.get('bandejaId');
+        if (String.isBlank(s.uploadUrl)) {
+            GcpException e = new GcpException('Google no ha devuelto la sesión de subida.');
+            e.reintentable = true;
+            throw e;
+        }
+        return s;
+    }
+
+    /**
+     * Confirma la subida: Google comprueba el objeto en Cloud Storage, marca el archivo como recibido
+     * y encola su procesamiento. Idempotente: confirmar dos veces no duplica nada.
+     */
+    public static Confirmacion confirmar(Bandeja_Contable_Archivo__c a) {
+        Map<String, Object> res = enviar('/confirm', new Map<String, Object>{
+            'sfOrgId' => UserInfo.getOrganizationId(),
+            'sfArchivoId' => a.Id
         });
         Confirmacion c = new Confirmacion();
         c.bandejaGoogleId = (String) res.get('bandejaId');
         c.archivoGoogleId = (String) res.get('archivoId');
         c.size = res.get('size') == null ? null : Long.valueOf(String.valueOf(res.get('size')));
         c.crc32c = (String) res.get('crc32c');
+        c.estadoGoogle = (String) res.get('estado');
         return c;
     }
 
@@ -133,8 +145,10 @@ public with sharing class BandejaContableGcpService {
             g.gcsPath = (String) m.get('gcsPath');
             g.size = m.get('size') == null ? null : Long.valueOf(String.valueOf(m.get('size')));
             g.mime = (String) m.get('mime');
+            g.estado = (String) m.get('estado');
             g.createdAt = parseFecha((String) m.get('createdAt'));
             g.viewUrl = (String) m.get('viewUrl');
+            g.descargaUrl = (String) m.get('descargaUrl');
             out.add(g);
         }
         return out;
@@ -143,15 +157,6 @@ public with sharing class BandejaContableGcpService {
     private static Datetime parseFecha(String iso) {
         if (String.isBlank(iso)) return null;
         return (Datetime) JSON.deserialize('"' + iso + '"', Datetime.class);
-    }
-
-    /** Ruta {orgId}/{cif}/{bandejaId}/{archivoId}/{nombre-saneado}: ordenada por empresa y reconocible sin consultar SQL */
-    public static String rutaGcs(String orgId, String cif, Id bandejaId, Id archivoId, String nombre) {
-        String cifLimpio = String.isBlank(cif) ? 'SIN-CIF' : cif.toUpperCase().replaceAll('[^A-Z0-9]', '');
-        String n = String.isBlank(nombre) ? 'archivo' : nombre;
-        n = n.replaceAll('[^A-Za-z0-9._-]', '_');
-        if (n.length() > 120) n = n.right(120);
-        return orgId + '/' + cifLimpio + '/' + bandejaId + '/' + archivoId + '/' + n;
     }
 
     // ID token de Google en caché durante la transacción (dura 1 h; se renueva antes)

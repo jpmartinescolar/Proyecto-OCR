@@ -82,7 +82,8 @@ export default class BandejaContableDocumento extends LightningElement {
         }
         try {
             const archivos = await listarArchivosGoogle({ bandejaId: this.bandejaId });
-            this.urls = Object.fromEntries(archivos.map((a) => [a.archivoId, a.viewUrl]));
+            // viewUrl se abre en el visor; descargaUrl baja el archivo con el nombre original del cliente
+            this.urls = Object.fromEntries(archivos.map((a) => [a.archivoId, { ver: a.viewUrl, descargar: a.descargaUrl || a.viewUrl }]));
         } catch {
             this.urls = {};
         }
@@ -188,7 +189,8 @@ export default class BandejaContableDocumento extends LightningElement {
             .map((s) => ({ ...s, aplica: s.nif === nifActual, clase: 'doc-skill' + (s.nif === nifActual ? ' doc-skill-aplica' : '') }))
             .sort((a, b) => b.aplica - a.aplica);
 
-        const archivoUrl = this.urls[doc.archivoId];
+        const urlsArchivo = this.urls[doc.archivoId] || {};
+        const archivoUrl = urlsArchivo.ver;
         const mime = String(doc.archivoMime || '');
         const empresa = this.empresa;
 
@@ -247,6 +249,7 @@ export default class BandejaContableDocumento extends LightningElement {
             skillsTxt: `(${skills.length} de ${emp.skills.length})`,
             software: SOFTWARE_CLIENTE,
             archivoUrl,
+            descargaUrl: urlsArchivo.descargar,
             verOriginalPosible: !!archivoUrl && (mime === 'application/pdf' || mime.startsWith('image/')),
             esPdf: mime === 'application/pdf',
             esImagen: mime.startsWith('image/'),

@@ -30,7 +30,6 @@ $sfx  = if ($Entorno -eq 'prod') { '' } else { "-$Entorno" }
 $sfx_ = if ($Entorno -eq 'prod') { '' } else { "_$Entorno" }
 
 $Servicio  = "bandeja-contable-api$sfx"
-$Bucket    = "centro-inteligencia-bandeja-contable$sfx"
 $BaseDatos = "bandeja_contable$sfx_"
 $UsuarioBD = "bandeja_contable_app$sfx_"
 $Secreto   = "bandeja-contable-db-password$sfx"
@@ -82,15 +81,6 @@ foreach ($sa in @(
     Invoke-Gcloud @('iam', 'service-accounts', 'create', $sa[0], "--display-name=$($sa[1])")
   }
 }
-
-Paso "Bucket $Bucket"
-if (Invoke-Gcloud -Check @('storage', 'buckets', 'describe', "gs://$Bucket")) {
-  Write-Host "  ya existe"
-} else {
-  Invoke-Gcloud @('storage', 'buckets', 'create', "gs://$Bucket", "--location=$Region", '--uniform-bucket-level-access', '--public-access-prevention')
-}
-Invoke-Gcloud @('storage', 'buckets', 'update', "gs://$Bucket", "--cors-file=$Cors")
-Invoke-Gcloud @('storage', 'buckets', 'add-iam-policy-binding', "gs://$Bucket", "--member=serviceAccount:$SaRun", '--role=roles/storage.objectAdmin')
 
 Paso "Cloud SQL: base de datos $BaseDatos y usuario $UsuarioBD en $Instancia"
 if (Invoke-Gcloud -Check @('sql', 'databases', 'describe', $BaseDatos, "--instance=$Instancia")) {
@@ -171,6 +161,11 @@ if ($SoloInfra) {
 }
 
 Paso "Cloud Run $Servicio (privado)"
+# Si el procesador ya existe (paso 3 de la Fase 1), la API encola cada archivo confirmado; si no, quedan en RECIBIDO
+$ProcUrl = & gcloud run services describe "bandeja-contable-procesador$sfx" "--region=$Region" --format='value(status.url)' --project=$Proyecto 2>$null
+$EnvApi = "PROJECT_ID=$Proyecto,BUCKET_RAW=$BucketRaw,BUCKET_DOCS=$BucketDocs,INSTANCE_CONNECTION_NAME=$InstanciaConexion," +
+  "DB_NAME=$BaseDatos,DB_USER=$UsuarioBD,TASKS_QUEUE=projects/$Proyecto/locations/$RegionTareas/queues/$Cola,TASKS_SA=$SaProc"
+if ($ProcUrl) { $EnvApi += ",PROCESADOR_URL=$ProcUrl" } else { Write-Host "  (el procesador aun no existe: los archivos quedaran en RECIBIDO)" }
 Invoke-Gcloud @('run', 'deploy', $Servicio,
   "--source=$Codigo",
   "--region=$Region",
@@ -179,7 +174,7 @@ Invoke-Gcloud @('run', 'deploy', $Servicio,
   "--add-cloudsql-instances=$InstanciaConexion",
   '--max-instances=2',
   '--cpu-boost',
-  "--set-env-vars=PROJECT_ID=$Proyecto,BUCKET_NAME=$Bucket,INSTANCE_CONNECTION_NAME=$InstanciaConexion,DB_NAME=$BaseDatos,DB_USER=$UsuarioBD",
+  "--set-env-vars=$EnvApi",
   "--set-secrets=DB_PASSWORD=${Secreto}:latest")
 Invoke-Gcloud @('run', 'services', 'add-iam-policy-binding', $Servicio, "--region=$Region", "--member=serviceAccount:$SaCall", '--role=roles/run.invoker')
 

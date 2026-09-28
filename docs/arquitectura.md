@@ -8,11 +8,15 @@ Estado a 28/09/2026. Lo que está en diseño (Fase 1) se describe en [fases/fase
 Salesforce (LWC bandejaContableNuevo)
   1. crearBandeja            → Bandeja_Contable__c + un Bandeja_Contable_Archivo__c por archivo (Pendiente)
   Por cada archivo:
-  2. solicitarSesionSubida   → Apex → Cloud Run /upload-session → sesión resumible de Cloud Storage
-  3. el navegador sube el archivo directamente a Cloud Storage (por trozos de 8 MiB, reanudable)
-  4. confirmarSubida         → Apex → Cloud Run /confirm → upsert en Cloud SQL (bandejas + archivos)
-                             → Salesforce guarda los Google_Id__c (si Google falla: reintento en cola 1/5/10 min)
-Pantallas (LWC bandejaContableApp): Salesforce + Cloud Run /records (URL firmadas 15 min para ver/descargar)
+  2. solicitarSesionSubida   → Apex → Cloud Run /upload-session: Google registra bandeja y archivo (SUBIENDO),
+                               decide la ruta {org}/{bandejaSF}/{arc_ULID}.{ext} y crea la sesión resumible.
+                               Salesforce guarda la ruta y los Google_Id__c (bnd_…, arc_…).
+  3. el navegador sube el archivo directamente al bucket raw (por trozos de 8 MiB, reanudable)
+  4. confirmarSubida         → Apex → Cloud Run /confirm: comprueba el objeto → RECIBIDO → encola el procesamiento
+                               en Cloud Tasks (EN_COLA) cuando exista el procesador (Fase 1, paso 3).
+                               Si Google falla: reintento en la cola de Salesforce a 1/5/10 min.
+Pantallas (LWC bandejaContableApp): Salesforce + Cloud Run /records (URL firmadas de 15 min para ver y
+para descargar con el nombre original)
 ```
 
 El archivo **nunca pasa por Salesforce** ni por la API: va del navegador a Cloud Storage.
@@ -43,7 +47,6 @@ El archivo **nunca pasa por Salesforce** ni por la API: va del navegador a Cloud
 | Recurso | dev (sandbox) | prod |
 |---|---|---|
 | Cloud Run privado | `bandeja-contable-api-dev` | `bandeja-contable-api` (sin crear) |
-| Bucket | `centro-inteligencia-bandeja-contable-dev` (se sustituirá por raw/docs, ver Fase 1) | — |
 | Cloud SQL | BD `bandeja_contable_dev`, usuario `bandeja_contable_app_dev`, instancia compartida `centro-inteligencia-db` (Postgres 16) | — |
 | Secreto | `bandeja-contable-db-password-dev` | — |
 | Cuentas de servicio | `bandeja-contable-run-dev` (API) · `bandeja-contable-caller-dev` (Salesforce) · `bandeja-contable-proc-dev` (procesador) | — |
@@ -52,10 +55,15 @@ El archivo **nunca pasa por Salesforce** ni por la API: va del navegador a Cloud
 
 Se crean con `gcp-bandeja-contable-api/infra/crear-entorno.ps1 -Entorno dev|prod`.
 
-### Modelo de datos actual (Cloud SQL)
-- `bandejas` (clave `sf_bandeja_id`): nº, org, cuenta, CIF, tipo, observaciones, origen, usuario.
-- `archivos` (clave `sf_archivo_id`): bandeja, org, cuenta, CIF, usuario, nombre, ruta GCS, id de objeto, tamaño, tipo, crc32c.
-- **Referencias cruzadas**: cada fila guarda los IDs de Salesforce, y Salesforce guarda el id de la fila en `Google_Id__c`.
+### Modelo de datos (Cloud SQL, esquema v2 en `gcp-bandeja-contable-api/esquema.sql`)
+- `bandejas` (id `bnd_…`, clave `sf_bandeja_id`): nº, org, cuenta, CIF, tipo, observaciones, origen, usuario.
+- `archivos` (id `arc_…`): subidos (`sf_archivo_id`) o extraídos de un ZIP (`padre_id`); nombre original, bucket y objeto, tipo declarado y detectado, tamaño, sha256, crc32c, nº de páginas, estado.
+- `procesamientos`, `documentos`, `incidencias`: los rellena el procesador (Fase 1, pasos 3–4).
+- **Referencias cruzadas**: cada fila guarda los IDs de Salesforce, y Salesforce guarda el id de Google en `Google_Id__c`.
+- **Objetos en Storage**:
+  - La ruta no lleva CIF ni nombre del cliente.
+  - Metadatos: `nombre-original`, `archivo-id`, `sf-archivo-id`, `sf-bandeja-id`.
+  - `Content-Disposition` con el nombre original.
 
 ### Autenticación Salesforce → Cloud Run
 - Cloud Run es privado: solo lo puede invocar la cuenta `bandeja-contable-caller-*` (`roles/run.invoker`).

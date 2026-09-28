@@ -321,15 +321,18 @@ public with sharing class BandejaContableController {
         }
         BandejaContableGcpService.Sesion s;
         try {
-            s = BandejaContableGcpService.crearSesion(a, a.Bandeja__r.Empresa__r.CIF__c, origin);
+            s = BandejaContableGcpService.crearSesion(a, origin);
         } catch (BandejaContableGcpService.GcpException e) {
             guardarError(a, e.getMessage(), false);
             return fallo(a, 'No se ha podido preparar la subida en Google. ' + e.getMessage());
         }
+        // Google ya ha registrado la bandeja y el archivo: se guardan sus id y la ruta que ha decidido
         a.GCS_ruta__c = s.gcsPath;
+        a.Google_Id__c = s.archivoGoogleId;
         a.Estado__c = ESTADO_SUBIENDO;
         a.Ultimo_error__c = null;
         actualizar(a);
+        guardarIdBandeja(a, s.bandejaGoogleId);
         ResultadoDTO res = resultado(a, null);
         res.uploadUrl = s.uploadUrl;
         return res;
@@ -407,9 +410,14 @@ public with sharing class BandejaContableController {
         a.Estado__c = ESTADO_SINCRONIZADO;
         a.Ultimo_error__c = null;
         actualizar(a);
-        if (String.isBlank(a.Bandeja__r.Google_Id__c) && String.isNotBlank(c.bandejaGoogleId)) {
-            Database.update(new Bandeja_Contable__c(Id = a.Bandeja__c, Google_Id__c = c.bandejaGoogleId), AccessLevel.USER_MODE);
-        }
+        guardarIdBandeja(a, c.bandejaGoogleId);
+    }
+
+    /** Guarda el id de Google de la bandeja si aún no lo tiene (lo devuelven la sesión y la confirmación) */
+    private static void guardarIdBandeja(Bandeja_Contable_Archivo__c a, String bandejaGoogleId) {
+        if (String.isBlank(bandejaGoogleId) || a.Bandeja__r.Google_Id__c == bandejaGoogleId) return;
+        Database.update(new Bandeja_Contable__c(Id = a.Bandeja__c, Google_Id__c = bandejaGoogleId), AccessLevel.USER_MODE);
+        a.Bandeja__r.Google_Id__c = bandejaGoogleId;
     }
 
     /**
