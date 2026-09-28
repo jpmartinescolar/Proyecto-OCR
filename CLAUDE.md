@@ -1,0 +1,21 @@
+# Proyecto-OCR · Bandeja Contable
+
+Bandeja Contable: los asesores suben documentación contable de una empresa desde Salesforce; los archivos van a Google Cloud, donde se separan en documentos, se clasifican y (fase posterior) se extraen sus datos con IA para revisarlos y confirmarlos en Salesforce.
+
+## Dónde está cada cosa
+- `salesforce-sandbox/`: proyecto Salesforce DX (org sandbox `comunidad--full`, alias `sandbox`).
+- `gcp-bandeja-contable-api/`: API en Cloud Run (Node/Express) + `infra/crear-entorno.ps1`.
+- `docs/arquitectura.md`: cómo funciona hoy (flujo, entornos, modelo de datos, autenticación).
+- `docs/decisiones.md`: decisiones tomadas y su motivo. **Consultar antes de proponer algo ya decidido.**
+- `docs/pendientes.md`: backlog y deuda técnica.
+- `docs/fases/`: diseño de cada fase (la actual es `fase-1-ingestion.md`).
+- `docs/despliegue.md`: cómo desplegar Salesforce y Google, y cómo deshacer.
+
+## Reglas
+- **Producción intacta**: no tocar el Buzón contable actual (`areaContableFiscal`, `Buzon_contable__c`). La Bandeja vive en la pestaña oculta `Bandeja_Contable`, visible solo con el permiso `Bandeja_Contable_Asesor`.
+- **Nomenclatura de producción** desde el primer día: nada de `test`, `Buzon`, `opción A`. Prefijos `Bandeja_Contable_` (metadatos), `BandejaContable*` (Apex), `bandejaContable*` (LWC). En Google, sufijo `-dev` / `_dev` para el entorno de desarrollo.
+- **Desplegar en Salesforce solo con `salesforce-sandbox/manifest/bandeja-contable.xml`**, nunca con `package.xml`: otras personas cambian el sandbox directamente sin git y no hay que pisarlas.
+- **Los archivos solo se guardan en Google Cloud Storage.** Salesforce guarda datos del formulario, seguimiento y referencias (IDs de Google). Cloud SQL guarda los IDs de Salesforce.
+- **Nunca sobrescribir lo que extrae la IA con lo que confirma el operador**: son tablas distintas (sirven para medir la tasa de acierto de cada modelo).
+- Los cambios que tocan el sandbox o Google se confirman con el usuario antes de ejecutarlos.
+- El usuario escribe en español; documentación y mensajes de la aplicación en español.
