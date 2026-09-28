@@ -89,7 +89,17 @@ documentos      1 ── 1  confirmaciones    (Fase 2: lo que valida el operador
 | `ERROR` | No se pudo generar o leer |
 | `SUSTITUIDO` | Reemplazado por un reproceso (se conserva) |
 
-**Motivos de revisión:** `NO_PARECE_FACTURA`, `SEPARACION_INCIERTA`, `VARIOS_TIPOS_MEZCLADOS`, `ILEGIBLE`, `BAJA_CONFIANZA`, `DUPLICADO`, `PAGINA_EN_BLANCO`.
+**Motivos de revisión:** `NO_PARECE_FACTURA`, `SEPARACION_INCIERTA`, `VARIOS_TIPOS_MEZCLADOS`, `ILEGIBLE`, `BAJA_CONFIANZA`, `DUPLICADO`, `PAGINA_EN_BLANCO`, `SIN_CLASIFICAR` (el documento aún no ha pasado por el clasificador; paso 3 hasta el 4), `FLUJO_PENDIENTE` (Excel).
+
+**Códigos de incidencia del procesador (paso 3):**
+
+| Gravedad | Códigos |
+|---|---|
+| ERROR | `PDF_PROTEGIDO`, `PDF_CORRUPTO`, `PDF_SIN_PAGINAS`, `IMAGEN_CORRUPTA`, `ZIP_CORRUPTO`, `ZIP_PROTEGIDO`, `ZIP_ENTRADA_ILEGIBLE`, `LIMITE_SEGURIDAD` |
+| AVISO | `DUPLICADO_ARCHIVO` (mismo sha256 en la org), `TIPO_NO_COINCIDE` (extensión frente a contenido), `FORMATO_NO_SOPORTADO`, `ZIP_VACIO`, `ZIP_LECTURA_INCOMPLETA`, `ENCOLAR_FALLIDO`, `PROCESAMIENTO_FALLIDO` |
+| INFO | `SIN_TEXTO` (escaneo), `PAGINAS_SIN_TEXTO`, `ZIP_ANIDADO`, `ARCHIVO_IGNORADO` (`__MACOSX`, `.DS_Store`…), `EXCEL_PENDIENTE_FLUJO` |
+
+Los límites de seguridad de los ZIP son configurables por variable de entorno: `ZIP_MAX_ENTRADAS`, `ZIP_MAX_BYTES_ENTRADA`, `ZIP_MAX_BYTES_TOTAL`, `ZIP_MAX_RATIO` y `ZIP_MAX_PROFUNDIDAD`. `MAX_BYTES_MEMORIA` es el tamaño máximo que se analiza.
 
 **Tipos de documento:** `FACTURA`, `FACTURA_SIMPLIFICADA`, `RECTIFICATIVA`, `ALBARAN`, `PRESUPUESTO`, `HOJA_CALCULO`, `OTRO`, `DESCONOCIDO`.
 

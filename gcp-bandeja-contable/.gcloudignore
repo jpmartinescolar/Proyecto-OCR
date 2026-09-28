@@ -1,5 +1,6 @@
 node_modules/
 infra/
+test/
 cors-*.json
 README.md
 .gcloudignore

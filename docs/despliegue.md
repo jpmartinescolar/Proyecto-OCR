@@ -30,10 +30,10 @@ sf project deploy quick --job-id <id de la validación> -o sandbox
 - Permisos: `sf org assign permset -n Bandeja_Contable_Asesor -o sandbox -b <username>`.
 
 ## Google Cloud
-- **Crear o actualizar un entorno** (idempotente): `gcp-bandeja-contable-api/infra/crear-entorno.ps1 -Entorno dev`. Requiere `gcloud` autenticado (en este equipo, desde PowerShell; `gcloud auth login` si caduca la sesión).
+- **Crear o actualizar un entorno** (idempotente): `gcp-bandeja-contable/infra/crear-entorno.ps1 -Entorno dev`. Requiere `gcloud` autenticado (en este equipo, desde PowerShell; `gcloud auth login` si caduca la sesión).
 - **Redesplegar solo el código de la API:**
   ```
-  cd gcp-bandeja-contable-api
+  cd gcp-bandeja-contable
   gcloud run deploy bandeja-contable-api-dev --source . --region europe-southwest1 --project centro-de-inteligencia-500407
   ```
   Cloud Build construye el contenedor en Google a partir del código local.

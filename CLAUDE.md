@@ -4,7 +4,9 @@ Bandeja Contable: los asesores suben documentación contable de una empresa desd
 
 ## Dónde está cada cosa
 - `salesforce-sandbox/`: proyecto Salesforce DX (org sandbox `comunidad--full`, alias `sandbox`).
-- `gcp-bandeja-contable-api/`: API en Cloud Run (Node/Express) + `infra/crear-entorno.ps1`.
+- `gcp-bandeja-contable/`: código de Google (Node/Express), desplegado como dos servicios de Cloud Run que comparten módulos: la API y el procesador (`SERVICIO=procesador`). Infraestructura en `infra/crear-entorno.ps1`.
+- `docs/hoja-de-ruta.md`: fases del proyecto y decisiones abiertas por fase.
+- `docs/diseno.md`: el diseño de Claude Design (zip en la raíz, no versionado) y qué implica.
 - `docs/arquitectura.md`: cómo funciona hoy (flujo, entornos, modelo de datos, autenticación).
 - `docs/decisiones.md`: decisiones tomadas y su motivo. **Consultar antes de proponer algo ya decidido.**
 - `docs/pendientes.md`: backlog y deuda técnica.

@@ -160,8 +160,25 @@ if ($SoloInfra) {
   return
 }
 
+$Procesador = "bandeja-contable-procesador$sfx"
+Paso "Cloud Run $Procesador (privado; mismo código que la API, SERVICIO=procesador)"
+# Una tarea por instancia (analizar PDF y ZIP usa memoria y CPU); hasta 60 min por archivo
+$EnvProc = "SERVICIO=procesador,PROJECT_ID=$Proyecto,BUCKET_RAW=$BucketRaw,BUCKET_DOCS=$BucketDocs," +
+  "INSTANCE_CONNECTION_NAME=$InstanciaConexion,DB_NAME=$BaseDatos,DB_USER=$UsuarioBD"
+Invoke-Gcloud @('run', 'deploy', $Procesador,
+  "--source=$Codigo",
+  "--region=$Region",
+  "--service-account=$SaProc",
+  '--no-allow-unauthenticated',
+  "--add-cloudsql-instances=$InstanciaConexion",
+  '--memory=2Gi', '--cpu=2', '--concurrency=1', '--timeout=3600', '--max-instances=3',
+  "--set-env-vars=$EnvProc",
+  "--set-secrets=DB_PASSWORD=${Secreto}:latest")
+# Cloud Tasks llama al procesador con un token OIDC de su propia cuenta de servicio
+Invoke-Gcloud @('run', 'services', 'add-iam-policy-binding', $Procesador, "--region=$Region", "--member=serviceAccount:$SaProc", '--role=roles/run.invoker')
+
 Paso "Cloud Run $Servicio (privado)"
-# Si el procesador ya existe (paso 3 de la Fase 1), la API encola cada archivo confirmado; si no, quedan en RECIBIDO
+# Si el procesador existe, la API encola cada archivo confirmado; si no, quedan en RECIBIDO
 $ProcUrl = & gcloud run services describe "bandeja-contable-procesador$sfx" "--region=$Region" --format='value(status.url)' --project=$Proyecto 2>$null
 $EnvApi = "PROJECT_ID=$Proyecto,BUCKET_RAW=$BucketRaw,BUCKET_DOCS=$BucketDocs,INSTANCE_CONNECTION_NAME=$InstanciaConexion," +
   "DB_NAME=$BaseDatos,DB_USER=$UsuarioBD,TASKS_QUEUE=projects/$Proyecto/locations/$RegionTareas/queues/$Cola,TASKS_SA=$SaProc"

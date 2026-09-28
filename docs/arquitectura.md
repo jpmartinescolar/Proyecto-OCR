@@ -53,9 +53,9 @@ El archivo **nunca pasa por Salesforce** ni por la API: va del navegador a Cloud
 | Buckets Fase 1 | `centro-inteligencia-bandeja-contable-raw-dev` (originales) · `…-docs-dev` (derivados) | — |
 | Cola Cloud Tasks | `bandeja-contable-procesar-dev` en **europe-west1** (Cloud Tasks no existe en Madrid) | — |
 
-Se crean con `gcp-bandeja-contable-api/infra/crear-entorno.ps1 -Entorno dev|prod`.
+Se crean con `gcp-bandeja-contable/infra/crear-entorno.ps1 -Entorno dev|prod`.
 
-### Modelo de datos (Cloud SQL, esquema v2 en `gcp-bandeja-contable-api/esquema.sql`)
+### Modelo de datos (Cloud SQL, esquema v2 en `gcp-bandeja-contable/esquema.sql`)
 - `bandejas` (id `bnd_…`, clave `sf_bandeja_id`): nº, org, cuenta, CIF, tipo, observaciones, origen, usuario.
 - `archivos` (id `arc_…`): subidos (`sf_archivo_id`) o extraídos de un ZIP (`padre_id`); nombre original, bucket y objeto, tipo declarado y detectado, tamaño, sha256, crc32c, nº de páginas, estado.
 - `procesamientos`, `documentos`, `incidencias`: los rellena el procesador (Fase 1, pasos 3–4).
