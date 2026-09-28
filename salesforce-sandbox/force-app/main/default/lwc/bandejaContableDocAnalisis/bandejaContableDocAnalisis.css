@@ -1,0 +1,26 @@
+@import 'c/bandejaContableEstilos';
+
+.ana-card { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: visible; }
+.ana-flex { flex: 1; min-width: 0; }
+.ana-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.ana-kpi { border: 1px solid var(--bc-line); border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; background: var(--bc-paper-2); }
+.ana-kpi-label { font-size: 11px; color: var(--bc-ink-3); }
+.ana-kpi-valor { font: 700 16px var(--bc-font-display); color: var(--bc-ink-1); font-variant-numeric: tabular-nums; }
+.ana-kpi-mal { color: var(--bc-danger); }
+.ana-kpi-bien { color: var(--bc-success); }
+.ana-bloque { border: 1px solid var(--bc-line); border-radius: 8px; overflow: hidden; }
+.ana-bloque-cab { padding: 7px 12px; background: var(--bc-paper-2); border-bottom: 1px solid var(--bc-line); display: flex; align-items: center; gap: 8px; font: 700 12px var(--bc-font-display); text-transform: uppercase; letter-spacing: 0.06em; color: var(--bc-ink-3); }
+.ana-bloque-mal { background: var(--bc-danger-soft); color: var(--bc-danger); }
+.ana-bloque-aviso { background: var(--bc-warm-soft); color: var(--bc-warm-ink); }
+.ana-bloque-bien { background: var(--bc-success-soft); color: var(--bc-success); }
+.ana-bloque-resumen { font: 600 11px var(--bc-font-body); text-transform: none; letter-spacing: 0; }
+.ana-item { padding: 8px 12px; border-top: 1px solid var(--bc-line); display: flex; gap: 10px; align-items: flex-start; }
+.ana-item-cuerpo { display: flex; flex-direction: column; gap: 2px; }
+.ana-item-titulo { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; }
+.ana-ref { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--bc-paper-3); color: var(--bc-brand-deep); white-space: nowrap; }
+.ana-texto { font-size: 12px; color: var(--bc-ink-2); }
+.ana-importe { font-size: 13px; font-weight: 700; color: var(--bc-ink-1); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ana-vacio { padding: 10px 12px; font-size: 12px; color: var(--bc-ink-3); }
+.ana-nota { font-size: 11px; color: var(--bc-ink-3); }
+.ana-fila-on { background: var(--bc-paper-3); }
+.ana-total td { background: var(--bc-paper-2); font-weight: 700; border-top: 1px solid var(--bc-line-strong); }

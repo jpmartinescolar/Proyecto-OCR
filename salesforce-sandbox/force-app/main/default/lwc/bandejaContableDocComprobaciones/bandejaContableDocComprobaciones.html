@@ -1,0 +1,59 @@
+<template>
+    <section class="bc-card chk-card">
+        <div class="chk-caja">
+            <div class="chk-cab"><span class="chk-flex">Comprobaciones automáticas</span><span class="chk-cab-nota">{resumen}</span></div>
+            <div class="chk-barra-filtros">
+                <div class="chk-filtros">
+                    <template for:each={filtros} for:item="f">
+                        <button key={f.k} class={f.clase} data-k={f.k} onclick={elegirFiltro}>{f.label}<span class="chk-filtro-n">{f.n}</span></button>
+                    </template>
+                </div>
+                <input class="bc-buscar chk-buscar" type="search" placeholder="Buscar comprobación…" value={busqueda} oninput={buscar}>
+            </div>
+            <template lwc:if={sinResultados}>
+                <div class="bc-vacio">No hay comprobaciones que coincidan con el filtro.</div>
+            </template>
+            <template for:each={grupos} for:item="g">
+                <div key={g.k}>
+                    <div class={g.clase}><span class="chk-flex">{g.label}</span><span class="chk-grupo-resumen">{g.resumen}</span></div>
+                    <template for:each={g.subs} for:item="s">
+                        <div key={s.key}>
+                            <template lwc:if={s.cabecera}>
+                                <button class="chk-sub" data-k={s.key} onclick={toggleSub}>
+                                    <span class={s.claseFlecha}>›</span>
+                                    <span class="chk-flex chk-sub-titulo">{s.label}</span>
+                                    <span class={s.claseResumen}>{s.resumen}</span>
+                                </button>
+                            </template>
+                            <template lwc:if={s.abierto}>
+                                <template for:each={s.items} for:item="c">
+                                    <div key={c.key} class="chk-item">
+                                        <span class={c.clase}>{c.icono}</span>
+                                        <div class="chk-flex chk-cuerpo">
+                                            <div class="chk-titulo-fila">
+                                                <span class="chk-titulo">{c.titulo}</span>
+                                                <span class={c.claseStatus}>{c.status}</span>
+                                                <template lwc:if={c.ejemplo}><span class="bc-ejemplo" title="Depende de datos que todavía no existen (ver docs/pendientes.md)">Ejemplo</span></template>
+                                            </div>
+                                            <span class="chk-texto">{c.texto}</span>
+                                            <template lwc:if={c.hayBarras}>
+                                                <div class="chk-grafico">
+                                                    <template for:each={c.barras} for:item="b">
+                                                        <div key={b.m} class="chk-columna" title={b.tip}>
+                                                            <span class={b.clase} style={b.estilo}></span>
+                                                            <span class="chk-mes">{b.m}</span>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </section>
+</template>

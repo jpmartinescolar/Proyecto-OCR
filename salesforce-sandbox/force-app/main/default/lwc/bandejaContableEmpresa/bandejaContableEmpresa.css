@@ -1,9 +1,10 @@
 @import 'c/bandejaContableEstilos';
 
 .emp-cabecera { padding: 18px 24px 0; display: flex; flex-direction: column; gap: 14px; }
-.emp-aviso { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--bc-ink-3); }
 .emp-ancho { grid-column: 1 / -1; }
 .emp-perfil { padding: 6px 20px 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; }
+.emp-sin-dato { color: var(--bc-ink-4); }
+.emp-subtitulo { padding: 4px 20px 0; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
 .emp-lista { padding: 6px 20px 14px; display: flex; flex-direction: column; }
 .emp-propuesta { padding: 10px 0; border-bottom: 1px solid var(--bc-line); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .emp-propuesta:last-child { border-bottom: none; }
@@ -13,8 +14,5 @@
 .emp-validacion { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--bc-line); }
 .emp-validacion:last-child { border-bottom: none; }
 .emp-validacion-texto { font-size: 14px; }
-.emp-skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
-.emp-skill { padding: 12px 20px; border-bottom: 1px solid var(--bc-line); border-right: 1px solid var(--bc-line); display: flex; flex-direction: column; gap: 4px; }
-.emp-skill-cab { display: flex; align-items: center; gap: 8px; }
-.emp-skill-num { font-size: 12px; font-weight: 700; color: var(--bc-brand-primary); font-variant-numeric: tabular-nums; }
-.emp-skill-titulo { font-size: 14px; font-weight: 700; flex: 1; }
+.emp-skills { overflow: visible; border: none; box-shadow: none; background: transparent; }
+.emp-boton-riesgo { color: var(--bc-danger); }

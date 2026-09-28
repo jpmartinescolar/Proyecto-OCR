@@ -1,0 +1,14 @@
+@import 'c/bandejaContableEstilos';
+
+.rsg-cabecera { padding: 16px 24px; }
+.rsg-icono { background: var(--bc-danger); }
+.rsg-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.rsg-kpi { background: var(--bc-paper); border: 1px solid var(--bc-line); border-radius: 12px; box-shadow: var(--bc-shadow-sm); padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; border-top: 4px solid var(--rsg-color); }
+.rsg-kpi-is { --rsg-color: var(--bc-brand-deep); }
+.rsg-kpi-iva { --rsg-color: var(--bc-brand-primary); }
+.rsg-kpi-irpf { --rsg-color: var(--bc-brand-cyan); }
+.rsg-kpi-total { --rsg-color: var(--bc-danger); }
+.rsg-kpi-label { font-size: 12px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.rsg-kpi-valor { font: 700 28px var(--bc-font-display); color: var(--rsg-color); font-variant-numeric: tabular-nums; }
+.rsg-total { color: var(--bc-danger) !important; font-weight: 700; }
+.rsg-pie td { border-top: 2px solid var(--bc-line-strong); background: var(--bc-paper-2); font-weight: 700; color: var(--bc-ink-1); }

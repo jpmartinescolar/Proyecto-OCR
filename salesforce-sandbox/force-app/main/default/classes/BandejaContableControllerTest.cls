@@ -372,20 +372,6 @@ private class BandejaContableControllerTest {
     }
 
     @IsTest
-    static void fichaDeLaEmpresa() {
-        System.runAs(BandejaContableTestData.asesor()) {
-            Account a = new Account(Id = empresaId(), BillingStreet = 'Calle de la Industria 14', BillingPostalCode = '28850',
-                                    BillingCity = 'Torrejón de Ardoz', BillingState = 'Madrid');
-            update a;
-            BandejaContableController.EmpresaDetalleDTO e = BandejaContableController.getEmpresa(a.Id);
-            Assert.areEqual('B00000001', e.cif);
-            Assert.areEqual('Calle de la Industria 14', e.domicilio);
-            Assert.areEqual('28850 Torrejón de Ardoz (Madrid)', e.localidad);
-            Assert.areEqual('Asesor Bandeja', e.asesor);
-        }
-    }
-
-    @IsTest
     static void registrosInaccesibles() {
         System.runAs(BandejaContableTestData.asesor()) {
             Id inexistente = Bandeja_Contable__c.SObjectType.getDescribe().getKeyPrefix() + '000000000000';
@@ -394,12 +380,6 @@ private class BandejaContableControllerTest {
                 Assert.fail('No existe');
             } catch (AuraHandledException e) {
                 Assert.isTrue(e.getMessage().contains('No se encuentra la bandeja'), e.getMessage());
-            }
-            try {
-                BandejaContableController.getEmpresa(Account.SObjectType.getDescribe().getKeyPrefix() + '000000000000');
-                Assert.fail('No existe');
-            } catch (AuraHandledException e) {
-                Assert.isTrue(e.getMessage().contains('No se encuentra la empresa'), e.getMessage());
             }
         }
     }

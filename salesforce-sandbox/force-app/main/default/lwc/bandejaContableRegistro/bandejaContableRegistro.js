@@ -112,7 +112,7 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
 
     get documentos() {
         if (!this.detalle) return [];
-        return documentosDeBandeja(this.detalle).map((d) => ({ ...d, claseEstado: claseEstado(d.estado) }));
+        return documentosDeBandeja(this.detalle).map((d) => ({ ...d, claseEstado: claseEstado(d.estado), estadoTxt: d.motivo ? `${d.estado} · ${d.motivo}` : d.estado }));
     }
     get hayDocumentos() { return this.documentos.length > 0; }
     get tituloDocumentos() { return `OCR documentos (${this.documentos.length})`; }

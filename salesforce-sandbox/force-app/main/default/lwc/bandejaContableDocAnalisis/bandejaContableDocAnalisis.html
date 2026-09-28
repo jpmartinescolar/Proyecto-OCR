@@ -1,0 +1,58 @@
+<template>
+    <section class="bc-card ana-card">
+        <template lwc:if={esIs}>
+            <div class="ana-kpis">
+                <template for:each={kpis} for:item="k">
+                    <div key={k.l} class="ana-kpi"><span class="ana-kpi-label">{k.l}</span><span class={k.clase}>{k.v}</span></div>
+                </template>
+            </div>
+            <template for:each={bloques} for:item="b">
+                <div key={b.k} class="ana-bloque">
+                    <div class={b.claseCab}><span class="ana-flex">{b.titulo}</span><span class="ana-bloque-resumen">{b.resumen}</span></div>
+                    <template lwc:if={b.hay}>
+                        <template for:each={b.items} for:item="x">
+                            <div key={x.key} class="ana-item">
+                                <div class="ana-flex ana-item-cuerpo">
+                                    <div class="ana-item-titulo"><span class="bc-fuerte">{x.titulo}</span><span class="ana-ref">{x.ref}</span></div>
+                                    <span class="ana-texto">{x.texto}</span>
+                                </div>
+                                <span class={x.claseImporte}>{x.importe}</span>
+                            </div>
+                        </template>
+                    </template>
+                    <template lwc:else><div class="ana-vacio">{b.vacio}</div></template>
+                </div>
+            </template>
+            <span class="ana-nota">Los ajustes se trasladan al modelo 200 del ejercicio (casillas de aumentos y disminuciones del resultado contable). Cálculo sobre los datos de ejemplo.</span>
+        </template>
+
+        <template lwc:if={esProductos}>
+            <div class="ana-bloque">
+                <div class="ana-bloque-cab"><span class="ana-flex">Productos extraídos ({numFilas})</span><span class="ana-bloque-resumen">Pasa el ratón para verlo en la factura</span></div>
+                <div class="bc-tabla-wrap">
+                    <table class="bc-tabla bc-tabla-peq">
+                        <thead>
+                            <tr><th class="bc-primera">Nº</th><th>Descripción</th><th class="bc-derecha">Cantidad</th><th class="bc-derecha">Precio unit. (€)</th><th class="bc-derecha">Tipo IVA</th><th class="bc-derecha bc-ultima">Importe (€)</th></tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={filas} for:item="p">
+                                <tr key={p.n} class={p.clase} data-i={p.i} onmouseenter={entrar} onmouseleave={salir}>
+                                    <td class="bc-primera bc-num">{p.n}</td>
+                                    <td class="bc-fuerte">{p.desc}</td>
+                                    <td class="bc-derecha bc-num bc-nowrap">{p.cantidad}</td>
+                                    <td class="bc-derecha bc-num">{p.unitario}</td>
+                                    <td class="bc-derecha bc-nowrap">{p.pct} %</td>
+                                    <td class="bc-derecha bc-num bc-fuerte bc-ultima">{p.importe}</td>
+                                </tr>
+                            </template>
+                            <tr class="ana-total">
+                                <td class="bc-primera" colspan="5">Total productos (base)</td>
+                                <td class="bc-derecha bc-num bc-ultima">{total}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </template>
+    </section>
+</template>

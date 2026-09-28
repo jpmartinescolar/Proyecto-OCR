@@ -1,0 +1,148 @@
+<template>
+    <!-- Notas -->
+    <template lwc:if={esNotas}>
+        <section class="bc-card col-card">
+            <div class="col-editor">
+                <textarea class="col-textarea" rows="3" placeholder="Escribe una nota sobre esta factura…" value={borradorNota} oninput={escribirNota}></textarea>
+                <template lwc:if={hayAdjuntos}>
+                    <div class="col-adjuntos">
+                        <template for:each={adjuntosTxt} for:item="f">
+                            <span key={f.i} class="col-adjunto"><span class="col-adjunto-nombre">{f.name}</span><span class="col-gris">{f.tam}</span>
+                                <button class="col-x" title="Quitar" data-i={f.i} onclick={quitarAdjunto}>×</button></span>
+                        </template>
+                    </div>
+                </template>
+                <div class="col-acciones">
+                    <input class="col-input-archivo" type="file" multiple onchange={anadirArchivos}>
+                    <button class="bc-boton-sec bc-boton-mini" onclick={elegirArchivos}>
+                        <lightning-icon icon-name="utility:attach" size="xx-small"></lightning-icon>Adjuntar archivo
+                    </button>
+                    <span class="bc-ejemplo" title="Las notas y adjuntos se guardan solo mientras la página está abierta">Datos de ejemplo</span>
+                    <span class="col-flex"></span>
+                    <button class="bc-boton bc-boton-mini" onclick={guardarNota}>Guardar nota</button>
+                </div>
+            </div>
+            <template lwc:if={sinNotas}><div class="col-vacio">Sin notas todavía.</div></template>
+            <template for:each={notas} for:item="n">
+                <div key={n.id} class={n.clase}>
+                    <div class="col-nota-cab">
+                        <template lwc:if={n.etiqueta}><span class={n.claseTag}>{n.etiqueta}</span></template>
+                        <span class="col-flex col-gris"><b>{n.autor}</b> · {n.fechaTxt}</span>
+                        <button class="col-x" title="Borrar nota" data-id={n.id} onclick={borrarNota}>×</button>
+                    </div>
+                    <span class="col-nota-texto">{n.text}</span>
+                    <template lwc:if={n.hayArchivos}>
+                        <div class="col-adjuntos">
+                            <template for:each={n.archivos} for:item="f">
+                                <a key={f.key} class="col-adjunto col-adjunto-enlace" href={f.url} download={f.name} target="_blank">
+                                    <span class="col-adjunto-nombre">{f.name}</span><span class="col-gris">{f.tam}</span>
+                                </a>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </section>
+    </template>
+
+    <!-- Tareas -->
+    <template lwc:if={esTareas}>
+        <section class="bc-card col-card col-card-pad">
+            <div class="col-caja">
+                <div class="col-cab"><span class="col-flex">Tareas</span><span class="bc-ejemplo">Datos de ejemplo</span><span class="col-cab-nota">{resumenTareas}</span></div>
+                <div class="col-nueva">
+                    <input class="col-input col-flex" placeholder="Nueva tarea…" value={borradorTarea.text} oninput={escribirTarea}>
+                    <select class="col-input" onchange={elegirResponsable}>
+                        <template for:each={responsables} for:item="r"><option key={r.r} value={r.r} selected={r.selected}>{r.r}</option></template>
+                    </select>
+                    <input class="col-input" type="date" value={borradorTarea.due} onchange={elegirVencimiento}>
+                    <button class="bc-boton bc-boton-peq" onclick={anadirTarea}>+ Añadir tarea</button>
+                </div>
+                <template lwc:if={sinTareas}><div class="col-vacio">No hay tareas para este documento.</div></template>
+                <template for:each={tareas} for:item="t">
+                    <div key={t.id} class="col-tarea">
+                        <button class={t.claseCheck} aria-label="Marcar tarea" data-id={t.id} onclick={marcarTarea}>{t.check}</button>
+                        <span class={t.claseTexto}>{t.text}</span>
+                        <span class="bc-pill bc-pill-peq">{t.who}</span>
+                        <span class={t.claseVence}>{t.venceTxt}</span>
+                        <button class="col-x" aria-label="Eliminar" data-id={t.id} onclick={borrarTarea}>×</button>
+                    </div>
+                </template>
+            </div>
+            <div class="col-pie">FALTA decidir dónde se guardan las tareas (Task de Salesforce o Cloud SQL), si el cliente puede ser responsable (portal) y qué hace la IA con las que se le asignan.</div>
+        </section>
+    </template>
+
+    <!-- Chat IA -->
+    <template lwc:if={esChat}>
+        <section class="bc-card col-chat">
+            <div class="col-chat-lista">
+                <div class="col-chat-lista-cab">Histórico de chats</div>
+                <template lwc:if={sinHistorico}><div class="col-vacio">Aún no hay chats guardados en esta factura.</div></template>
+                <template for:each={historico} for:item="c">
+                    <div key={c.cid} class={c.clase} data-id={c.cid} onclick={abrirHistorico}>
+                        <div class="col-hist-cab">
+                            <span class="bc-pill bc-pill-peq bc-pill-info">{c.tag}</span>
+                            <span class="col-flex col-hist-titulo">{c.titulo}</span>
+                            <button class="col-x" title="Borrar chat" data-id={c.cid} onclick={borrarHistorico}>×</button>
+                        </div>
+                        <span class="col-gris col-peq">{c.meta}</span>
+                        <span class="col-hist-preview">{c.preview}</span>
+                    </div>
+                </template>
+            </div>
+
+            <div class="col-chat-panel">
+                <template lwc:if={hayChat}>
+                    <div class="col-chat-cab">
+                        <div class="col-flex col-chat-titulos">
+                            <span class="col-eyebrow">Asistente fiscal · {actual.tag}</span>
+                            <span class="col-chat-titulo">{actual.titulo}</span>
+                            <span class="col-gris col-peq">{actual.ctx}</span>
+                        </div>
+                        <span class="bc-ejemplo">Respuestas de ejemplo</span>
+                        <button class="bc-boton-sec bc-boton-mini" onclick={cerrarChat}>+ Nuevo chat</button>
+                        <button class="col-x col-x-grande" title="Cerrar y guardar" onclick={cerrarChat}>×</button>
+                    </div>
+                    <div class="col-mensajes">
+                        <template for:each={mensajes} for:item="m">
+                            <div key={m.key} class={m.clase}><span class="col-burbuja">{m.text}</span></div>
+                        </template>
+                    </div>
+                    <template lwc:if={haySugerenciasChat}>
+                        <div class="col-sugerencias col-sugerencias-chat">
+                            <template for:each={sugerenciasChat} for:item="q">
+                                <button key={q.label} class="col-sugerencia" data-q={q.label} onclick={enviarSugerencia}>{q.label}</button>
+                            </template>
+                        </div>
+                    </template>
+                </template>
+                <template lwc:else>
+                    <div class="col-chat-cab">
+                        <div class="col-flex col-chat-titulos">
+                            <span class="col-eyebrow">Asistente fiscal · Nuevo chat</span>
+                            <span class="col-chat-titulo">Consulta sobre esta factura</span>
+                            <span class="col-gris col-peq">{contextoTxt}</span>
+                        </div>
+                        <span class="bc-ejemplo">Respuestas de ejemplo</span>
+                    </div>
+                    <div class="col-bienvenida">
+                        <span class="col-bienvenida-titulo">¿En qué te ayudo con esta factura?</span>
+                        <span class="col-gris">Conozco los datos extraídos, el riesgo fiscal y las Skills del cliente.</span>
+                        <div class="col-sugerencias">
+                            <template for:each={sugerenciasNuevo} for:item="q">
+                                <button key={q.label} class="col-sugerencia" data-q={q.label} onclick={enviarSugerencia}>{q.label}</button>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+                <div class="col-escribir">
+                    <textarea class="col-textarea col-flex" rows="2" placeholder="Escribe tu pregunta…" value={pregunta} oninput={escribirPregunta} onkeydown={teclaPregunta}></textarea>
+                    <button class="col-enviar" title="Enviar" aria-label="Enviar" onclick={enviar}>
+                        <lightning-icon icon-name="utility:send" size="x-small" variant="inverse"></lightning-icon>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </template>
+</template>

@@ -1,1 +1,27 @@
 @import 'c/bandejaContableEstilos';
+
+.ocr-subpestanas { padding: 0 24px; border-bottom: 1px solid var(--bc-line); }
+.ocr-tipos { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--bc-line); overflow-x: auto; }
+.ocr-tipo { font: 500 14px var(--bc-font-body); padding: 12px 14px; border: none; background: transparent; color: var(--bc-ink-2); border-bottom: 3px solid transparent; margin-bottom: -1px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.ocr-tipo-on { font-weight: 700; color: var(--bc-brand-deep); border-bottom-color: var(--bc-brand-primary); }
+.ocr-tipo-n { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--bc-paper-3); color: var(--bc-ink-2); }
+.ocr-tipo-n-on { background: var(--bc-brand-primary); color: #fff; }
+.ocr-situaciones { display: flex; gap: 6px; flex-wrap: wrap; }
+.ocr-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--bc-ink-3); }
+.ocr-dot-ok { background: var(--bc-success); }
+.ocr-dot-riesgo { background: var(--bc-warm); }
+.ocr-motivo { font: 600 13px var(--bc-font-body); padding: 6px 10px; border-radius: 999px; border: 1px solid var(--bc-line-strong); background: var(--bc-paper); color: var(--bc-ink-2); cursor: pointer; outline: none; }
+.ocr-pill-ticket { background: var(--bc-paper-3); color: var(--bc-brand-cyan); }
+.ocr-sit-celda { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.ocr-sit { width: 22px; height: 22px; border-radius: 999px; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; font-weight: 700; }
+.ocr-sit-ok { background: var(--bc-success); }
+.ocr-sit-riesgo { background: var(--bc-warm); }
+.ocr-sit-txt { font-size: 12px; font-weight: 700; }
+.ocr-sit-txt-ok { color: var(--bc-success); }
+.ocr-sit-txt-riesgo { color: var(--bc-warm-ink); }
+.ocr-grupo td { background: var(--bc-paper-3); border-top: 1px solid var(--bc-line-strong); cursor: pointer; }
+.ocr-grupo-fila { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ocr-grupo-nombre { font: 700 14px var(--bc-font-display); color: var(--bc-brand-deep); }
+.ocr-grupo-n { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: var(--bc-paper); color: var(--bc-ink-2); }
+.ocr-flecha { display: inline-block; color: var(--bc-brand-deep); font-weight: 700; transition: transform 150ms; }
+.ocr-flecha-abierta { transform: rotate(90deg); }

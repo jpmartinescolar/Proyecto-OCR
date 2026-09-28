@@ -3,6 +3,9 @@
 Registro de decisiones del proyecto. Formato: fecha · decisión · motivo · alternativas descartadas. Las más recientes arriba.
 
 ## 2026-09-28
+- **UI adaptada al diseño v2 ya, sin esperar a la Fase 2**, con los datos reales que hay y el resto de ejemplo, comentado y marcado en pantalla.
+- **Datos del cliente desde Salesforce** (`BandejaContableClienteService`): contrato contable y fiscal abierto, obligaciones tributarias en alta, actividades económicas (IAE), locales afectos, socios y administradores, y dirección de facturación. Lo que no existe (régimen de IVA, prorrata, ROI, turismos, censo AEAT/VIES) queda de ejemplo y listado como pendiente. Descartado: duplicar estos datos en Cloud SQL.
+- **Las comprobaciones que dependen de datos inexistentes se marcan "Ejemplo"** en pantalla (censo, deudores, prorrata, histórico del proveedor, duplicados) para no dar por buena una comprobación que no se ha hecho.
 - **Backend de Google en Python + FastAPI** (se rehízo la primera versión en Node). El contrato con Salesforce no cambia. Librerías:
   - `pypdf` para los PDF (licencia BSD). Descartado PyMuPDF por su licencia AGPL.
   - `Pillow` para las imágenes y `zipfile` de la librería estándar para los ZIP.

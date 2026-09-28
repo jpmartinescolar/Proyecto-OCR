@@ -1,0 +1,137 @@
+<template>
+    <section class="bc-card cli-card">
+        <template lwc:if={error}>
+            <div class="cli-aviso cli-aviso-error">No se han podido leer los datos del cliente en Salesforce: {error}</div>
+        </template>
+
+        <!-- Perfil fiscal -->
+        <template lwc:if={esPerfil}>
+            <div class="cli-caja">
+                <div class="cli-cab"><span class="cli-flex">Domicilio fiscal</span><span class="cli-cab-nota">Salesforce · dirección de facturación</span></div>
+                <div class="cli-texto">{domicilio}</div>
+                <div class="cli-nota">FALTA: contrastar con el domicilio del censo de la AEAT (no hay consulta al censo).</div>
+            </div>
+
+            <div class="cli-caja">
+                <div class="cli-cab"><span class="cli-flex">Perfil fiscal</span><span class="cli-cab-nota">Salesforce</span></div>
+                <template lwc:if={hayPerfil}>
+                    <template for:each={perfil} for:item="p">
+                        <div key={p.key} class="cli-par">
+                            <span class="cli-flex cli-par-label">{p.label}</span>
+                            <span class={p.claseValor}>{p.valorTxt}</span>
+                            <span class="cli-fuente">{p.fuente}</span>
+                        </div>
+                    </template>
+                </template>
+                <template lwc:else><div class="bc-vacio">Sin datos de perfil fiscal.</div></template>
+            </div>
+
+            <div class="cli-caja">
+                <div class="cli-cab"><span class="cli-flex">Datos fiscales que no están en Salesforce</span><span class="bc-ejemplo">Datos de ejemplo</span></div>
+                <template for:each={sinDatos} for:item="p">
+                    <div key={p.label} class="cli-par"><span class="cli-flex cli-par-label">{p.label}</span><span class="cli-par-valor">{p.valor}</span></div>
+                </template>
+                <div class="cli-nota">Pendiente de decidir dónde se registran (ver docs/pendientes.md).</div>
+            </div>
+
+            <div class="cli-caja">
+                <div class="cli-cab"><span class="cli-flex">Obligaciones tributarias en alta</span><span class="cli-cab-nota">Salesforce</span></div>
+                <template lwc:if={hayModelos}>
+                    <div class="cli-fila cli-fila-modelo cli-fila-cab"><span>Modelo</span><span>Periodicidad</span><span>Modalidad</span><span>Presentación</span><span>Alta</span></div>
+                    <template for:each={modelos} for:item="m">
+                        <div key={m.key} class="cli-fila cli-fila-modelo">
+                            <span class="cli-codigo">{m.modelo}</span><span>{m.periodicidad}</span><span>{m.modalidad}</span><span>{m.presentacion}</span><span class="bc-num">{m.altaTxt}</span>
+                        </div>
+                    </template>
+                </template>
+                <template lwc:else><div class="bc-vacio">No hay obligaciones tributarias en alta.</div></template>
+            </div>
+
+            <div class="cli-caja">
+                <div class="cli-cab"><span class="cli-flex">Vinculados (socios y administradores)</span><span class="cli-cab-nota">Salesforce</span></div>
+                <template lwc:if={hayVinculados}>
+                    <template for:each={vinculados} for:item="v">
+                        <div key={v.key} class="cli-par"><span class="cli-flex cli-par-valor-izq">{v.nombre}</span><span class="cli-par-label">{v.nif}</span><span class="cli-fuente">{v.relacion}</span></div>
+                    </template>
+                </template>
+                <template lwc:else><div class="bc-vacio">Sin socios ni administradores registrados.</div></template>
+            </div>
+
+            <div class="cli-caja">
+                <div class="cli-cab"><span class="cli-flex">Pendiente de incorporar</span></div>
+                <ul class="cli-lista">
+                    <template for:each={pendientes} for:item="p"><li key={p.t}>{p.t}</li></template>
+                </ul>
+                <template lwc:if={hayNoDisponibles}>
+                    <div class="cli-aviso">No disponible ahora:
+                        <template for:each={noDisponibles} for:item="n"><span key={n.t} class="cli-no-disp">{n.t}</span></template>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- Actividades (IAE) -->
+        <template lwc:if={esIae}>
+            <div class="cli-caja">
+                <div class="cli-cab"><span class="cli-flex">Actividades económicas (IAE)</span><span class="cli-cab-nota">Salesforce</span></div>
+                <template lwc:if={hayActividades}>
+                    <div class="cli-fila cli-fila-iae cli-fila-cab"><span>Epígrafe</span><span>Fecha alta</span><span>Descripción</span></div>
+                    <template for:each={actividades} for:item="a">
+                        <div key={a.key} class="cli-fila cli-fila-iae">
+                            <span class="cli-codigo">{a.epigrafe}</span>
+                            <span class="cli-par-label bc-num">{a.altaTxt}</span>
+                            <span>{a.descripcion} <span class="cli-fuente">{a.seccionTxt}</span></span>
+                        </div>
+                    </template>
+                </template>
+                <template lwc:else><div class="bc-vacio">El cliente no tiene actividades económicas en alta.</div></template>
+            </div>
+        </template>
+
+        <!-- Locales afectos -->
+        <template lwc:if={esLocales}>
+            <div class="cli-caja">
+                <div class="cli-cab"><span class="cli-flex">Locales afectos</span><span class="cli-cab-nota">Salesforce</span></div>
+                <template lwc:if={hayLocales}>
+                    <template for:each={locales} for:item="l">
+                        <div key={l.key} class="cli-local">
+                            <div class="cli-local-cab"><span class="cli-flex bc-fuerte">{l.direccion}</span><span class={l.claseAfectacion}>{l.afectacionTxt}</span></div>
+                            <span class="cli-fuente">Ref. catastral {l.referenciaCatastral}</span>
+                            <span class="cli-fuente">{l.detalle}</span>
+                        </div>
+                    </template>
+                </template>
+                <template lwc:else><div class="bc-vacio">El cliente no tiene locales afectos registrados.</div></template>
+            </div>
+        </template>
+
+        <!-- Turismos -->
+        <template lwc:if={esTurismos}>
+            <div class="cli-caja">
+                <div class="cli-cab"><span class="cli-flex">Turismos en el activo</span><span class="cli-cab-nota">{resumenTurismos}</span><span class="bc-ejemplo">Datos de ejemplo</span></div>
+                <div class="bc-tabla-wrap">
+                    <table class="bc-tabla bc-tabla-peq">
+                        <thead>
+                            <tr><th>Matrícula</th><th>Vehículo</th><th>Cuenta</th><th class="bc-centro">Alta</th><th class="bc-derecha">Valor adquisición</th><th class="bc-derecha">Amort. acumulada</th><th class="bc-centro">Afectación IVA</th><th>Uso</th></tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={filasTurismos} for:item="t">
+                                <tr key={t.mat}>
+                                    <td class="bc-fuerte bc-num bc-nowrap">{t.mat}</td>
+                                    <td>{t.veh}</td>
+                                    <td class="bc-num bc-nowrap">{t.cta}</td>
+                                    <td class="bc-centro bc-num">{t.alta}</td>
+                                    <td class="bc-derecha bc-num">{t.valor}</td>
+                                    <td class="bc-derecha bc-num">{t.amort}</td>
+                                    <td class="bc-centro"><span class={t.claseAf}>{t.af}</span></td>
+                                    <td>{t.uso}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="cli-nota">FALTA: los turismos del cliente con su % de afectación no están enlazados con la cuenta en Salesforce.</div>
+            </div>
+        </template>
+    </section>
+</template>

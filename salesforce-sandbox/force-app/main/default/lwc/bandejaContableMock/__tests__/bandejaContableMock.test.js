@@ -1,4 +1,6 @@
-import { documentosDeBandeja, datosExtraidos, datosEmpresa, aprenderRegla, cambiarEstadoDocumento } from 'c/bandejaContableMock';
+import {
+    documentosDeBandeja, datosExtraidos, datosEmpresa, aprenderRegla, cambiarEstadoDocumento, guardarSkill, eliminarSkill, anadirNota, notasDe, tareasDe
+} from 'c/bandejaContableMock';
 
 const bandeja = (archivos, extra = {}) => ({
     resumen: { id: 'a00B', numero: 'BC-00001', empresaId: '001E', empresa: 'Empresa', tipoValor: 'Recibida', estado: 'Pendiente', fecha: '2026-09-25T10:00:00Z', ...extra },
@@ -37,8 +39,30 @@ describe('documentosDeBandeja', () => {
     it('recuerda el estado que cambia el usuario', () => {
         const b = bandeja([archivo('c1', 'c.jpg', 'Sincronizado', 'image/jpeg')]);
         const [d] = documentosDeBandeja(b);
-        cambiarEstadoDocumento(d.id, 'Cancelado');
-        expect(documentosDeBandeja(b)[0].estado).toBe('Cancelado');
+        cambiarEstadoDocumento(d.id, 'No contabilizado', { motivo: 'Duplicada' });
+        const [otra] = documentosDeBandeja(b);
+        expect(otra.estado).toBe('No contabilizado');
+        expect(otra.motivo).toBe('Duplicada');
+    });
+});
+
+describe('skills y colaboración', () => {
+    it('crea, edita y elimina skills numerándolas', () => {
+        const antes = datosEmpresa('001S').skills.length;
+        const s = guardarSkill('001S', { title: 'Nueva', text: 'Texto', tipo: 'Todas' });
+        expect(s.num).toBe('SK-' + String(antes + 1).padStart(3, '0'));
+        guardarSkill('001S', { num: s.num, title: 'Editada' });
+        expect(datosEmpresa('001S').skills.find((x) => x.num === s.num).title).toBe('Editada');
+        eliminarSkill('001S', s.num);
+        expect(datosEmpresa('001S').skills).toHaveLength(antes);
+    });
+
+    it('notas y tareas son independientes por documento', () => {
+        anadirNota('D1', { text: 'Hola', files: [] });
+        expect(notasDe('D1')).toHaveLength(1);
+        expect(notasDe('D2')).toHaveLength(0);
+        tareasDe('D1').push({ id: 'x', text: 'T', done: false });
+        expect(tareasDe('D1').length).toBe(tareasDe('D2').length + 1);
     });
 });
 

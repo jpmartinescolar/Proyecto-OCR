@@ -1,0 +1,100 @@
+<template>
+    <div class="skl-caja">
+        <div class="skl-cab">
+            <span class="skl-flex">Skills del cliente <span class="skl-cab-nota">({total})</span></span>
+            <span class="bc-ejemplo">Datos de ejemplo</span>
+            <button class="bc-boton bc-boton-mini" onclick={nueva}>+ Nueva skill</button>
+        </div>
+        <div class="skl-buscar">
+            <input class="bc-buscar skl-flex" type="search" placeholder="Buscar por número, título, proveedor o texto…" value={busqueda} oninput={buscar}>
+            <span class="skl-gris">{contador}</span>
+        </div>
+        <template lwc:if={sinResultados}><div class="bc-vacio">No hay skills que coincidan con la búsqueda.</div></template>
+        <div class={claseLista}>
+            <template for:each={skills} for:item="s">
+                <div key={s.num} class={s.clase} data-num={s.num} onclick={editarClic} title="Editar skill">
+                    <div class="skl-fila-cab">
+                        <span class="skl-num">{s.num}</span>
+                        <span class="skl-flex skl-titulo">{s.title}</span>
+                        <template lwc:if={s.aplica}><span class="bc-pill bc-pill-peq bc-pill-brand">Aplica</span></template>
+                        <span class="bc-pill bc-pill-peq">{s.alcance}</span>
+                    </div>
+                    <span class="skl-texto">{s.text}</span>
+                    <template lwc:if={s.meta}><span class="skl-gris">{s.meta}</span></template>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Editor de skill (modal) -->
+    <template lwc:if={abierto}>
+        <div class="skl-fondo" onclick={cerrar}>
+            <div class="skl-modal" onclick={parar} role="dialog" aria-modal="true" aria-label={titulo}>
+                <div class="skl-modal-cab">
+                    <div class="skl-flex">
+                        <div class="skl-modal-titulo">{titulo}</div>
+                        <div class="skl-gris">Criterio del cliente que la IA aplicará al procesar sus facturas</div>
+                    </div>
+                    <button class="skl-x" aria-label="Cerrar" onclick={cerrar}>×</button>
+                </div>
+                <div class="skl-modal-cuerpo">
+                    <label class="skl-campo">
+                        <span class="skl-label">Título</span>
+                        <input class={claseTitulo} data-k="title" value={ed.title} placeholder="p. ej. Telefónica: móviles de empresa" onchange={cambiar}>
+                        <template lwc:if={errTitulo}><span class="skl-error">Pon un título corto para reconocerla.</span></template>
+                    </label>
+                    <div class="skl-dos">
+                        <div class="skl-campo">
+                            <span class="skl-label">Ámbito</span>
+                            <div class="skl-segmentos">
+                                <template for:each={ambitos} for:item="a"><button key={a.o} class={a.clase} data-k={a.k} data-o={a.o} onclick={elegir}>{a.o}</button></template>
+                            </div>
+                        </div>
+                        <div class="skl-campo">
+                            <span class="skl-label">Aplica a</span>
+                            <div class="skl-segmentos">
+                                <template for:each={tipos} for:item="t"><button key={t.o} class={t.clase} data-k={t.k} data-o={t.o} onclick={elegir}>{t.o}</button></template>
+                            </div>
+                        </div>
+                    </div>
+                    <template lwc:if={esProveedor}>
+                        <div class="skl-dos skl-dos-prov">
+                            <label class="skl-campo">
+                                <span class="skl-label">NIF del proveedor</span>
+                                <input class={claseNif} data-k="nif" value={ed.nif} placeholder="A12345678" onchange={cambiar}>
+                                <template lwc:if={errNif}><span class="skl-error">El NIF debe tener 9 caracteres.</span></template>
+                            </label>
+                            <label class="skl-campo">
+                                <span class="skl-label">Nombre <span class="skl-gris">· opcional</span></span>
+                                <input class="skl-input" data-k="prov" value={ed.prov} placeholder="Telefónica de España, S.A.U." onchange={cambiar}>
+                            </label>
+                        </div>
+                    </template>
+                    <label class="skl-campo">
+                        <span class="skl-label-fila"><span class="skl-label skl-flex">Instrucción para la IA</span><span class="skl-gris">{contadorTexto}</span></span>
+                        <textarea class={claseTexto} data-k="text" rows="5" maxlength={maxTexto} placeholder="Explícalo como a un compañero: qué facturas, a qué cuenta van, qué porcentaje de IVA se deduce y cuándo avisar." value={ed.text} oninput={cambiar}></textarea>
+                        <template lwc:if={errTexto}><span class="skl-error">Escribe la instrucción que debe seguir la IA.</span></template>
+                    </label>
+                    <label class="skl-campo">
+                        <span class="skl-label">Cuenta contable <span class="skl-gris">· opcional</span></span>
+                        <input class="skl-input" data-k="cuenta" value={ed.cuenta} placeholder="p. ej. 6290000 Otros servicios" onchange={cambiar}>
+                    </label>
+                    <div class="skl-campo">
+                        <span class="skl-eyebrow">Vista previa</span>
+                        <div class="skl-previa">
+                            <div class="skl-fila-cab"><span class="skl-num">{vista.num}</span><span class="skl-flex skl-titulo">{vista.title}</span><span class="bc-pill bc-pill-peq">{vista.scope}</span></div>
+                            <span class="skl-texto">{vista.text}</span>
+                            <span class="skl-gris">{vista.meta}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="skl-modal-pie">
+                    <template lwc:if={esEdicion}><button class="skl-eliminar" onclick={eliminar}>Eliminar</button></template>
+                    <span class="skl-flex"></span>
+                    <button class="bc-boton-sec bc-boton-peq" onclick={cerrar}>Cancelar</button>
+                    <button class="bc-boton bc-boton-peq" onclick={guardar}>Guardar skill</button>
+                </div>
+            </div>
+        </div>
+    </template>
+</template>

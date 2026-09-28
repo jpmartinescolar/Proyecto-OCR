@@ -1,0 +1,70 @@
+@import 'c/bandejaContableEstilos';
+
+.col-flex { flex: 1; min-width: 0; }
+.col-gris { color: var(--bc-ink-3); }
+.col-peq { font-size: 11px; }
+.col-card { overflow: hidden; }
+.col-card-pad { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.col-editor { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.col-textarea { font: 12px/1.5 var(--bc-font-body); padding: 7px 10px; border: 1px solid var(--bc-line-strong); border-radius: 8px; color: var(--bc-ink-1); outline: none; resize: vertical; width: 100%; }
+.col-textarea:focus { border-color: var(--bc-brand-primary); box-shadow: 0 0 0 3px rgba(0, 120, 255, 0.15); }
+.col-acciones { display: flex; gap: 8px; align-items: center; }
+.col-input-archivo { display: none; }
+.col-adjuntos { display: flex; flex-wrap: wrap; gap: 6px; }
+.col-adjunto { display: flex; align-items: center; gap: 6px; font-size: 11px; padding: 2px 6px 2px 8px; border-radius: 4px; background: var(--bc-paper-3); color: var(--bc-brand-deep); max-width: 100%; }
+.col-adjunto-enlace { text-decoration: none; }
+.col-adjunto-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.col-x { border: none; background: transparent; color: var(--bc-ink-3); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; border-radius: 4px; }
+.col-x:hover { color: var(--bc-danger); background: var(--bc-danger-soft); }
+.col-x-grande { font-size: 20px; width: 32px; height: 32px; }
+.col-vacio { padding: 10px 12px 12px; font-size: 12px; color: var(--bc-ink-3); }
+.col-nota { padding: 8px 12px; border-top: 1px solid var(--bc-line); display: flex; flex-direction: column; gap: 4px; }
+.col-nota-nc { background: var(--bc-danger-soft); }
+.col-nota-ok { background: var(--bc-success-soft); }
+.col-nota-cab { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+.col-nota-texto { font-size: 12px; color: var(--bc-ink-1); white-space: pre-wrap; line-height: 1.45; }
+.col-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; color: #fff; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+.col-tag-nc { background: var(--bc-danger); }
+.col-tag-ok { background: var(--bc-success); }
+.col-caja { border: 1px solid var(--bc-line); border-radius: 8px; overflow: hidden; }
+.col-cab { padding: 6px 12px; background: var(--bc-paper-2); border-bottom: 1px solid var(--bc-line); font-size: 11px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px; }
+.col-cab-nota { font-weight: 600; text-transform: none; letter-spacing: 0; }
+.col-nueva { padding: 10px 12px; border-bottom: 1px solid var(--bc-line); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.col-input { font: 13px var(--bc-font-body); padding: 6px 10px; border: 1px solid var(--bc-line-strong); border-radius: 8px; background: var(--bc-paper); outline: none; }
+.col-input.col-flex { min-width: 200px; }
+.col-tarea { display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-top: 1px solid var(--bc-line); }
+.col-check { flex-shrink: 0; width: 20px; height: 20px; border-radius: 4px; border: 1.5px solid var(--bc-line-strong); background: var(--bc-paper); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; padding: 0; }
+.col-check-on { background: var(--bc-success); border-color: var(--bc-success); }
+.col-tarea-texto { font-size: 13px; color: var(--bc-ink-1); }
+.col-tarea-hecha { color: var(--bc-ink-3); text-decoration: line-through; }
+.col-vence { font-size: 12px; color: var(--bc-ink-3); font-variant-numeric: tabular-nums; min-width: 76px; text-align: right; }
+.col-pie { font-size: 11px; color: var(--bc-ink-3); }
+
+.col-chat { display: grid; grid-template-columns: 280px minmax(0, 1fr); height: calc(100vh - 240px); min-height: 520px; }
+.col-chat-lista { border-right: 1px solid var(--bc-line); display: flex; flex-direction: column; overflow: auto; }
+.col-chat-lista-cab { padding: 10px 12px; border-bottom: 1px solid var(--bc-line); font-size: 11px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.col-hist { padding: 8px 12px; border-top: 1px solid var(--bc-line); border-left: 3px solid transparent; display: flex; flex-direction: column; gap: 3px; cursor: pointer; }
+.col-hist:hover { background: var(--bc-paper-2); }
+.col-hist-on { background: var(--bc-paper-3); border-left-color: var(--bc-brand-primary); }
+.col-hist-cab { display: flex; align-items: center; gap: 8px; }
+.col-hist-titulo { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-hist-preview { font-size: 12px; color: var(--bc-ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-chat-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.col-chat-cab { padding: 16px 20px; border-bottom: 1px solid var(--bc-line); display: flex; align-items: flex-start; gap: 12px; }
+.col-chat-titulos { display: flex; flex-direction: column; gap: 4px; }
+.col-eyebrow { font-size: 11px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.col-chat-titulo { font: 700 16px var(--bc-font-display); color: var(--bc-brand-deep); }
+.col-mensajes { flex: 1; min-height: 0; overflow: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; background: var(--bc-paper-2); }
+.col-msg { display: flex; }
+.col-msg-yo { justify-content: flex-end; }
+.col-burbuja { max-width: 88%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; border: 1px solid var(--bc-line); background: var(--bc-paper); color: var(--bc-ink-1); }
+.col-msg-yo .col-burbuja { background: var(--bc-brand-primary); border-color: var(--bc-brand-primary); color: #fff; }
+.col-bienvenida { flex: 1; min-height: 0; overflow: auto; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: var(--bc-paper-2); text-align: center; font-size: 13px; }
+.col-bienvenida-titulo { font: 700 20px var(--bc-font-display); color: var(--bc-brand-deep); }
+.col-sugerencias { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 520px; }
+.col-sugerencias-chat { padding: 10px 20px 0; justify-content: flex-start; max-width: none; }
+.col-sugerencia { font: 500 12px var(--bc-font-body); padding: 5px 12px; border-radius: 999px; border: 1px solid var(--bc-line-strong); background: var(--bc-paper); color: var(--bc-brand-deep); cursor: pointer; }
+.col-sugerencia:hover { background: var(--bc-paper-3); }
+.col-escribir { padding: 12px 20px 16px; display: flex; gap: 8px; align-items: flex-end; border-top: 1px solid var(--bc-line); }
+.col-enviar { width: 38px; height: 38px; flex-shrink: 0; border: none; background: var(--bc-brand-primary); border-radius: 999px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.col-enviar:hover { background: var(--bc-brand-deep); }

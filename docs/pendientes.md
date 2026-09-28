@@ -4,7 +4,13 @@ Backlog del proyecto. Marcar `[x]` al terminar y mover a "Hecho" con la fecha.
 
 ## Fase actual
 - [ ] Fase 1 · ingestión y separación de documentos: ver pasos en [fases/fase-1-ingestion.md](fases/fase-1-ingestion.md).
-- [ ] Revisión de las 6 pantallas por el usuario (ajustes de diseño).
+- [ ] Desplegar en el sandbox las pantallas v2 (validadas el 28/09, 31/31 tests Apex) y revisarlas con el usuario.
+- [ ] Datos de ejemplo que hay que sustituir: tabla completa en [diseno.md](diseno.md#de-dónde-sale-cada-dato). Por decidir con el usuario:
+  - dónde se registran régimen de IVA, prorrata, ROI y turismos del cliente (no existen en Salesforce);
+  - acceso al censo de la AEAT (certificado) y a VIES; listado de deudores de la AEAT; lista completa de paraísos fiscales;
+  - almacenamiento de notas (y adjuntos), tareas y chats; quién puede ser responsable de una tarea (cliente, IA);
+  - cómo se avisa al cliente del motivo de no contabilizar;
+  - plan de cuentas del cliente (está en Sage; clave `C_digo_ERP__c` del contrato).
 
 ## Limpieza del prototipo
 - [ ] Retirar del sandbox el prototipo con un `destructiveChanges` revisado antes de ejecutar:

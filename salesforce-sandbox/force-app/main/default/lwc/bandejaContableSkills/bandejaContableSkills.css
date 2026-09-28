@@ -1,0 +1,44 @@
+@import 'c/bandejaContableEstilos';
+
+.skl-flex { flex: 1; min-width: 0; }
+.skl-gris { font-size: 12px; color: var(--bc-ink-3); }
+.skl-caja { border: 1px solid var(--bc-line); border-radius: 8px; overflow: hidden; background: var(--bc-paper); }
+.skl-cab { padding: 6px 12px; background: var(--bc-paper-2); border-bottom: 1px solid var(--bc-line); font-size: 11px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px; }
+.skl-cab-nota { font-weight: 600; text-transform: none; letter-spacing: 0; }
+.skl-buscar { padding: 8px 12px; border-bottom: 1px solid var(--bc-line); display: flex; align-items: center; gap: 8px; }
+.skl-lista-tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.skl-fila { padding: 8px 12px; border-top: 1px solid var(--bc-line); display: flex; flex-direction: column; gap: 3px; cursor: pointer; }
+.skl-tarjeta { padding: 12px 20px; border-bottom: 1px solid var(--bc-line); border-right: 1px solid var(--bc-line); display: flex; flex-direction: column; gap: 4px; cursor: pointer; }
+.skl-fila:hover, .skl-tarjeta:hover { background: var(--bc-paper-2); }
+.skl-aplica { background: var(--bc-info-soft); }
+.skl-fila-cab { display: flex; align-items: center; gap: 8px; }
+.skl-num { font-size: 12px; font-weight: 700; color: var(--bc-brand-primary); font-variant-numeric: tabular-nums; }
+.skl-titulo { font-size: 13px; font-weight: 700; color: var(--bc-ink-1); }
+.skl-texto { font-size: 12px; color: var(--bc-ink-2); line-height: 1.45; }
+
+.skl-fondo { position: fixed; inset: 0; background: rgba(15, 27, 45, 0.45); z-index: 9000; display: flex; align-items: flex-start; justify-content: center; padding: 48px 16px; overflow: auto; }
+.skl-modal { background: var(--bc-paper); border-radius: 12px; box-shadow: 0 16px 40px rgba(15, 27, 45, 0.25); width: 100%; max-width: 680px; display: flex; flex-direction: column; }
+.skl-modal-cab { padding: 18px 24px; border-bottom: 1px solid var(--bc-line); display: flex; align-items: center; gap: 12px; }
+.skl-modal-titulo { font: 700 18px var(--bc-font-display); color: var(--bc-brand-deep); }
+.skl-x { width: 32px; height: 32px; border: none; background: transparent; border-radius: 8px; font-size: 20px; line-height: 1; color: var(--bc-ink-3); cursor: pointer; }
+.skl-x:hover { background: var(--bc-paper-2); color: var(--bc-ink-1); }
+.skl-modal-cuerpo { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+.skl-campo { display: flex; flex-direction: column; gap: 6px; }
+.skl-label { font-size: 13px; font-weight: 600; color: var(--bc-ink-1); }
+.skl-label-fila { display: flex; align-items: baseline; gap: 8px; }
+.skl-eyebrow { font-size: 11px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.skl-input { font: 14px var(--bc-font-body); padding: 9px 12px; border: 1px solid var(--bc-line-strong); border-radius: 8px; color: var(--bc-ink-1); outline: none; }
+.skl-input:focus { border-color: var(--bc-brand-primary); box-shadow: 0 0 0 3px rgba(0, 120, 255, 0.15); }
+.skl-input-error { border-color: var(--bc-danger); }
+.skl-textarea { line-height: 1.5; resize: vertical; }
+.skl-mayus { text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.skl-error { font-size: 12px; color: var(--bc-danger); }
+.skl-dos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.skl-dos-prov { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); }
+.skl-segmentos { display: flex; gap: 2px; padding: 3px; background: var(--bc-paper-3); border-radius: 8px; }
+.skl-seg { flex: 1; font: 600 13px var(--bc-font-body); padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--bc-ink-2); }
+.skl-seg-on { background: var(--bc-paper); color: var(--bc-brand-deep); box-shadow: var(--bc-shadow-sm); }
+.skl-previa { padding: 12px 16px; border: 1px solid var(--bc-line); border-radius: 8px; background: var(--bc-paper-2); display: flex; flex-direction: column; gap: 4px; }
+.skl-modal-pie { padding: 14px 24px; border-top: 1px solid var(--bc-line); display: flex; align-items: center; gap: 8px; background: var(--bc-paper-2); border-radius: 0 0 12px 12px; }
+.skl-eliminar { font: 600 13px var(--bc-font-body); padding: 8px 12px; border: none; background: transparent; color: var(--bc-danger); border-radius: 8px; cursor: pointer; }
+.skl-eliminar:hover { background: var(--bc-danger-soft); }

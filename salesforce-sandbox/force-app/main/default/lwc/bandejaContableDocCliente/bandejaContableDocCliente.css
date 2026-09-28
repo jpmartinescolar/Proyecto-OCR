@@ -1,0 +1,26 @@
+@import 'c/bandejaContableEstilos';
+
+.cli-card { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: visible; }
+.cli-flex { flex: 1; min-width: 0; }
+.cli-caja { border: 1px solid var(--bc-line); border-radius: 8px; overflow: hidden; }
+.cli-cab { padding: 6px 12px; background: var(--bc-paper-2); border-bottom: 1px solid var(--bc-line); font-size: 11px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px; }
+.cli-cab-nota { font-weight: 600; text-transform: none; letter-spacing: 0; }
+.cli-texto { padding: 8px 12px; font-size: 13px; }
+.cli-nota { padding: 6px 12px 8px; font-size: 11px; color: var(--bc-ink-3); border-top: 1px solid var(--bc-line); }
+.cli-par { display: flex; gap: 8px; align-items: baseline; padding: 5px 12px; border-top: 1px solid var(--bc-line); font-size: 12px; }
+.cli-par-label { color: var(--bc-ink-3); }
+.cli-par-valor { font-weight: 600; text-align: right; }
+.cli-par-valor-izq { font-weight: 600; }
+.cli-sin-dato { color: var(--bc-ink-4); font-weight: 500; }
+.cli-fuente { font-size: 11px; color: var(--bc-ink-4); white-space: nowrap; }
+.cli-fila { display: grid; gap: 8px; padding: 5px 12px; font-size: 12px; border-top: 1px solid var(--bc-line); align-items: center; }
+.cli-fila-cab { font-size: 11px; font-weight: 600; color: var(--bc-ink-3); border-top: none; }
+.cli-fila-iae { grid-template-columns: 62px 78px minmax(0, 1fr); }
+.cli-fila-modelo { grid-template-columns: 70px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 80px; }
+.cli-codigo { font-weight: 600; color: var(--bc-brand-primary); }
+.cli-local { padding: 7px 12px; border-top: 1px solid var(--bc-line); display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.cli-local-cab { display: flex; gap: 8px; align-items: center; }
+.cli-lista { margin: 0; padding: 8px 12px 8px 28px; font-size: 12px; color: var(--bc-ink-2); list-style: disc; display: flex; flex-direction: column; gap: 3px; }
+.cli-aviso { margin: 0 12px 10px; padding: 6px 10px; border-radius: 8px; background: var(--bc-warm-soft); color: var(--bc-warm-ink); font-size: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+.cli-aviso-error { margin: 0; background: var(--bc-danger-soft); color: var(--bc-danger); }
+.cli-no-disp { font-weight: 600; }

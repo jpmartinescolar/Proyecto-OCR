@@ -7,18 +7,20 @@
             <div class="bc-card"><div class="bc-vacio bc-rojo">{error}</div></div>
         </template>
 
-        <template lwc:if={empresa}>
+        <template lwc:if={cliente}>
             <section class="bc-card emp-cabecera">
                 <div class="bc-cabecera bc-cabecera-sin-borde">
                     <div class="bc-icono bc-icono-grande"><lightning-icon icon-name="utility:company" size="small" variant="inverse"></lightning-icon></div>
                     <div class="bc-titulos">
-                        <div class="bc-migas"><span>Empresas</span><span>/</span><span>{empresa.cif}</span></div>
-                        <h1 class="bc-titulo bc-titulo-grande">{empresa.nombre}</h1>
+                        <div class="bc-migas"><span>Empresas</span><span>/</span><span>{cliente.cif}</span></div>
+                        <h1 class="bc-titulo bc-titulo-grande">{cliente.nombre}</h1>
                     </div>
                     <div class="bc-acciones">
-                        <span class="bc-pill">IVA régimen general</span>
-                        <span class="bc-pill">Operador intracomunitario</span>
+                        <template for:each={pildoras} for:item="p"><span key={p} class="bc-pill">{p}</span></template>
                         <span class="bc-pill bc-pill-info">{reglasActivasTxt}</span>
+                        <button class="bc-boton-sec bc-boton-peq emp-boton-riesgo" onclick={verRiesgo}>
+                            <lightning-icon icon-name="utility:warning" size="xx-small"></lightning-icon>Riesgo fiscal no prescrito
+                        </button>
                     </div>
                 </div>
                 <div class="bc-tabs">
@@ -29,19 +31,24 @@
             </section>
 
             <template lwc:if={enSkills}>
-                <div class="emp-aviso"><span class="bc-ejemplo">Datos de ejemplo</span> El perfil fiscal, las reglas y las skills vendrán del backend de Google; los cambios de esta pantalla solo se mantienen en la sesión.</div>
                 <div class="bc-grid-2">
                     <section class="bc-card">
-                        <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Perfil fiscal</span><button class="bc-boton-sec bc-boton-peq" onclick={sinBackend}>Editar</button></div>
+                        <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Perfil fiscal</span><span class="bc-card-nota">Salesforce</span><button class="bc-boton-sec bc-boton-peq" onclick={sinBackend}>Editar</button></div>
                         <div class="emp-perfil">
                             <template for:each={perfil} for:item="p">
+                                <div key={p.key} class="bc-campo"><span class="bc-campo-label">{p.label}</span><span class={p.claseValor}>{p.valorTxt}</span></div>
+                            </template>
+                        </div>
+                        <div class="emp-subtitulo"><span>No está en Salesforce</span><span class="bc-ejemplo">Datos de ejemplo</span></div>
+                        <div class="emp-perfil">
+                            <template for:each={perfilSinDatos} for:item="p">
                                 <div key={p.label} class="bc-campo"><span class="bc-campo-label">{p.label}</span><span class="bc-campo-valor">{p.valor}</span></div>
                             </template>
                         </div>
                     </section>
 
                     <section class="bc-card">
-                        <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Reglas propuestas</span><span class="bc-card-nota">Aprendidas de las correcciones</span></div>
+                        <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Reglas propuestas</span><span class="bc-ejemplo">Datos de ejemplo</span><span class="bc-card-nota">Aprendidas de las correcciones</span></div>
                         <template lwc:if={hayPropuestas}>
                             <div class="emp-lista">
                                 <template for:each={propuestas} for:item="p">
@@ -67,6 +74,7 @@
                     <section class="bc-card emp-ancho">
                         <div class="bc-card-titulo">
                             <span class="bc-card-titulo-texto">Reglas por proveedor</span>
+                            <span class="bc-ejemplo">Datos de ejemplo</span>
                             <span class="bc-card-nota">{reglasInfo}</span>
                             <button class="bc-boton bc-boton-peq" onclick={sinBackend}>Nueva regla</button>
                         </div>
@@ -97,7 +105,7 @@
                     </section>
 
                     <section class="bc-card">
-                        <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Reglas de validación</span></div>
+                        <div class="bc-card-titulo"><span class="bc-card-titulo-texto">Reglas de validación</span><span class="bc-ejemplo">Datos de ejemplo</span></div>
                         <div class="emp-lista">
                             <template for:each={validaciones} for:item="v">
                                 <div key={v.t} class="emp-validacion">
@@ -108,24 +116,8 @@
                         </div>
                     </section>
 
-                    <section class="bc-card emp-ancho">
-                        <div class="bc-card-titulo">
-                            <span class="bc-card-titulo-texto">Skills</span>
-                            <span class="bc-card-nota">Comentarios y criterios del cliente que la IA aplica al procesar</span>
-                            <button class="bc-boton bc-boton-peq" onclick={sinBackend}>Nueva skill</button>
-                        </div>
-                        <div class="emp-skills">
-                            <template for:each={skills} for:item="s">
-                                <div key={s.num} class="emp-skill">
-                                    <div class="emp-skill-cab">
-                                        <span class="emp-skill-num">{s.num}</span>
-                                        <span class="emp-skill-titulo">{s.title}</span>
-                                        <span class="bc-pill bc-pill-peq">{s.alcance}</span>
-                                    </div>
-                                    <span class="emp-texto">{s.text}</span>
-                                </div>
-                            </template>
-                        </div>
+                    <section class="bc-card emp-ancho emp-skills">
+                        <c-bandeja-contable-skills empresa-id={empresaId} modo="tarjetas" oncambio={alCambiarSkills}></c-bandeja-contable-skills>
                     </section>
                 </div>
             </template>

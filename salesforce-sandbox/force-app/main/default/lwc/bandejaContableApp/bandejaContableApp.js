@@ -31,6 +31,7 @@ export default class BandejaContableApp extends NavigationMixin(LightningElement
     get esOcr() { return this.vista === 'ocr' || this.vista === 'ocrEmpresas'; }
     get agruparPorEmpresa() { return this.vista === 'ocrEmpresas'; }
     get esEmpresa() { return this.vista === 'empresa'; }
+    get esRiesgo() { return this.vista === 'riesgo'; }
 
     // La pestaña OCR queda activa también en un documento abierto desde el listado OCR
     get enOcr() { return this.esOcr || (this.esDocumento && this.tab === 'ocr'); }

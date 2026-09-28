@@ -70,3 +70,37 @@ La v1 era una bandeja para **revisar y validar facturas**. La v2 es un **asisten
   - histórico de facturas por proveedor (sale de nuestros propios datos confirmados).
 
 Hoja de ruta ajustada: [hoja-de-ruta.md](hoja-de-ruta.md).
+
+## De dónde sale cada dato
+
+Estado a 28/09/2026 (pantallas v2 hechas en LWC, pendientes de desplegar). En pantalla, lo que no es real lleva la etiqueta **"Datos de ejemplo"** o **"Ejemplo"**; en el código, cada bloque de ejemplo explica qué falta (`bandejaContableMock`).
+
+| Dato | Origen | Dónde |
+|---|---|---|
+| Bandejas, archivos, empresa, asesor | **Real** · Salesforce | `BandejaContableController` |
+| Archivo original (ver y descargar) | **Real** · Google Storage (URL firmada) | `listarArchivosGoogle` |
+| Perfil fiscal: régimen de estimación, operador intracomunitario, situación censal, territorio, consolidación, software de facturación, código ERP | **Real** · `Contrato_Contabilidad_y_Fiscal__c` abierto | `BandejaContableClienteService` |
+| Censo VIES (manual), grupo empresarial, deducción IVA vehículos (texto) | **Real** · Account | ídem |
+| Obligaciones tributarias en alta | **Real** · `Impuestos__c` | ídem |
+| Actividades económicas (IAE) | **Real** · `actividad_economica__c` sin fecha de baja | ídem |
+| Locales afectos (dirección, ref. catastral, % afectación) | **Real** · `Actividad_Economica_Local_afecto__c` | ídem |
+| Vinculados (socios y administradores) | **Real** · `Socios__c`, `Administrador__c` | ídem |
+| Domicilio fiscal | **Real** · dirección de facturación de Account (sin contrastar con el censo) | ídem |
+| Régimen de IVA, prorrata, criterio de caja, R.E., ROI | Ejemplo · no existe en Salesforce | `perfilSinDatos` |
+| Turismos con % de afectación | Ejemplo · `Elemento_de_Transporte__c` no se enlaza con Account | `turismos` |
+| Software contable de destino | Real si `Account.Software_gesti_n_Despachos__c` está relleno; si no, ejemplo | cabecera del documento |
+| Documentos separados, datos extraídos, productos, confianza, consumo de IA | Ejemplo · Fases 1–2 | `PLANTILLAS` |
+| Estado contable (validar, no contabilizar, reabrir, riesgo aceptado) | Ejemplo · en memoria; irá a `confirmaciones` | `cambiarEstadoDocumento` |
+| Reglas por proveedor, propuestas, validaciones, skills | Ejemplo · en memoria; irán a Cloud SQL | `datosEmpresa` |
+| Notas, tareas, chat IA | Ejemplo · en memoria; almacenamiento por decidir (Fase 5) | `notasDe`, `tareasDe`, `chatsDe` |
+| Censo AEAT / VIES, deudores de la AEAT | Ejemplo · sin integración | comprobaciones marcadas "Ejemplo" |
+| Histórico del proveedor y duplicados | Ejemplo · saldrá de las confirmaciones | `historicoProveedor`, `duplicadoDe` |
+| Situación fiscal en el listado OCR | Ejemplo · la calculará el motor de comprobaciones | `situacionFiscal` |
+| Riesgo fiscal no prescrito | Ejemplo · sobre confirmaciones con riesgo aceptado | `riesgos` |
+
+Los **cálculos** (desglose de IVA, IVA no deducible, asiento y cuadre, riesgos, comprobaciones, IS, productos) son reales sobre esos datos: `bandejaContableCalculos`, con tests.
+
+Diferencias con el prototipo de Claude Design:
+- El editor de skills es el formulario del modal (título, ámbito, aplica a, NIF, instrucción, cuenta, vista previa) en la ficha de la empresa y en la pestaña Skills del documento; no el editor de texto enriquecido de la pestaña del documento.
+- A la pantalla 06 (riesgo no prescrito) se entra desde la ficha de la empresa: el prototipo no tenía acceso.
+- El aprendizaje de cuenta ("¿Aplicar siempre?") se dispara al cambiar la contrapartida de una línea de IVA, porque la v2 ya no tiene el campo "Cuenta de gasto".

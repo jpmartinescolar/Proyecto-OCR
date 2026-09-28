@@ -25,6 +25,9 @@
                 <c-bandeja-contable-empresa empresa-id={empresaId} tab={tab}
                                             onnavegar={handleNavegar}></c-bandeja-contable-empresa>
             </template>
+            <template lwc:if={esRiesgo}>
+                <c-bandeja-contable-riesgo empresa-id={empresaId} onnavegar={handleNavegar}></c-bandeja-contable-riesgo>
+            </template>
         </div>
     </div>
 </template>

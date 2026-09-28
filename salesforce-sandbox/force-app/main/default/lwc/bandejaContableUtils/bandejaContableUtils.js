@@ -60,9 +60,9 @@ const CLASE_ESTADO = {
     Error: 'bc-pill bc-pill-error',
     // Documento OCR
     Contabilizado: 'bc-pill bc-pill-ok',
-    Borrador: 'bc-pill bc-pill-info',
-    Cancelado: 'bc-pill bc-pill-error',
-    Rechazado: 'bc-pill bc-pill-error'
+    'No contabilizado': 'bc-pill bc-pill-error',
+    'Pre-validado': 'bc-pill bc-pill-ok',
+    Incidencia: 'bc-pill bc-pill-error'
 };
 
 export function claseEstado(estado) {

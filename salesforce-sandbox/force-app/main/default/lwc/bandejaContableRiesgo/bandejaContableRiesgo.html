@@ -1,0 +1,72 @@
+<template>
+    <main class="bc-main">
+        <template lwc:if={cargando}>
+            <div class="bc-card"><div class="bc-spinner"><lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner></div></div>
+        </template>
+        <template lwc:if={error}>
+            <div class="bc-card"><div class="bc-vacio bc-rojo">{error}</div></div>
+        </template>
+        <template lwc:if={cliente}>
+            <section class="bc-card">
+                <div class="bc-cabecera bc-cabecera-sin-borde rsg-cabecera">
+                    <div class="bc-icono bc-icono-grande rsg-icono"><lightning-icon icon-name="utility:warning" size="small" variant="inverse"></lightning-icon></div>
+                    <div class="bc-titulos">
+                        <div class="bc-migas">
+                            <a class="bc-enlace" href="#" onclick={irALista}>Bandeja contable</a><span>/</span>
+                            <a class="bc-enlace" href="#" onclick={volver}>{cliente.nombre}</a><span>/</span><span>Riesgo fiscal</span>
+                        </div>
+                        <h1 class="bc-titulo bc-titulo-grande">Riesgo fiscal no prescrito · {cliente.nombre}</h1>
+                        <div class="bc-card-nota">{subtitulo}</div>
+                    </div>
+                    <span class="bc-ejemplo" title="Se calculará sobre las facturas validadas con riesgo aceptado">Datos de ejemplo</span>
+                    <button class="bc-boton-sec" onclick={volver}>Volver a la empresa</button>
+                </div>
+            </section>
+
+            <div class="rsg-kpis">
+                <template for:each={kpis} for:item="k">
+                    <section key={k.label} class={k.clase}>
+                        <span class="rsg-kpi-label">{k.label}</span>
+                        <span class="rsg-kpi-valor">{k.valor} €</span>
+                        <span class="bc-card-nota">{k.sub}</span>
+                    </section>
+                </template>
+            </div>
+
+            <section class="bc-card">
+                <div class="bc-card-titulo"><span class="bc-card-titulo-texto">OCR documentos con riesgo fiscal</span><span class="bc-card-nota">{contador}</span></div>
+                <div class="bc-tabla-wrap">
+                    <table class="bc-tabla">
+                        <thead>
+                            <tr>
+                                <th class="bc-primera">Fecha validación</th><th>Nº documento</th><th>Proveedor</th><th>Motivo del riesgo</th>
+                                <th class="bc-derecha">Sociedades (€)</th><th class="bc-derecha">IVA (€)</th><th class="bc-derecha">IRPF (€)</th><th class="bc-derecha bc-ultima">Total (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={filas} for:item="r">
+                                <tr key={r.id}>
+                                    <td class="bc-primera bc-num bc-nowrap">{r.fecha}</td>
+                                    <td class="bc-fuerte bc-nowrap">{r.id}</td>
+                                    <td>{r.prov}</td>
+                                    <td><span class="bc-pill bc-pill-error">{r.motivo}</span></td>
+                                    <td class="bc-derecha bc-num">{r.is}</td>
+                                    <td class="bc-derecha bc-num">{r.iva}</td>
+                                    <td class="bc-derecha bc-num">{r.irpf}</td>
+                                    <td class="bc-derecha bc-num bc-ultima rsg-total">{r.total}</td>
+                                </tr>
+                            </template>
+                            <tr class="rsg-pie">
+                                <td class="bc-primera" colspan="4">Total riesgo</td>
+                                <td class="bc-derecha bc-num">{totales.is}</td>
+                                <td class="bc-derecha bc-num">{totales.iva}</td>
+                                <td class="bc-derecha bc-num">{totales.irpf}</td>
+                                <td class="bc-derecha bc-num bc-ultima rsg-total">{totales.total}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </template>
+    </main>
+</template>

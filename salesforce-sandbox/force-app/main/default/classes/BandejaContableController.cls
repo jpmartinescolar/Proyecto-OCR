@@ -109,15 +109,6 @@ public with sharing class BandejaContableController {
         @AuraEnabled public List<ArchivoDTO> archivos = new List<ArchivoDTO>();
     }
 
-    public class EmpresaDetalleDTO {
-        @AuraEnabled public Id id;
-        @AuraEnabled public String nombre;
-        @AuraEnabled public String cif;
-        @AuraEnabled public String domicilio;
-        @AuraEnabled public String localidad;
-        @AuraEnabled public String asesor;
-    }
-
     @AuraEnabled(cacheable=true)
     public static ContextoDTO getContexto() {
         try {
@@ -203,29 +194,16 @@ public with sharing class BandejaContableController {
         return d;
     }
 
-    /** Datos de la empresa para las pantallas de documento y de empresa */
+    /** Datos fiscales del cliente (perfil, modelos, IAE, locales, vinculados) para las pantallas de documento y empresa */
     @AuraEnabled
-    public static EmpresaDetalleDTO getEmpresa(Id empresaId) {
-        List<Account> acc = [
-            SELECT Id, Name, CIF__c, BillingStreet, BillingPostalCode, BillingCity, BillingState,
-                   Asesor_responsable_fiscal_actual__r.Name
-            FROM Account WHERE Id = :empresaId WITH USER_MODE LIMIT 1
-        ];
-        if (acc.isEmpty()) throw error('No se encuentra la empresa o no tienes acceso.');
-        Account a = acc[0];
-        EmpresaDetalleDTO e = new EmpresaDetalleDTO();
-        e.id = a.Id;
-        e.nombre = a.Name;
-        e.cif = a.CIF__c;
-        e.domicilio = a.BillingStreet;
-        e.localidad = String.join(new List<String>{
-            a.BillingPostalCode == null ? '' : a.BillingPostalCode,
-            a.BillingCity == null ? '' : a.BillingCity,
-            a.BillingState == null ? '' : '(' + a.BillingState + ')'
-        }, ' ').normalizeSpace();
-        e.asesor = a.Asesor_responsable_fiscal_actual__r == null ? null : a.Asesor_responsable_fiscal_actual__r.Name;
-        return e;
+    public static BandejaContableClienteService.DatosClienteDTO getDatosCliente(Id empresaId) {
+        try {
+            return BandejaContableClienteService.getDatosCliente(empresaId);
+        } catch (BandejaContableEmpresasService.BandejaContableException e) {
+            throw error(e.getMessage());
+        }
     }
+
 
     private static BandejaResumenDTO toResumen(Bandeja_Contable__c b) {
         BandejaResumenDTO r = new BandejaResumenDTO();
