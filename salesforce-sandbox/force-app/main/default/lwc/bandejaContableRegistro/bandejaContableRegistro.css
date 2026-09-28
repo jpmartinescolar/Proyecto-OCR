@@ -9,3 +9,15 @@
 .reg-archivo-nombre { font-size: 14px; font-weight: 600; color: var(--bc-ink-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .reg-archivo-meta { font-size: 12px; color: var(--bc-ink-3); }
 .reg-archivo-error { font-size: 12px; color: var(--bc-danger); }
+.reg-procesamiento { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 4px; }
+.reg-procesamiento-label { font-size: 12px; font-weight: 700; color: var(--bc-ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.reg-girando { width: 14px; height: 14px; border-radius: 999px; border: 2px solid var(--bc-paper-4); border-top-color: var(--bc-brand-primary); animation: reg-girar 0.9s linear infinite; }
+@keyframes reg-girar { to { transform: rotate(360deg); } }
+.reg-incidencias { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.reg-incidencia { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--bc-paper-3); color: var(--bc-ink-2); }
+.reg-incidencia-aviso { background: var(--bc-warm-soft); color: var(--bc-warm-ink); }
+.reg-incidencia-error { background: var(--bc-danger-soft); color: var(--bc-danger); }
+.reg-doc-origen { font-size: 11px; color: var(--bc-ink-3); }
+.reg-doc-lectura { font-size: 12px; color: var(--bc-ink-2); }
+.reg-doc-motivo { font-size: 11px; color: var(--bc-warm-ink); margin-top: 2px; }
+.reg-nota { padding: 8px 24px 14px; font-size: 11px; color: var(--bc-ink-3); }

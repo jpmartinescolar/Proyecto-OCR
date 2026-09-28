@@ -1,11 +1,11 @@
 """Procesador de la Bandeja Contable (Cloud Run privado; lo invoca Cloud Tasks con OIDC).
 
-Fase 1, paso 3: ingestión determinista, sin IA. Por cada archivo recibido:
-  tipo real por contenido → validación → ZIP: extraer y procesar su contenido → documentos
-  (por referencia al original, sin copiarlo) → incidencias → estado final.
-La separación de un PDF en varias facturas llega en el paso 4 (clasificador por página): hasta
-entonces cada archivo da un documento en revisión con el motivo SIN_CLASIFICAR.
-Diseño y estados: docs/fases/fase-1-ingestion.md
+Fase 1. Por cada archivo recibido:
+  tipo real por contenido → validación → ZIP: extraer y procesar su contenido → PDF e imágenes:
+  clasificador por página (Vertex AI) → documentos (referencia al original si es uno solo; PDF
+  recortado en el bucket de derivados si hay varios) → incidencias → estado final.
+Si el clasificador falla, el archivo no da error: queda un documento SIN_CLASIFICAR con su
+incidencia y se puede reprocesar. Diseño y estados: docs/fases/fase-1-ingestion.md
 """
 
 from __future__ import annotations
@@ -19,13 +19,13 @@ from psycopg.types.json import Jsonb
 from pydantic import BaseModel
 
 from . import analisis as a
-from . import config, db, gcp
+from . import clasificador, config, db, gcp
 from .ids import nuevo_id
 
 log = logging.getLogger("bandeja-contable-procesador")
 
-VERSION_LOGICA = "separador@0.1.0"
-MOTOR = "determinista"  # paso 4: el clasificador por página (Vertex) sustituye esto
+VERSION_LOGICA = "separador@0.2.0"
+TIPOS_FACTURA = ("FACTURA", "FACTURA_SIMPLIFICADA", "RECTIFICATIVA")
 # Un archivo en PROCESANDO más tiempo que esto se considera abandonado (instancia caída) y se retoma
 MINUTOS_ABANDONADO = 70
 
@@ -50,9 +50,11 @@ class Procesamiento:
         self.id = nuevo_id("procesamiento")
         self.detalle: dict = {"version": VERSION_LOGICA}
         self.problemas: list[str] = []  # códigos de gravedad AVISO o ERROR
+        self.motor = "determinista"
+        self.consumo: clasificador.Consumo | None = None
         db.ejecutar(
             "INSERT INTO procesamientos (id, archivo_id, version_logica, motor, estado, solicitado_por) VALUES (%s,%s,%s,%s,'EN_CURSO',%s)",
-            (self.id, archivo["id"], VERSION_LOGICA, MOTOR, solicitado_por),
+            (self.id, archivo["id"], VERSION_LOGICA, self.motor, solicitado_por),
         )
 
     def incidencia(self, codigo: str, gravedad: str, detalle: dict | None = None) -> None:
@@ -61,9 +63,13 @@ class Procesamiento:
         incidencia(codigo, gravedad, archivo_id=self.archivo["id"], procesamiento_id=self.id, detalle=detalle)
 
     def finalizar(self, estado: str, *, mime=None, sha=None, paginas=None, tiene_texto=None, error=None) -> str:
+        c = self.consumo
         db.ejecutar(
-            "UPDATE procesamientos SET estado = %s, fin = now(), detalle = %s, error = %s WHERE id = %s",
-            ("ERROR" if error else "TERMINADO", Jsonb(self.detalle), error, self.id),
+            """UPDATE procesamientos SET estado = %s, fin = now(), detalle = %s, error = %s, motor = %s,
+                      tokens_entrada = %s, tokens_salida = %s, coste_estimado = %s WHERE id = %s""",
+            ("ERROR" if error else "TERMINADO", Jsonb(self.detalle), error, self.motor,
+             c.tokens_entrada if c else None, c.tokens_salida if c else None,
+             round(c.coste(self.motor.split("/")[-1]), 6) if c else None, self.id),
         )
         db.ejecutar(
             """UPDATE archivos SET estado = %s, mime_detectado = COALESCE(%s, mime_detectado), sha256 = COALESCE(%s, sha256),
@@ -75,33 +81,100 @@ class Procesamiento:
 
 
 def crear_documento(p: Procesamiento, bandeja: dict, sha: str, *, estado: str, motivos: list[str], tipo="DESCONOCIDO",
-                    pagina_inicio=None, pagina_fin=None, ext: str = "") -> str:
+                    pagina_inicio=None, pagina_fin=None, ext: str = "", contenido: bytes | None = None,
+                    confianza=None, lectura: dict | None = None) -> str:
     """Crea un documento con el siguiente número de la bandeja (D01, D02…). El bloqueo por bandeja
-    evita que dos tareas en paralelo asignen el mismo número. El documento es una REFERENCIA al archivo."""
+    evita que dos tareas en paralelo asignen el mismo número.
+
+    Sin `contenido` el documento es una REFERENCIA al archivo (no se copia); con `contenido` (un PDF
+    recortado) se guarda como DERIVADO en el bucket de documentos, en la carpeta del procesamiento."""
+    doc_id = nuevo_id("documento")
+    bucket, objeto, almacenamiento = p.archivo["bucket"], p.archivo["objeto"], "REFERENCIA"
+    if contenido is not None:
+        bucket, almacenamiento = config.BUCKET_DOCS, "DERIVADO"
+        objeto = f"{p.archivo['sf_org_id']}/{p.archivo['sf_bandeja_id']}/{p.archivo['id']}/{p.id}/{doc_id}.{ext or 'pdf'}"
+        sha = a.sha256(contenido)
     with db.conexion() as conn:
         conn.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (bandeja["id"],))
         numero = conn.execute("SELECT COALESCE(MAX(numero), 0) + 1 AS n FROM documentos WHERE bandeja_id = %s", (bandeja["id"],)).fetchone()["n"]
-        doc_id = nuevo_id("documento")
+        visible = f"{bandeja.get('numero') or bandeja['id']}_D{numero:02d}{'.' + ext if ext else ''}"
+        if contenido is not None:
+            blob = gcp.cliente_storage().bucket(bucket).blob(objeto)
+            blob.content_disposition = gcp.disposicion("inline", visible)
+            blob.metadata = {"documento-id": doc_id, "archivo-id": p.archivo["id"], "paginas": f"{pagina_inicio}-{pagina_fin}"}
+            blob.upload_from_string(contenido, content_type=a.MIME.get(ext, "application/pdf"))
         conn.execute(
-            """INSERT INTO documentos (id, procesamiento_id, archivo_id, bandeja_id, numero, pagina_inicio, pagina_fin, tipo, estado,
-                                       motivos_revision, almacenamiento, bucket, objeto, sha256, nombre_visible)
-               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'REFERENCIA',%s,%s,%s,%s)""",
-            (doc_id, p.id, p.archivo["id"], bandeja["id"], numero, pagina_inicio, pagina_fin, tipo, estado, motivos,
-             p.archivo["bucket"], p.archivo["objeto"], sha,
-             f"{bandeja.get('numero') or bandeja['id']}_D{numero:02d}{'.' + ext if ext else ''}"),
+            """INSERT INTO documentos (id, procesamiento_id, archivo_id, bandeja_id, numero, pagina_inicio, pagina_fin, tipo, confianza,
+                                       estado, motivos_revision, almacenamiento, bucket, objeto, sha256, nombre_visible, lectura)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+            (doc_id, p.id, p.archivo["id"], bandeja["id"], numero, pagina_inicio, pagina_fin, tipo, confianza, estado, motivos,
+             almacenamiento, bucket, objeto, sha, visible, Jsonb(lectura) if lectura is not None else None),
         )
     return doc_id
+
+
+def separar(p: Procesamiento, bandeja: dict, sha: str, imagenes: list[bytes], *, pdf: bytes | None, ext: str,
+            duplicado: bool) -> list[str]:
+    """Clasifica las páginas con Vertex AI y crea un documento por cada documento encontrado.
+
+    Devuelve los estados de los documentos creados. Si el clasificador falla, deja un único
+    documento SIN_CLASIFICAR (con incidencia) para no perder el archivo; se puede reprocesar.
+    """
+    n = len(imagenes)
+    try:
+        r = clasificador.clasificar(imagenes)
+    except Exception as e:  # noqa: BLE001 - un fallo de Vertex no convierte el archivo en error
+        log.exception("clasificador error %s", p.archivo["id"])
+        p.incidencia("CLASIFICADOR_FALLIDO", "AVISO", {"error": str(e)[:500], "modelo": clasificador.modelo_configurado()})
+        crear_documento(p, bandeja, sha, estado="REQUIERE_REVISION", motivos=["SIN_CLASIFICAR"], pagina_inicio=1, pagina_fin=n, ext=ext)
+        return ["REQUIERE_REVISION"]
+
+    p.motor = f"vertex/{r.modelo}"
+    p.consumo = r.consumo
+    p.detalle["clasificacion"] = {"version": clasificador.VERSION_PROMPT, "paginas": r.paginas,
+                                  "llamadas": r.consumo.llamadas, "segundos": round(r.consumo.segundos, 1)}
+    blancas = [x["pagina"] for x in r.paginas if x["tipo"] == "EN_BLANCO"]
+    if blancas:
+        p.incidencia("PAGINAS_EN_BLANCO", "INFO", {"paginas": blancas})
+    docs = clasificador.agrupar(r.paginas)
+    if not docs:  # todo en blanco
+        p.incidencia("DOCUMENTO_EN_BLANCO", "AVISO")
+        crear_documento(p, bandeja, sha, estado="REQUIERE_REVISION", motivos=["PAGINA_EN_BLANCO"], pagina_inicio=1, pagina_fin=n, ext=ext)
+        return ["REQUIERE_REVISION"]
+    if len(docs) > 1:
+        p.incidencia("VARIOS_DOCUMENTOS", "INFO", {"documentos": len(docs)})
+
+    estados = []
+    un_solo_documento = len(docs) == 1 and docs[0]["pagina_inicio"] == 1 and docs[0]["pagina_fin"] == n
+    for d in docs:
+        motivos = list(d["motivos"]) + (["DUPLICADO"] if duplicado else [])
+        estado = "LISTO" if d["tipo"] in TIPOS_FACTURA and not motivos else "REQUIERE_REVISION"
+        # Un PDF con varios documentos se recorta; si es uno solo, o es una imagen, se referencia el original
+        contenido = None if un_solo_documento or pdf is None else a.recortar_pdf(pdf, d["pagina_inicio"], d["pagina_fin"])
+        lectura = {**d["lectura"], **({"dudas": d["dudas"]} if d["dudas"] else {})}
+        crear_documento(p, bandeja, sha, estado=estado, motivos=motivos, tipo=d["tipo"], pagina_inicio=d["pagina_inicio"],
+                        pagina_fin=d["pagina_fin"], ext=ext, contenido=contenido, confianza=d["confianza"], lectura=lectura)
+        estados.append(estado)
+    return estados
+
+
+def estado_final(p: Procesamiento, estados_docs: list[str]) -> str:
+    return "PROCESADO" if estados_docs and all(s == "LISTO" for s in estados_docs) and not p.problemas else "PROCESADO_CON_INCIDENCIAS"
 
 
 # ===== Procesamiento de un archivo =====
 
 
-def procesar_archivo(archivo: dict, bandeja: dict, solicitado_por: str, profundidad: int = 0, contenido: bytes | None = None) -> str:
+def procesar_archivo(archivo: dict, bandeja: dict, solicitado_por: str, profundidad: int = 0, contenido: bytes | None = None,
+                     raiz: dict | None = None) -> str:
     """Procesa un archivo (subido o extraído de un ZIP) y devuelve su estado final.
 
     Cada archivo tiene su propio procesamiento; el contenido de un ZIP se procesa aquí mismo.
+    `raiz` es el archivo subido del que cuelga y cuándo empezó su procesamiento (para duplicados).
     """
     p = Procesamiento(archivo, solicitado_por)
+    if raiz is None:
+        raiz = {"id": archivo["id"], "inicio": db.uno("SELECT inicio FROM procesamientos WHERE id = %s", (p.id,))["inicio"]}
 
     if contenido is None:  # el contenido de un ZIP ya está en memoria: no se vuelve a descargar
         blob = gcp.cliente_storage().bucket(archivo["bucket"]).get_blob(archivo["objeto"])
@@ -114,10 +187,16 @@ def procesar_archivo(archivo: dict, bandeja: dict, solicitado_por: str, profundi
         contenido = blob.download_as_bytes()
 
     sha = a.sha256(contenido)
-    # Mismo contenido ya recibido en otra parte: se avisa, no se descarta (lo decide el asesor)
+    # Mismo contenido ya recibido en otra parte: se avisa, no se descarta (lo decide el asesor). Se
+    # ignora lo extraído de este mismo envío en un procesamiento anterior (un reproceso no es un duplicado).
     iguales = db.todos(
-        "SELECT id, sf_bandeja_id, nombre_original FROM archivos WHERE sha256 = %s AND id <> %s AND sf_org_id = %s LIMIT 5",
-        (sha, archivo["id"], archivo["sf_org_id"]),
+        """WITH RECURSIVE arbol AS (SELECT id FROM archivos WHERE id = %(raiz)s
+                                    UNION ALL SELECT h.id FROM archivos h JOIN arbol ON h.padre_id = arbol.id)
+           SELECT id, sf_bandeja_id, nombre_original FROM archivos
+           WHERE sha256 = %(sha)s AND id <> %(id)s AND sf_org_id = %(org)s
+             AND NOT (id IN (SELECT id FROM arbol) AND created_at < %(inicio)s)
+           LIMIT 5""",
+        {"raiz": raiz["id"], "sha": sha, "id": archivo["id"], "org": archivo["sf_org_id"], "inicio": raiz["inicio"]},
     )
     if iguales:
         p.incidencia("DUPLICADO_ARCHIVO", "AVISO", {"iguales": iguales})
@@ -139,7 +218,7 @@ def procesar_archivo(archivo: dict, bandeja: dict, solicitado_por: str, profundi
             p.incidencia("FORMATO_NO_SOPORTADO", "AVISO", {"tipo": "documento de Office (no Excel)", "extension": ext})
             return p.finalizar("NO_SOPORTADO", sha=sha)
         else:
-            return procesar_zip(p, z, bandeja, sha, profundidad)
+            return procesar_zip(p, z, bandeja, sha, profundidad, raiz)
 
     # Word y Excel antiguos comparten formato (OLE2): solo se trata como Excel lo que se llama .xls
     if tipo == "xls" and ext and ext != "xls":
@@ -170,11 +249,17 @@ def procesar_archivo(archivo: dict, bandeja: dict, solicitado_por: str, profundi
             return p.finalizar("ERROR", mime=a.MIME["pdf"], sha=sha, paginas=0, error="PDF sin páginas")
         p.detalle["caracteresPorPagina"] = r.caracteres_por_pagina
         if not r.tiene_texto:
-            p.incidencia("SIN_TEXTO", "INFO", {"nota": "Escaneo o imagen: la clasificación necesitará visión"})
+            p.incidencia("SIN_TEXTO", "INFO", {"nota": "Escaneo o imagen: se lee con visión"})
         elif r.paginas_sin_texto:
             p.incidencia("PAGINAS_SIN_TEXTO", "INFO", {"paginas": r.paginas_sin_texto})
-        crear_documento(p, bandeja, sha, estado="REQUIERE_REVISION", motivos=["SIN_CLASIFICAR"], pagina_inicio=1, pagina_fin=r.num_paginas, ext="pdf")
-        return p.finalizar("PROCESADO_CON_INCIDENCIAS", mime=a.MIME["pdf"], sha=sha, paginas=r.num_paginas, tiene_texto=r.tiene_texto)
+        try:
+            imagenes = clasificador.paginas_pdf(contenido)
+        except Exception as e:  # noqa: BLE001 - PDF que pypdf abre pero no se puede dibujar
+            p.incidencia("PDF_NO_RENDERIZABLE", "AVISO", {"error": str(e)[:500]})
+            crear_documento(p, bandeja, sha, estado="REQUIERE_REVISION", motivos=["ILEGIBLE"], pagina_inicio=1, pagina_fin=r.num_paginas, ext="pdf")
+            return p.finalizar("PROCESADO_CON_INCIDENCIAS", mime=a.MIME["pdf"], sha=sha, paginas=r.num_paginas, tiene_texto=r.tiene_texto)
+        estados = separar(p, bandeja, sha, imagenes, pdf=contenido, ext="pdf", duplicado=bool(iguales))
+        return p.finalizar(estado_final(p, estados), mime=a.MIME["pdf"], sha=sha, paginas=r.num_paginas, tiene_texto=r.tiene_texto)
 
     # ===== Imagen: un documento =====
     if tipo in ("png", "jpeg"):
@@ -183,16 +268,16 @@ def procesar_archivo(archivo: dict, bandeja: dict, solicitado_por: str, profundi
             p.incidencia("IMAGEN_CORRUPTA", "ERROR", {"error": img.get("error")})
             return p.finalizar("ERROR", mime=a.MIME[tipo], sha=sha, error="Imagen corrupta")
         p.detalle["imagen"] = img
-        crear_documento(p, bandeja, sha, estado="REQUIERE_REVISION", motivos=["SIN_CLASIFICAR"], pagina_inicio=1, pagina_fin=1,
-                        ext="jpg" if tipo == "jpeg" else "png")
-        return p.finalizar("PROCESADO_CON_INCIDENCIAS", mime=a.MIME[tipo], sha=sha, paginas=1, tiene_texto=False)
+        estados = separar(p, bandeja, sha, [clasificador.pagina_imagen(contenido)], pdf=None,
+                          ext="jpg" if tipo == "jpeg" else "png", duplicado=bool(iguales))
+        return p.finalizar(estado_final(p, estados), mime=a.MIME[tipo], sha=sha, paginas=1, tiene_texto=False)
 
     # ===== Formato no soportado: se conserva el original =====
     p.incidencia("FORMATO_NO_SOPORTADO", "AVISO", {"extension": ext, "mimeDeclarado": archivo.get("mime_declarado")})
     return p.finalizar("NO_SOPORTADO", sha=sha)
 
 
-def procesar_zip(p: Procesamiento, z: a.ResultadoZip, bandeja: dict, sha: str, profundidad: int) -> str:
+def procesar_zip(p: Procesamiento, z: a.ResultadoZip, bandeja: dict, sha: str, profundidad: int, raiz: dict) -> str:
     """Extrae cada entrada del ZIP al bucket de derivados, la registra como archivo EXTRAIDO_ZIP (con su
     padre y su ruta dentro del ZIP) y la procesa igual que si la hubiera subido el cliente.
     Sin límites de negocio: lo raro se registra como incidencia; solo los límites de seguridad cortan."""
@@ -246,7 +331,7 @@ def procesar_zip(p: Procesamiento, z: a.ResultadoZip, bandeja: dict, sha: str, p
              archivo["cif"], archivo["sf_user_id"], e.nombre, e.ruta, config.BUCKET_DOCS, objeto, ext or None, len(datos)),
         )
         resumen["extraidas"] += 1
-        estados_hijos.append(procesar_archivo(hijo, bandeja, f"zip:{p.id}", profundidad + 1, datos))
+        estados_hijos.append(procesar_archivo(hijo, bandeja, f"zip:{p.id}", profundidad + 1, datos, raiz))
 
     hay_problemas = any(s != "PROCESADO" for s in estados_hijos) or resumen["extraidas"] < len(entradas) - resumen["ignoradas"]
     return p.finalizar("PROCESADO_CON_INCIDENCIAS" if hay_problemas else "PROCESADO", mime=a.MIME["zip"], sha=sha)

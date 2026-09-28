@@ -338,6 +338,44 @@ private class BandejaContableControllerTest {
         }
     }
 
+    @IsTest
+    static void documentosYReprocesoDeGoogle() {
+        System.runAs(BandejaContableTestData.asesor()) {
+            BandejaContableGcpMock.configurar();
+            Test.setMock(HttpCalloutMock.class, new BandejaContableGcpMock()
+                .responder('/documents', 200, '{"documentos":[]}')
+                .responder('/reprocess', 200, '{"encolados":1}'));
+            Id bandejaId = leer('pendiente.pdf').Bandeja__c;
+            Test.startTest();
+            Assert.areEqual(0, BandejaContableController.listarDocumentosGoogle(bandejaId).size());
+            Assert.areEqual(1, BandejaContableController.reprocesarOcr(bandejaId));
+            Test.stopTest();
+        }
+    }
+
+    @IsTest
+    static void documentosDeGoogleConError() {
+        System.runAs(BandejaContableTestData.asesor()) {
+            BandejaContableGcpMock.configurar();
+            Test.setMock(HttpCalloutMock.class, new BandejaContableGcpMock().responder('/documents', 500, 'error').responder('/reprocess', 503, 'no'));
+            Id bandejaId = leer('pendiente.pdf').Bandeja__c;
+            Test.startTest();
+            try {
+                BandejaContableController.listarDocumentosGoogle(bandejaId);
+                Assert.fail('Debe fallar');
+            } catch (AuraHandledException e) {
+                Assert.isTrue(e.getMessage().contains('documentos en Google'), e.getMessage());
+            }
+            try {
+                BandejaContableController.reprocesarOcr(bandejaId);
+                Assert.fail('Debe fallar');
+            } catch (AuraHandledException e) {
+                Assert.isTrue(e.getMessage().contains('reproceso'), e.getMessage());
+            }
+            Test.stopTest();
+        }
+    }
+
     // ===== Consultas de las pantallas =====
 
     @IsTest

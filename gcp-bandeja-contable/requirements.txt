@@ -6,3 +6,6 @@ psycopg[binary]
 psycopg-pool
 pypdf==6.19.0
 Pillow
+pypdfium2
+google-genai
+anthropic[vertex]

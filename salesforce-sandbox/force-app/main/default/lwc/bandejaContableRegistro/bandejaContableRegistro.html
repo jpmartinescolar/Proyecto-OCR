@@ -19,9 +19,18 @@
                     </div>
                     <div class="bc-acciones">
                         <button class="bc-boton-sec" onclick={handleEditar}>Editar</button>
-                        <button class="bc-boton-sec" disabled title="Disponible cuando exista el procesamiento OCR en Google">Reprocesar OCR</button>
+                        <button class="bc-boton-sec" disabled={noPuedeReprocesar} onclick={reprocesar}
+                                title="Vuelve a separar y leer en Google todos los archivos de la bandeja">Reprocesar OCR</button>
                     </div>
                 </div>
+                <template lwc:if={procesamiento}>
+                    <div class="reg-procesamiento">
+                        <span class="reg-procesamiento-label">Procesamiento en Google</span>
+                        <span class={procesamiento.clase}>{procesamiento.texto}</span>
+                        <template lwc:if={procesamiento.girando}><span class="reg-girando"></span></template>
+                        <span class="bc-card-nota">{procesamiento.detalle}</span>
+                    </div>
+                </template>
                 <div class="bc-pasos">
                     <template for:each={pasos} for:item="p">
                         <div key={p.label} class={p.clase}><div class="bc-paso-barra"></div>{p.label}</div>
@@ -65,10 +74,15 @@
                                     <div class="reg-tipo" style={a.estiloTipo}>{a.ext}</div>
                                     <div class="reg-archivo-info">
                                         <div class="reg-archivo-nombre" title={a.nombre}>{a.nombre}</div>
-                                        <div class="reg-archivo-meta">{a.meta}</div>
+                                        <div class="reg-archivo-meta">{a.meta}<template lwc:if={a.resumenGoogle}> · {a.resumenGoogle}</template></div>
                                         <template lwc:if={a.error}><div class="reg-archivo-error">{a.error}</div></template>
+                                        <template lwc:if={a.hayIncidencias}>
+                                            <div class="reg-incidencias">
+                                                <template for:each={a.incidencias} for:item="i"><span key={i.key} class={i.clase}>{i.texto}</span></template>
+                                            </div>
+                                        </template>
                                     </div>
-                                    <template lwc:if={a.noSincronizado}><span class={a.claseEstado}>{a.estado}</span></template>
+                                    <span class={a.claseEstado} title={a.explicacion}>{a.estadoTxt}</span>
                                     <template lwc:if={a.url}>
                                         <a class="bc-enlace" href={a.url} target="_blank" rel="noopener">Descargar</a>
                                     </template>
@@ -76,44 +90,54 @@
                             </template>
                         </div>
                         <template lwc:if={errorGoogle}>
-                            <div class="bc-vacio bc-rojo">No se han podido obtener los enlaces de descarga: {errorGoogle}</div>
+                            <div class="bc-vacio bc-rojo">No se ha podido consultar Google: {errorGoogle}</div>
                         </template>
                     </section>
 
                     <section class="bc-card">
                         <div class="bc-card-titulo">
                             <span class="bc-card-titulo-texto">{tituloDocumentos}</span>
-                            <span class="bc-ejemplo" title="El desglose lo hará Google con el OCR; estos documentos son de ejemplo">Datos de ejemplo</span>
-                            <span class="bc-card-nota">1 registro por factura</span>
+                            <template lwc:if={hayDocumentosGoogle}>
+                                <span class="bc-card-nota">Separados y leídos por Google · 1 registro por documento</span>
+                            </template>
                         </div>
-                        <template lwc:if={hayDocumentos}>
+                        <template lwc:if={hayDocumentosGoogle}>
                             <div class="bc-tabla-wrap">
-                                <table class="bc-tabla">
+                                <table class="bc-tabla bc-tabla-peq">
                                     <thead>
                                         <tr>
-                                            <th class="bc-primera">Nº documento</th>
-                                            <th>Nombre del archivo</th>
+                                            <th class="bc-primera">Nº</th>
+                                            <th>Documento</th>
                                             <th>Tipo</th>
-                                            <th>Formato</th>
-                                            <th class="bc-ultima">Estado</th>
+                                            <th>Lectura preliminar</th>
+                                            <th>Google</th>
+                                            <th class="bc-ultima" title="Decisión del asesor (datos de ejemplo hasta la Fase 2)">Contable</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <template for:each={documentos} for:item="d">
                                             <tr key={d.id}>
                                                 <td class="bc-primera"><a class="bc-enlace" href="#" data-id={d.id} onclick={abrirDocumento}>{d.numero}</a></td>
-                                                <td class="bc-fuerte">{d.nombre}</td>
-                                                <td><span class="bc-pill">{d.categoria}</span></td>
-                                                <td>{d.formato}</td>
-                                                <td class="bc-ultima"><span class={d.claseEstado}>{d.estadoTxt}</span></td>
+                                                <td>
+                                                    <div class="bc-fuerte">{d.nombre}</div>
+                                                    <div class="reg-doc-origen">{d.origen} · {d.paginas}</div>
+                                                </td>
+                                                <td><span class="bc-pill">{d.tipoTxt}</span></td>
+                                                <td class="reg-doc-lectura">{d.lectura}</td>
+                                                <td>
+                                                    <span class={d.claseEstado}>{d.estadoTxt}</span>
+                                                    <template lwc:if={d.motivosTxt}><div class="reg-doc-motivo">{d.motivosTxt}</div></template>
+                                                </td>
+                                                <td class="bc-ultima"><span class={d.claseContable}>{d.contableTxt}</span></td>
                                             </tr>
                                         </template>
                                     </tbody>
                                 </table>
                             </div>
+                            <div class="reg-nota">La lectura preliminar sirve para separar y reconocer cada documento; la extracción completa de los datos contables llega en la siguiente fase.</div>
                         </template>
                         <template lwc:else>
-                            <div class="bc-vacio">Todavía no hay documentos: aparecerán cuando los archivos estén registrados en Google.</div>
+                            <div class="bc-vacio">{sinDocumentosTxt}</div>
                         </template>
                     </section>
                 </div>

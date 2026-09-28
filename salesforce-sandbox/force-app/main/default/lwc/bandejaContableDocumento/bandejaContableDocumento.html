@@ -197,6 +197,26 @@
                         </div>
                     </section>
 
+                    <!-- ===== Lectura de Google (real) ===== -->
+                    <template lwc:if={v.google}>
+                        <section class="bc-card doc-google">
+                            <div class="doc-google-cab">
+                                <span class="doc-google-titulo">Lectura de Google</span>
+                                <span class={v.google.claseEstado}>{v.google.estadoTxt}</span>
+                                <template lwc:if={v.google.motivosTxt}><span class="doc-google-motivo">{v.google.motivosTxt}</span></template>
+                                <span class="doc-flex"></span>
+                                <span class="doc-gris-peq">Preliminar: sirve para separar y reconocer el documento</span>
+                            </div>
+                            <div class="doc-google-campos">
+                                <template for:each={v.google.campos} for:item="c">
+                                    <div key={c.label} class="doc-google-campo"><span class="doc-meta-label">{c.label}</span><span class="doc-meta-valor">{c.valor}</span></div>
+                                </template>
+                            </div>
+                            <template lwc:if={v.google.dudas}><div class="doc-google-dudas">Dudas del modelo: {v.google.dudas}</div></template>
+                            <div class="doc-google-nota">Los datos contables de las pestañas (desglose de IVA, asiento, comprobaciones…) siguen siendo <b>de ejemplo</b> hasta la extracción completa con IA (Fase 2).</div>
+                        </section>
+                    </template>
+
                     <!-- ===== Datos ===== -->
                     <template lwc:if={v.enDatos}>
                         <div class="doc-datos-grid">

@@ -248,3 +248,13 @@ select.doc-iva-input { cursor: pointer; }
 .doc-modal-importe { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--bc-ink-3); }
 .doc-modal-total { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: var(--bc-paper-2); font-size: 13px; font-weight: 700; color: var(--bc-brand-deep); }
 .doc-modal-total-importe { font: 700 18px var(--bc-font-display); font-variant-numeric: tabular-nums; color: var(--bc-danger); }
+
+/* Lectura de Google (real) */
+.doc-google { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; border-color: var(--bc-brand-sky); }
+.doc-google-cab { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.doc-google-titulo { font: 700 13px var(--bc-font-display); color: var(--bc-brand-deep); }
+.doc-google-motivo { font-size: 12px; color: var(--bc-warm-ink); }
+.doc-google-campos { display: flex; gap: 8px 28px; flex-wrap: wrap; }
+.doc-google-campo { display: flex; flex-direction: column; gap: 2px; }
+.doc-google-dudas { font-size: 12px; color: var(--bc-warm-ink); }
+.doc-google-nota { font-size: 11px; color: var(--bc-ink-3); }

@@ -117,3 +117,7 @@ CREATE INDEX IF NOT EXISTS incidencias_archivo_idx ON incidencias (archivo_id);
 
 -- Fase 2 (extracción con IA y confirmación del operador) se añadirá aquí: tablas extracciones y
 -- confirmaciones, que nunca se sobrescriben entre sí (ver docs/decisiones.md).
+
+-- Fase 1, paso 4: lectura preliminar del clasificador (emisor, NIF, número, fecha, total) y dudas del
+-- modelo. No es la extracción de la Fase 2 (esa irá a la tabla extracciones).
+ALTER TABLE documentos ADD COLUMN IF NOT EXISTS lectura JSONB;

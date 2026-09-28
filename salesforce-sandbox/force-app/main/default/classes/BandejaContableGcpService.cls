@@ -49,6 +49,58 @@ public with sharing class BandejaContableGcpService {
         @AuraEnabled public String viewUrl;
         /** Se descarga con el nombre original del cliente */
         @AuraEnabled public String descargaUrl;
+        /** Qué ha hecho el procesador con el archivo (y con lo extraído si es un ZIP) */
+        @AuraEnabled public ProcesamientoGoogle procesamiento;
+    }
+
+    public class ProcesamientoGoogle {
+        @AuraEnabled public Integer paginas;
+        @AuraEnabled public Boolean tieneTexto;
+        /** Archivos extraídos (ZIP, también anidados) */
+        @AuraEnabled public Integer extraidos;
+        @AuraEnabled public Integer documentos;
+        @AuraEnabled public Integer listos;
+        @AuraEnabled public Integer enRevision;
+        @AuraEnabled public Integer conError;
+        @AuraEnabled public List<IncidenciaGoogle> incidencias = new List<IncidenciaGoogle>();
+    }
+
+    public class IncidenciaGoogle {
+        @AuraEnabled public String codigo;
+        /** INFO, AVISO o ERROR */
+        @AuraEnabled public String gravedad;
+        @AuraEnabled public Integer veces;
+    }
+
+    /** Un documento separado por Google (una factura, un albarán…) con la lectura preliminar del clasificador */
+    public class DocumentoGoogle {
+        @AuraEnabled public String id;
+        @AuraEnabled public Integer numero;
+        @AuraEnabled public String nombre;
+        /** Archivo del que sale (ruta dentro del ZIP si viene de uno) */
+        @AuraEnabled public String archivoOrigen;
+        /** Archivo que subió el asesor o el cliente */
+        @AuraEnabled public String archivoSubido;
+        @AuraEnabled public String sfArchivoId;
+        @AuraEnabled public Integer paginaInicio;
+        @AuraEnabled public Integer paginaFin;
+        /** FACTURA, FACTURA_SIMPLIFICADA, RECTIFICATIVA, ALBARAN, PRESUPUESTO, HOJA_CALCULO, OTRO, DESCONOCIDO */
+        @AuraEnabled public String tipo;
+        @AuraEnabled public Decimal confianza;
+        /** LISTO, REQUIERE_REVISION, DESCARTADO, ERROR */
+        @AuraEnabled public String estado;
+        @AuraEnabled public List<String> motivos = new List<String>();
+        @AuraEnabled public String emisor;
+        @AuraEnabled public String nifEmisor;
+        @AuraEnabled public String numeroFactura;
+        @AuraEnabled public String fecha;
+        @AuraEnabled public String total;
+        @AuraEnabled public List<String> dudas = new List<String>();
+        /** true si Google ha generado un PDF propio (el archivo tenía varios documentos) */
+        @AuraEnabled public Boolean separado;
+        @AuraEnabled public String motor;
+        @AuraEnabled public Datetime createdAt;
+        @AuraEnabled public String viewUrl;
     }
 
     @TestVisible
@@ -149,8 +201,90 @@ public with sharing class BandejaContableGcpService {
             g.createdAt = parseFecha((String) m.get('createdAt'));
             g.viewUrl = (String) m.get('viewUrl');
             g.descargaUrl = (String) m.get('descargaUrl');
+            g.procesamiento = toProcesamiento((Map<String, Object>) m.get('procesamiento'));
             out.add(g);
         }
+        return out;
+    }
+
+    private static ProcesamientoGoogle toProcesamiento(Map<String, Object> m) {
+        if (m == null || m.isEmpty()) return null;
+        ProcesamientoGoogle p = new ProcesamientoGoogle();
+        p.paginas = entero(m.get('paginas'));
+        p.tieneTexto = (Boolean) m.get('tieneTexto');
+        p.extraidos = entero(m.get('extraidos'));
+        p.documentos = entero(m.get('documentos'));
+        p.listos = entero(m.get('listos'));
+        p.enRevision = entero(m.get('enRevision'));
+        p.conError = entero(m.get('conError'));
+        if (m.get('incidencias') != null) {
+            for (Object o : (List<Object>) m.get('incidencias')) {
+                Map<String, Object> i = (Map<String, Object>) o;
+                IncidenciaGoogle x = new IncidenciaGoogle();
+                x.codigo = (String) i.get('codigo');
+                x.gravedad = (String) i.get('gravedad');
+                x.veces = entero(i.get('veces'));
+                p.incidencias.add(x);
+            }
+        }
+        return p;
+    }
+
+    /** Documentos separados por Google en una bandeja (la bandeja ya debe estar validada por el llamante) */
+    public static List<DocumentoGoogle> listarDocumentos(Id bandejaId) {
+        Map<String, Object> res = enviar('/documents', new Map<String, Object>{
+            'sfOrgId' => UserInfo.getOrganizationId(),
+            'sfBandejaId' => bandejaId
+        });
+        List<DocumentoGoogle> out = new List<DocumentoGoogle>();
+        for (Object o : (List<Object>) res.get('documentos')) {
+            Map<String, Object> m = (Map<String, Object>) o;
+            DocumentoGoogle d = new DocumentoGoogle();
+            d.id = (String) m.get('id');
+            d.numero = entero(m.get('numero'));
+            d.nombre = (String) m.get('nombre');
+            d.archivoOrigen = (String) m.get('archivoOrigen');
+            d.archivoSubido = (String) m.get('archivoSubido');
+            d.sfArchivoId = (String) m.get('sfArchivoId');
+            d.paginaInicio = entero(m.get('paginaInicio'));
+            d.paginaFin = entero(m.get('paginaFin'));
+            d.tipo = (String) m.get('tipo');
+            d.confianza = m.get('confianza') == null ? null : Decimal.valueOf(String.valueOf(m.get('confianza')));
+            d.estado = (String) m.get('estado');
+            d.motivos = textos(m.get('motivos'));
+            Map<String, Object> l = m.get('lectura') == null ? new Map<String, Object>() : (Map<String, Object>) m.get('lectura');
+            d.emisor = (String) l.get('emisor');
+            d.nifEmisor = (String) l.get('nif_emisor');
+            d.numeroFactura = (String) l.get('numero');
+            d.fecha = (String) l.get('fecha');
+            d.total = (String) l.get('total');
+            d.dudas = textos(l.get('dudas'));
+            d.separado = m.get('separado') == true;
+            d.motor = (String) m.get('motor');
+            d.createdAt = parseFecha((String) m.get('createdAt'));
+            d.viewUrl = (String) m.get('viewUrl');
+            out.add(d);
+        }
+        return out;
+    }
+
+    /** Vuelve a procesar en Google los archivos de una bandeja (o uno). Devuelve cuántos se han encolado. */
+    public static Integer reprocesar(Id bandejaId, Id archivoId) {
+        Map<String, Object> res = enviar('/reprocess', new Map<String, Object>{
+            'sfOrgId' => UserInfo.getOrganizationId(),
+            'sfBandejaId' => bandejaId,
+            'sfArchivoId' => archivoId
+        });
+        return entero(res.get('encolados'));
+    }
+
+    private static Integer entero(Object v) {
+        return v == null ? null : Integer.valueOf(String.valueOf(v));
+    }
+
+    private static List<String> textos(Object v) {
+        List<String> out = new List<String>();
+        if (v != null) for (Object o : (List<Object>) v) out.add(String.valueOf(o));
         return out;
     }
 

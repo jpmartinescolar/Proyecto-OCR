@@ -12,7 +12,7 @@ import zipfile
 from dataclasses import dataclass, field
 
 from PIL import Image, UnidentifiedImageError
-from pypdf import PdfReader
+from pypdf import PdfReader, PdfWriter
 from pypdf.errors import PdfReadError
 
 from . import config
@@ -111,6 +111,19 @@ def analizar_pdf(datos: bytes) -> ResultadoPdf:
         return ResultadoPdf(num_paginas=len(lector.pages), caracteres_por_pagina=caracteres)
     except (PdfReadError, ValueError, KeyError, TypeError) as e:
         return ResultadoPdf(corrupto=True, error=str(e))
+
+
+def recortar_pdf(datos: bytes, pagina_inicio: int, pagina_fin: int) -> bytes:
+    """PDF nuevo con las páginas pagina_inicio..pagina_fin (base 1, incluidas)."""
+    lector = PdfReader(io.BytesIO(datos), strict=False)
+    if lector.is_encrypted:
+        lector.decrypt("")
+    escritor = PdfWriter()
+    for i in range(pagina_inicio - 1, pagina_fin):
+        escritor.add_page(lector.pages[i])
+    buf = io.BytesIO()
+    escritor.write(buf)
+    return buf.getvalue()
 
 
 # ===== Imágenes =====

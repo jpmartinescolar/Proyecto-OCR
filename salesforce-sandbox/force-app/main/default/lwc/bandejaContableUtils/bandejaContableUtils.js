@@ -69,6 +69,108 @@ export function claseEstado(estado) {
     return CLASE_ESTADO[estado] || 'bc-pill';
 }
 
+// ===== Procesamiento en Google (estados de docs/fases/fase-1-ingestion.md) =====
+// "Requiere revisión" no es un error: es trabajo para el asesor (tono ámbar). Solo ERROR es rojo.
+
+const ESTADO_ARCHIVO_GOOGLE = {
+    SUBIENDO: ['Subiendo', 'info', 'El archivo se está subiendo a Google.'],
+    RECIBIDO: ['En cola', 'info', 'Recibido en Google, esperando turno para procesarse.'],
+    EN_COLA: ['En cola', 'info', 'Recibido en Google, esperando turno para procesarse.'],
+    PROCESANDO: ['Procesando', 'info', 'Google está separando y leyendo el archivo.'],
+    PROCESADO: ['Procesado', 'ok', 'Separado y leído: todos los documentos están listos.'],
+    PROCESADO_CON_INCIDENCIAS: ['Procesado · revisar', 'aviso', 'Separado y leído; algún documento necesita que lo revises.'],
+    NO_SOPORTADO: ['Formato no soportado', 'aviso', 'Se conserva el original, pero no se puede procesar.'],
+    ERROR: ['No se ha podido procesar', 'error', 'El archivo está dañado, protegido o supera los límites.']
+};
+
+const INCIDENCIAS = {
+    DUPLICADO_ARCHIVO: 'Ya se había subido este mismo archivo',
+    SIN_TEXTO: 'Escaneado: leído con visión artificial',
+    PAGINAS_SIN_TEXTO: 'Algunas páginas escaneadas',
+    VARIOS_DOCUMENTOS: 'Contenía varios documentos: separados',
+    PAGINAS_EN_BLANCO: 'Páginas en blanco descartadas',
+    ZIP_ANIDADO: 'ZIP dentro de otro ZIP',
+    ARCHIVO_IGNORADO: 'Archivos de sistema ignorados',
+    EXCEL_PENDIENTE_FLUJO: 'Excel: se conserva, su flujo está pendiente',
+    CLASIFICADOR_FALLIDO: 'No se pudo leer con IA (se puede reprocesar)',
+    TIPO_NO_COINCIDE: 'La extensión no coincide con el contenido',
+    FORMATO_NO_SOPORTADO: 'Formato no soportado',
+    ZIP_VACIO: 'ZIP vacío',
+    DOCUMENTO_EN_BLANCO: 'Todas las páginas en blanco',
+    PDF_NO_RENDERIZABLE: 'No se pudo convertir en imagen',
+    PDF_PROTEGIDO: 'PDF protegido con contraseña',
+    PDF_CORRUPTO: 'PDF dañado',
+    PDF_SIN_PAGINAS: 'PDF sin páginas',
+    IMAGEN_CORRUPTA: 'Imagen dañada',
+    ZIP_CORRUPTO: 'ZIP dañado',
+    ZIP_PROTEGIDO: 'ZIP con contraseña',
+    ZIP_ENTRADA_ILEGIBLE: 'Un archivo del ZIP no se pudo leer',
+    LIMITE_SEGURIDAD: 'Supera los límites de seguridad',
+    ARCHIVO_NO_ENCONTRADO: 'El archivo no está en Google',
+    ENCOLAR_FALLIDO: 'No se pudo poner en cola',
+    PROCESAMIENTO_FALLIDO: 'Fallo temporal (se reintenta solo)'
+};
+
+const MOTIVOS_REVISION = {
+    SIN_CLASIFICAR: 'Pendiente de leer con IA',
+    FLUJO_PENDIENTE: 'Excel: flujo pendiente',
+    NO_PARECE_FACTURA: 'No parece una factura',
+    BAJA_CONFIANZA: 'Lectura dudosa',
+    VARIOS_TIPOS_MEZCLADOS: 'Mezcla de tipos',
+    SEPARACION_INCIERTA: 'Separación dudosa',
+    DUPLICADO: 'Archivo duplicado',
+    PAGINA_EN_BLANCO: 'En blanco',
+    ILEGIBLE: 'Ilegible'
+};
+
+export const TIPOS_DOCUMENTO = {
+    FACTURA: 'Factura',
+    FACTURA_SIMPLIFICADA: 'Ticket',
+    RECTIFICATIVA: 'Rectificativa',
+    ALBARAN: 'Albarán',
+    PRESUPUESTO: 'Presupuesto',
+    HOJA_CALCULO: 'Hoja de cálculo',
+    OTRO: 'Otro documento',
+    DESCONOCIDO: 'Sin clasificar'
+};
+
+const CLASE_TONO = { ok: 'bc-pill bc-pill-ok', aviso: 'bc-pill bc-pill-pendiente', error: 'bc-pill bc-pill-error', info: 'bc-pill bc-pill-info' };
+
+/** Estados de Google en los que el archivo todavía no ha terminado (la pantalla se refresca sola) */
+export const ESTADOS_EN_CURSO = ['SUBIENDO', 'RECIBIDO', 'EN_COLA', 'PROCESANDO'];
+
+/** Cómo mostrar el estado de un archivo en Google: { texto, clase, explicacion, incidencias[] } */
+export function estadoArchivoGoogle(archivoGoogle) {
+    if (!archivoGoogle) return { texto: 'Sin datos de Google', clase: 'bc-pill', explicacion: '', incidencias: [], enCurso: false };
+    const [texto, tono, explicacion] = ESTADO_ARCHIVO_GOOGLE[archivoGoogle.estado] || [archivoGoogle.estado, 'info', ''];
+    const p = archivoGoogle.procesamiento || {};
+    const partes = [];
+    if (p.paginas) partes.push(p.paginas === 1 ? '1 página' : `${p.paginas} páginas`);
+    if (p.extraidos) partes.push(`${p.extraidos} ${p.extraidos === 1 ? 'archivo' : 'archivos'} dentro`);
+    if (p.documentos) {
+        const det = [p.listos ? `${p.listos} ${p.listos === 1 ? 'listo' : 'listos'}` : '', p.enRevision ? `${p.enRevision} para revisar` : '',
+            p.conError ? `${p.conError} con error` : ''].filter(Boolean).join(', ');
+        partes.push(`${p.documentos} ${p.documentos === 1 ? 'documento' : 'documentos'}${det ? ' (' + det + ')' : ''}`);
+    }
+    const incidencias = (p.incidencias || []).map((i) => ({
+        key: i.codigo,
+        texto: (INCIDENCIAS[i.codigo] || i.codigo) + (i.veces > 1 ? ` (${i.veces})` : ''),
+        clase: 'reg-incidencia reg-incidencia-' + (i.gravedad || 'INFO').toLowerCase()
+    }));
+    return { texto, clase: CLASE_TONO[tono], explicacion, resumen: partes.join(' · '), incidencias, enCurso: ESTADOS_EN_CURSO.includes(archivoGoogle.estado) };
+}
+
+/** Cómo mostrar un documento de Google: { estadoTxt, clase, motivosTxt, tipoTxt } */
+export function estadoDocumentoGoogle(doc) {
+    const motivos = (doc.motivos || []).map((m) => MOTIVOS_REVISION[m] || m);
+    let estadoTxt = 'Revisar';
+    let tono = 'aviso';
+    if (doc.estado === 'LISTO') { estadoTxt = 'Listo'; tono = 'ok'; }
+    else if (doc.estado === 'DESCARTADO') { estadoTxt = 'Descartado'; tono = 'info'; }
+    else if (doc.estado === 'ERROR') { estadoTxt = 'Error'; tono = 'error'; }
+    return { estadoTxt, clase: CLASE_TONO[tono], motivosTxt: motivos.join(' · '), tipoTxt: TIPOS_DOCUMENTO[doc.tipo] || doc.tipo };
+}
+
 /** Evento de navegación interna que atiende bandejaContableApp */
 export function eventoNavegar(detail) {
     return new CustomEvent('navegar', { detail });

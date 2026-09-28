@@ -3,6 +3,9 @@
 Registro de decisiones del proyecto. Formato: fecha · decisión · motivo · alternativas descartadas. Las más recientes arriba.
 
 ## 2026-09-28
+- **Clasificador (paso 4):** páginas como imagen con `pypdfium2` (Apache/BSD; se mantiene fuera PyMuPDF por AGPL), lotes de 8 páginas por llamada y **reglas deterministas sobre la lectura del modelo** (otro número de factura u otro emisor = otro documento; mismo número y emisor = mismo documento). Motivo: con las muestras, el modelo solo juntaba facturas seguidas del mismo proveedor; con las reglas, el PDF de 19 páginas sale en sus 17 documentos reales. Gemini en `europe-southwest1` (Madrid) y Claude en la multirregión `eu` (residencia en la UE).
+- **Lectura preliminar** (emisor, NIF, número, fecha, total) guardada en `documentos.lectura`: sirve para separar y para que el asesor reconozca cada documento. No es la extracción de la Fase 2, que irá a `extracciones`.
+- **Estados legibles en Salesforce:** "requiere revisión" se muestra en ámbar como trabajo del asesor, no como error; solo ERROR va en rojo. La ficha de la bandeja no muestra documentos de ejemplo cuando el archivo ya está en Google.
 - **UI adaptada al diseño v2 ya, sin esperar a la Fase 2**, con los datos reales que hay y el resto de ejemplo, comentado y marcado en pantalla.
 - **Datos del cliente desde Salesforce** (`BandejaContableClienteService`): contrato contable y fiscal abierto, obligaciones tributarias en alta, actividades económicas (IAE), locales afectos, socios y administradores, y dirección de facturación. Lo que no existe (régimen de IVA, prorrata, ROI, turismos, censo AEAT/VIES) queda de ejemplo y listado como pendiente. Descartado: duplicar estos datos en Cloud SQL.
 - **Las comprobaciones que dependen de datos inexistentes se marcan "Ejemplo"** en pantalla (censo, deudores, prorrata, histórico del proveedor, duplicados) para no dar por buena una comprobación que no se ha hecho.

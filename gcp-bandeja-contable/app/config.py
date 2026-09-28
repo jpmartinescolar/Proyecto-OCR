@@ -18,6 +18,9 @@ TASKS_QUEUE = os.environ.get("TASKS_QUEUE", "")  # projects/…/locations/…/qu
 TASKS_SA = os.environ.get("TASKS_SA", "")  # cuenta con la que Cloud Tasks llama al procesador
 PROCESADOR_URL = os.environ.get("PROCESADOR_URL", "")
 
+# Clasificador por página (paso 4). Vacío = el modelo activo de app/clasificador.py
+CLASIFICADOR_MODELO = os.environ.get("CLASIFICADOR_MODELO", "")
+
 SIGNED_URL_MINUTES = 15
 
 # Límites de seguridad del procesador (no son reglas de negocio: si se superan, el archivo queda en

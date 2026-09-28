@@ -50,7 +50,7 @@ def procesador_configurado() -> bool:
     return bool(config.TASKS_QUEUE and config.TASKS_SA and config.PROCESADOR_URL)
 
 
-def encolar_procesamiento(archivo_id: str, sufijo: str = "inicial") -> None:
+def encolar_procesamiento(archivo_id: str, sufijo: str = "inicial", reprocesar: bool = False) -> None:
     """Crea la tarea "procesar archivo_id". El nombre de la tarea incluye el archivo: Cloud Tasks
     rechaza un nombre repetido durante un tiempo, lo que evita procesar dos veces por un reintento."""
     global _tareas
@@ -62,7 +62,7 @@ def encolar_procesamiento(archivo_id: str, sufijo: str = "inicial") -> None:
             "http_method": tasks_v2.HttpMethod.POST,
             "url": f"{config.PROCESADOR_URL}/procesar",
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"archivoId": archivo_id}).encode(),
+            "body": json.dumps({"archivoId": archivo_id, "reprocesar": reprocesar}).encode(),
             "oidc_token": {"service_account_email": config.TASKS_SA, "audience": config.PROCESADOR_URL},
         },
     }

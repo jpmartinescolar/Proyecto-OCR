@@ -123,9 +123,16 @@ function estadoInicial(id, bandeja) {
     return { estado: 'Pendiente' };
 }
 
-/** Documentos OCR de una bandeja (BandejaDetalleDTO de Apex). Solo los archivos ya registrados en Google. */
-export function documentosDeBandeja(detalle) {
+/**
+ * Documentos OCR de una bandeja (BandejaDetalleDTO de Apex).
+ * Si Google ya ha separado el contenido (docsGoogle, de listarDocumentosGoogle) se usan esos documentos
+ * REALES: id, nombre, páginas, tipo y lectura preliminar. Lo que sigue siendo de ejemplo es el detalle
+ * contable (plantilla) hasta la extracción de la Fase 2.
+ * Sin documentos de Google, se inventan a partir de los archivos subidos (comportamiento anterior).
+ */
+export function documentosDeBandeja(detalle, docsGoogle) {
     const b = detalle.resumen;
+    if (docsGoogle && docsGoogle.length) return docsGoogle.map((g) => desdeGoogle(g, detalle));
     const docs = [];
     (detalle.archivos || []).filter((a) => a.estado === 'Sincronizado').forEach((a) => {
         const n = partes(a);
@@ -174,6 +181,42 @@ const SITUACION = [
 export function situacionFiscal(doc) {
     // Una de cada cuatro facturas sale "sin riesgo" para que el filtro tenga contenido
     return hash(doc.id + 'sit') % 4 === 0 ? null : SITUACION[doc.plantilla];
+}
+
+const TIPO_POR_DOC = { FACTURA_SIMPLIFICADA: 'Ticket' };
+
+/** Documento real de Google con la forma que esperan las pantallas */
+function desdeGoogle(g, detalle) {
+    const b = detalle.resumen;
+    const archivo = (detalle.archivos || []).find((a) => a.id === g.sfArchivoId) || {};
+    const tipo = TIPO_POR_DOC[g.tipo] || (b.tipoValor === 'Emitida' ? 'Emitida' : b.tipoValor === 'Ticket' ? 'Ticket' : 'Recibida');
+    // Estado contable: el que haya decidido el asesor en la sesión; si no, Pendiente (FALTA: tabla confirmaciones)
+    const est = ESTADOS.get(g.id) || { estado: b.estado === 'Completado' ? 'Contabilizado' : 'Pendiente' };
+    const ext = String(g.nombre || '').split('.').pop().toUpperCase();
+    return {
+        id: g.id,
+        numero: 'D' + String(g.numero).padStart(2, '0'),
+        nombre: g.nombre,
+        formato: ext === 'JPG' || ext === 'PNG' ? ext : 'PDF',
+        tipo,
+        categoria: CATEGORIA_POR_TIPO[tipo] || 'Compras',
+        estado: est.estado,
+        motivo: est.motivo || null,
+        fechaValidacion: est.fechaValidacion || null,
+        // El detalle contable sigue siendo de ejemplo: plantilla por hash, la de ticket para tickets
+        plantilla: tipo === 'Ticket' ? 1 : hash(g.id) % PLANTILLAS.length,
+        archivoId: g.sfArchivoId,
+        archivoNombre: g.archivoSubido,
+        archivoMime: ext === 'JPG' ? 'image/jpeg' : ext === 'PNG' ? 'image/png' : 'application/pdf',
+        archivoFecha: archivo.fecha,
+        bandejaId: b.id,
+        bandejaNumero: b.numero,
+        empresaId: b.empresaId,
+        empresa: b.empresa,
+        origen: b.origen,
+        fecha: b.fecha,
+        google: g
+    };
 }
 
 export function cambiarEstadoDocumento(id, estado, extra = {}) {

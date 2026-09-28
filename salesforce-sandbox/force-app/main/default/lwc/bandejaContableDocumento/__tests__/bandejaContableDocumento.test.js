@@ -3,10 +3,12 @@ import BandejaContableDocumento from 'c/bandejaContableDocumento';
 import getBandeja from '@salesforce/apex/BandejaContableController.getBandeja';
 import getDatosCliente from '@salesforce/apex/BandejaContableController.getDatosCliente';
 import listarArchivosGoogle from '@salesforce/apex/BandejaContableController.listarArchivosGoogle';
+import listarDocumentosGoogle from '@salesforce/apex/BandejaContableController.listarDocumentosGoogle';
 
 jest.mock('@salesforce/apex/BandejaContableController.getBandeja', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/BandejaContableController.getDatosCliente', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/BandejaContableController.listarArchivosGoogle', () => ({ default: jest.fn() }), { virtual: true });
+jest.mock('@salesforce/apex/BandejaContableController.listarDocumentosGoogle', () => ({ default: jest.fn() }), { virtual: true });
 
 const DETALLE = {
     resumen: { id: 'a00B', numero: 'BC-00001', empresaId: '001E', empresa: 'Talleres', cif: 'B12345678', tipoValor: 'Recibida', estado: 'Pendiente', origen: 'Manual', fecha: '2026-09-25T10:00:00Z' },
@@ -21,10 +23,11 @@ const CLIENTE = {
 // eslint-disable-next-line @lwc/lwc/no-async-operation
 const esperar = () => new Promise((r) => setTimeout(r, 0));
 
-async function montar() {
+async function montar(docsGoogle = []) {
     getBandeja.mockResolvedValue(DETALLE);
     getDatosCliente.mockResolvedValue(CLIENTE);
     listarArchivosGoogle.mockResolvedValue([]);
+    listarDocumentosGoogle.mockResolvedValue(docsGoogle);
     const el = createElement('c-bandeja-contable-documento', { is: BandejaContableDocumento });
     el.bandejaId = 'a00B';
     document.body.appendChild(el);
@@ -76,5 +79,24 @@ describe('c-bandeja-contable-documento', () => {
         await esperar();
         expect(r.querySelector('.doc-bloqueo')).not.toBeNull();
         expect(r.querySelector('.doc-estado').textContent).toContain('No contabilizado · Duplicada');
+    });
+});
+
+describe('c-bandeja-contable-documento con documentos de Google', () => {
+    afterEach(() => {
+        while (document.body.firstChild) document.body.removeChild(document.body.firstChild);
+    });
+
+    it('usa el documento real: título, lectura y visor del PDF separado', async () => {
+        const el = await montar([{
+            id: 'doc_1', numero: 3, nombre: 'BC-00001_D03.pdf', archivoOrigen: 'lote.zip', archivoSubido: 'lote.zip', sfArchivoId: 'arc1',
+            paginaInicio: 13, paginaFin: 15, tipo: 'FACTURA', confianza: 0.9, estado: 'LISTO', motivos: [], emisor: 'OBRAMAT',
+            numeroFactura: '011-0004-027945', fecha: '06/04/2026', total: '178,84', dudas: [], separado: true, viewUrl: 'https://firmada/doc.pdf'
+        }]);
+        const r = el.shadowRoot;
+        expect(r.querySelector('.doc-titulo').textContent).toBe('Factura 011-0004-027945');
+        expect(r.querySelector('.doc-google').textContent).toContain('OBRAMAT');
+        expect(r.querySelector('.doc-google').textContent).toContain('págs. 13–15');
+        expect(r.querySelector('.doc-iframe').getAttribute('src')).toBe('https://firmada/doc.pdf');
     });
 });

@@ -364,6 +364,33 @@ public with sharing class BandejaContableController {
         }
     }
 
+    /** Documentos que ha separado Google en la bandeja (facturas, albaranes…), con su lectura preliminar */
+    @AuraEnabled
+    public static List<BandejaContableGcpService.DocumentoGoogle> listarDocumentosGoogle(Id bandejaId) {
+        comprobarAcceso(bandejaId);
+        try {
+            return BandejaContableGcpService.listarDocumentos(bandejaId);
+        } catch (BandejaContableGcpService.GcpException e) {
+            throw error('No se han podido consultar los documentos en Google. ' + e.getMessage());
+        }
+    }
+
+    /** "Reprocesar OCR": vuelve a separar y clasificar en Google los archivos de la bandeja */
+    @AuraEnabled
+    public static Integer reprocesarOcr(Id bandejaId) {
+        comprobarAcceso(bandejaId);
+        try {
+            return BandejaContableGcpService.reprocesar(bandejaId, null);
+        } catch (BandejaContableGcpService.GcpException e) {
+            throw error('No se ha podido pedir el reproceso a Google. ' + e.getMessage());
+        }
+    }
+
+    private static void comprobarAcceso(Id bandejaId) {
+        List<Bandeja_Contable__c> b = [SELECT Id FROM Bandeja_Contable__c WHERE Id = :bandejaId WITH USER_MODE LIMIT 1];
+        if (b.isEmpty()) throw error('No se encuentra la bandeja o no tienes acceso.');
+    }
+
     // ===== Uso interno (también desde BandejaContableSyncQueueable) =====
 
     public static Bandeja_Contable_Archivo__c cargar(Id archivoId) {

@@ -3,6 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getBandeja from '@salesforce/apex/BandejaContableController.getBandeja';
 import getDatosCliente from '@salesforce/apex/BandejaContableController.getDatosCliente';
 import listarArchivosGoogle from '@salesforce/apex/BandejaContableController.listarArchivosGoogle';
+import listarDocumentosGoogle from '@salesforce/apex/BandejaContableController.listarDocumentosGoogle';
 import {
     documentosDeBandeja, datosExtraidos, datosEmpresa, aprenderRegla, cambiarEstadoDocumento, duplicadoDe, historicoProveedor,
     anadirNota, notasDe, tareasDe, chatsDe, SOFTWARE_CLIENTE, MOTIVOS_NO_CONTABILIZAR
@@ -11,7 +12,7 @@ import {
     TIPOS_IVA, TIPOS_RETENCION, CODIGOS_TRANSACCION, CONCEPTOS_RIESGO, nif as normalizarNif, porcentajeDeducible, contrapartidaPorDefecto,
     esExtranjero, sugerenciaDeducible, sumasIva, propuestaAsiento, riesgosFiscales, riesgosOperativos, comprobaciones, analisisIs, productos, consumoIa
 } from 'c/bandejaContableCalculos';
-import { num, euros, fecha, fechaHora, eventoNavegar, mensajeError } from 'c/bandejaContableUtils';
+import { num, euros, fecha, fechaHora, eventoNavegar, mensajeError, estadoDocumentoGoogle } from 'c/bandejaContableUtils';
 
 // Zonas del documento que se resaltan al pasar por el campo correspondiente
 const AZUL = ['#0078FF', 'rgba(0,120,255,.10)', 'rgba(0,120,255,.22)'];
@@ -72,6 +73,7 @@ export default class BandejaContableDocumento extends LightningElement {
     errorCliente;
     urls = {};
     docs;
+    docsGoogle = [];
 
     // Estado de edición por documento (solo en memoria)
     edits = {};
@@ -86,7 +88,7 @@ export default class BandejaContableDocumento extends LightningElement {
     pestana = 'general';
     hover = null;
     productoResaltado = null;
-    vistaVisor = 'ocr';
+    vistaVisor = null; // null: original si es un documento real de Google; si no, la vista OCR de ejemplo
     zoom = 100;
     giro = 0;
 
@@ -106,17 +108,15 @@ export default class BandejaContableDocumento extends LightningElement {
         this.cargando = true;
         try {
             this.detalle = await getBandeja({ bandejaId: this.bandejaId });
-            this.docs = documentosDeBandeja(this.detalle);
-            this.error = this.docs.length ? null : 'Esta bandeja todavía no tiene documentos OCR.';
         } catch (e) {
             this.error = mensajeError(e);
-        } finally {
             this.cargando = false;
+            return;
         }
-        if (!this.detalle) return;
-        const [cliente, archivos] = await Promise.allSettled([
+        const [cliente, archivos, docs] = await Promise.allSettled([
             getDatosCliente({ empresaId: this.detalle.resumen.empresaId }),
-            listarArchivosGoogle({ bandejaId: this.bandejaId })
+            listarArchivosGoogle({ bandejaId: this.bandejaId }),
+            listarDocumentosGoogle({ bandejaId: this.bandejaId })
         ]);
         if (cliente.status === 'fulfilled') this.cliente = cliente.value;
         else this.errorCliente = mensajeError(cliente.reason);
@@ -124,6 +124,11 @@ export default class BandejaContableDocumento extends LightningElement {
         this.urls = archivos.status === 'fulfilled'
             ? Object.fromEntries(archivos.value.map((a) => [a.archivoId, { ver: a.viewUrl, descargar: a.descargaUrl || a.viewUrl }]))
             : {};
+        // Documentos que ha separado Google (reales); sin ellos, los de ejemplo a partir de los archivos
+        this.docsGoogle = docs.status === 'fulfilled' ? docs.value : [];
+        this.docs = documentosDeBandeja(this.detalle, this.docsGoogle);
+        this.error = this.docs.length ? null : 'Esta bandeja todavía no tiene documentos OCR.';
+        this.cargando = false;
         this.recalcular();
     }
 
@@ -235,7 +240,9 @@ export default class BandejaContableDocumento extends LightningElement {
         Object.entries(ZONAS).forEach(([k, z]) => { hl[k] = marca(this.hover === k, z); });
         const ivaPreview = (x0.ivasDoc || x0.ivas).map((r, i) => ({ ...r, key: 'p' + i, estilo: marca(this.hover === 'iva' + i, AMARILLO) }));
         const lineasDoc = (x0.lineas || []).map((l, i) => ({ ...l, key: 'l' + i, estilo: marca(this.productoResaltado === i && this.pestana === 'prod', AMARILLO) }));
-        const urlsArchivo = this.urls[doc.archivoId] || {};
+        // Documento real de Google: su propio PDF (recortado si venía con otros); si no, el archivo subido
+        const urlsArchivo = doc.google && doc.google.viewUrl ? { ver: doc.google.viewUrl, descargar: doc.google.viewUrl } : this.urls[doc.archivoId] || {};
+        const vista = this.vistaVisor || (doc.google ? 'original' : 'ocr');
         const archivoUrl = urlsArchivo.ver;
         const mime = String(doc.archivoMime || '');
 
@@ -270,7 +277,8 @@ export default class BandejaContableDocumento extends LightningElement {
             idx,
             pos: `${idx + 1} de ${this.docs.length}`,
             x: { ...x, lineas: lineasDoc },
-            titulo: `Factura ${val('numero')}`,
+            titulo: doc.google ? `${estadoDocumentoGoogle(doc.google).tipoTxt} ${doc.google.numeroFactura || doc.numero}` : `Factura ${val('numero')}`,
+            google: doc.google ? this.lecturaGoogle(doc.google) : null,
             bloqueado,
             puedeReabrir: bloqueado,
             puedeCerrar: !bloqueado,
@@ -357,9 +365,9 @@ export default class BandejaContableDocumento extends LightningElement {
             verOriginalPosible: !!archivoUrl && (mime === 'application/pdf' || mime.startsWith('image/')),
             esPdf: mime === 'application/pdf',
             esImagen: mime.startsWith('image/'),
-            enVistaOcr: this.vistaVisor === 'ocr' || !archivoUrl,
-            claseVistaOcr: 'bc-chip' + (this.vistaVisor === 'ocr' ? ' bc-chip-on' : ''),
-            claseVistaOriginal: 'bc-chip' + (this.vistaVisor === 'original' ? ' bc-chip-on' : ''),
+            enVistaOcr: vista === 'ocr' || !archivoUrl,
+            claseVistaOcr: 'bc-chip' + (vista === 'ocr' ? ' bc-chip-on' : ''),
+            claseVistaOriginal: 'bc-chip' + (vista === 'original' ? ' bc-chip-on' : ''),
             zoomTxt: `${this.zoom} %`,
             estiloPapel: `transform:scale(${this.zoom / 100}) rotate(${this.giro}deg);transform-origin:top center`,
             desdeOcr: this.origen === 'ocr',
@@ -368,6 +376,23 @@ export default class BandejaContableDocumento extends LightningElement {
             claseBotonNc: 'doc-boton-nc' + (nc ? ' doc-boton-nc-on' : ''),
             avisoValidar: this.avisoValidar,
             riesgoModal: this.riesgoModal
+        };
+    }
+
+    /** Lo que ha leído Google de este documento (real): tipo, emisor, número, fecha, total, páginas y estado */
+    lecturaGoogle(g) {
+        const e = estadoDocumentoGoogle(g);
+        const paginas = g.paginaInicio === g.paginaFin ? `pág. ${g.paginaInicio}` : `págs. ${g.paginaInicio}–${g.paginaFin}`;
+        return {
+            campos: [
+                ['Tipo', e.tipoTxt], ['Emisor', g.emisor], ['NIF emisor', g.nifEmisor], ['Nº', g.numeroFactura],
+                ['Fecha', g.fecha], ['Total', g.total ? g.total + ' €' : null],
+                ['Confianza', g.confianza != null ? Math.round(g.confianza * 100) + ' %' : null], ['Origen', `${g.archivoOrigen} · ${paginas}`]
+            ].filter(([, v]) => v).map(([label, valor]) => ({ label, valor })),
+            estadoTxt: e.estadoTxt,
+            claseEstado: e.clase,
+            motivosTxt: e.motivosTxt,
+            dudas: (g.dudas || []).join(' · ')
         };
     }
 
@@ -679,7 +704,7 @@ export default class BandejaContableDocumento extends LightningElement {
     siguiente() { this.irA(1); }
 
     refrescarDocs() {
-        this.docs = documentosDeBandeja(this.detalle);
+        this.docs = documentosDeBandeja(this.detalle, this.docsGoogle);
         this.recalcular();
     }
 

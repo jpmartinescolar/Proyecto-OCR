@@ -55,3 +55,21 @@ sf project deploy quick --job-id <id de la validación> -o sandbox
   gcloud run services update-traffic <servicio> --to-revisions <revisión>=100 --region europe-southwest1
   ```
 - Crear un tag de respaldo antes de despliegues grandes: `git tag pre-deploy-<tema>-<fecha>`.
+
+## Retirada del prototipo del sandbox
+
+El prototipo de la rama `test/buzon-contable` (desplegado el 24/09/2026) sigue en el sandbox y convive con la Bandeja Contable. Su pestaña es **Bandeja Contable Panel** (`/lightning/n/Bandeja_Contable_Panel`); la buena es **Bandeja Contable** (`/lightning/n/Bandeja_Contable`). Manifiesto: `salesforce-sandbox/manifest/retirada-prototipo/`. Validado el 28/09 (31/31 tests) salvo los dos puntos que necesitan un paso previo.
+
+1. Quitar la asignación del permiso `Bandeja_Contable_Access` (hoy: Ivan Mendoza).
+2. Borrar los registros del formato antiguo (una bandeja por archivo): BC-00003 y BC-00004.
+3. Desplegar el borrado:
+   ```
+   sf project deploy start -x manifest/retirada-prototipo/package.xml \
+     --post-destructive-changes manifest/retirada-prototipo/destructiveChanges.xml -o sandbox \
+     -l RunSpecifiedTests -t BandejaContableControllerTest -t BandejaContableGcpServiceTest \
+     -t BandejaContableEmpresasServiceTest -t BandejaContableClienteServiceTest
+   ```
+4. Manual en Setup: *Objetos* → *Objetos eliminados* → `Buzon_test__c` → **Borrar** (definitivo). Mientras siga en la papelera, la lista de valores global `Tipo_Documentacion_Buzon` no se puede borrar.
+5. Después, borrar `Tipo_Documentacion_Buzon` (GlobalValueSet) con otro `destructiveChanges`.
+
+No toca el Buzón contable de producción (`Buzon_contable__c`, `areaContableFiscal`) ni la lista `Tipo_Documentacion_Bandeja_Contable`, que usa la Bandeja.

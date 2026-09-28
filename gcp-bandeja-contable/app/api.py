@@ -3,7 +3,8 @@
 Contrato (lo usa BandejaContableGcpService.cls):
   POST /upload-session  registra bandeja y archivo y devuelve la sesión de subida resumible
   POST /confirm         comprueba el objeto subido, lo marca RECIBIDO y encola su procesamiento
-  POST /records         archivos de una bandeja con URL firmadas para ver y descargar
+  POST /records         archivos de una bandeja con URL firmadas y el resumen de su procesamiento
+  POST /documents       documentos separados por Google, con la lectura preliminar del clasificador
 """
 
 from __future__ import annotations
@@ -210,6 +211,7 @@ def records(p: RegistrosEntrada):
                FROM archivos WHERE sf_org_id = %s AND sf_bandeja_id = %s AND origen = 'SUBIDO' ORDER BY created_at""",
             (p.sfOrgId, p.sfBandejaId),
         )
+        resumen = resumen_procesamiento(p.sfOrgId, p.sfBandejaId)
         registros = []
         for r in filas:
             ver = descargar = None
@@ -231,8 +233,127 @@ def records(p: RegistrosEntrada):
                 "createdAt": r["created_at"].isoformat(),
                 "viewUrl": ver,
                 "descargaUrl": descargar,
+                "procesamiento": resumen.get(r["id"], {}),
             })
         return {"registros": registros}
     except Exception:  # noqa: BLE001
         log.exception("records error")
         return error(500, "Error interno al listar los archivos.")
+
+
+# Árbol de cada archivo subido (él y lo extraído de sus ZIP) con su archivo raíz
+_ARBOL = """WITH RECURSIVE arbol AS (
+                SELECT id, id AS raiz FROM archivos WHERE sf_org_id = %(org)s AND sf_bandeja_id = %(bandeja)s AND origen = 'SUBIDO'
+                UNION ALL SELECT h.id, arbol.raiz FROM archivos h JOIN arbol ON h.padre_id = arbol.id)"""
+
+
+def resumen_procesamiento(org: str, bandeja: str) -> dict:
+    """Por archivo subido: páginas, archivos extraídos, documentos por estado e incidencias de todo su árbol."""
+    params = {"org": org, "bandeja": bandeja}
+    out: dict = {}
+    for f in db.todos(f"""{_ARBOL}
+            SELECT arbol.raiz, count(*) FILTER (WHERE arbol.id <> arbol.raiz) AS extraidos,
+                   max(a.num_paginas) FILTER (WHERE arbol.id = arbol.raiz) AS paginas,
+                   max(a.tiene_texto::int) FILTER (WHERE arbol.id = arbol.raiz) AS texto
+            FROM arbol JOIN archivos a ON a.id = arbol.id GROUP BY arbol.raiz""", params):
+        out[f["raiz"]] = {"paginas": f["paginas"], "tieneTexto": None if f["texto"] is None else bool(f["texto"]),
+                          "extraidos": f["extraidos"], "documentos": 0, "listos": 0, "enRevision": 0, "conError": 0, "incidencias": []}
+    for f in db.todos(f"""{_ARBOL}
+            SELECT arbol.raiz, d.estado, count(*) AS n FROM arbol JOIN documentos d ON d.archivo_id = arbol.id
+            WHERE d.estado <> 'SUSTITUIDO' GROUP BY arbol.raiz, d.estado""", params):
+        r = out.setdefault(f["raiz"], {"documentos": 0, "listos": 0, "enRevision": 0, "conError": 0, "incidencias": []})
+        r["documentos"] += f["n"]
+        clave = {"LISTO": "listos", "REQUIERE_REVISION": "enRevision", "ERROR": "conError"}.get(f["estado"])
+        if clave:
+            r[clave] += f["n"]
+    # Incidencias del procesamiento vigente de cada archivo del árbol (no las de reprocesos anteriores)
+    for f in db.todos(f"""{_ARBOL}
+            SELECT arbol.raiz, i.codigo, i.gravedad, count(*) AS n FROM arbol JOIN archivos a ON a.id = arbol.id
+            JOIN incidencias i ON i.archivo_id = a.id AND (i.procesamiento_id = a.procesamiento_actual_id OR i.procesamiento_id IS NULL)
+            GROUP BY arbol.raiz, i.codigo, i.gravedad ORDER BY arbol.raiz, i.codigo""", params):
+        out.setdefault(f["raiz"], {"incidencias": []})["incidencias"].append({"codigo": f["codigo"], "gravedad": f["gravedad"], "veces": f["n"]})
+    return out
+
+
+# ===== /reprocess =====
+
+
+class ReprocesoEntrada(BaseModel):
+    sfOrgId: str
+    sfBandejaId: str
+    sfArchivoId: str | None = None  # sin él, todos los archivos subidos de la bandeja
+
+
+@app.post("/reprocess")
+def reprocess(p: ReprocesoEntrada):
+    """Vuelve a encolar el procesamiento (p. ej. tras mejorar el clasificador). Los documentos vigentes
+    pasan a SUSTITUIDO al procesar (nunca se borran). Cada reproceso es una tarea con nombre propio."""
+    try:
+        if not gcp.procesador_configurado():
+            return error(503, "El procesador no está configurado.")
+        filas = db.todos(
+            """SELECT id FROM archivos WHERE sf_org_id = %s AND sf_bandeja_id = %s AND origen = 'SUBIDO'
+                 AND estado IN ('PROCESADO', 'PROCESADO_CON_INCIDENCIAS', 'NO_SOPORTADO', 'ERROR')
+                 AND (%s::text IS NULL OR sf_archivo_id = %s)""",
+            (p.sfOrgId, p.sfBandejaId, p.sfArchivoId, p.sfArchivoId),
+        )
+        sufijo = "reproceso-" + nuevo_id("procesamiento").removeprefix("prc_").lower()
+        for f in filas:
+            gcp.encolar_procesamiento(f["id"], sufijo, reprocesar=True)
+        return {"encolados": len(filas)}
+    except Exception:  # noqa: BLE001
+        log.exception("reprocess error")
+        return error(500, "Error interno al reprocesar.")
+
+
+# ===== /documents =====
+
+
+@app.post("/documents")
+def documents(p: RegistrosEntrada):
+    """Documentos vigentes de una bandeja (lo que ha separado Google), con la lectura preliminar del
+    clasificador y una URL firmada para verlos. Un documento por referencia abre el original en su página."""
+    try:
+        filas = db.todos(
+            f"""{_ARBOL}
+            SELECT d.id, d.numero, d.nombre_visible, d.pagina_inicio, d.pagina_fin, d.tipo, d.confianza, d.estado,
+                   d.motivos_revision, d.almacenamiento, d.bucket, d.objeto, d.lectura, d.created_at,
+                   a.nombre_original, a.ruta_en_zip, r.sf_archivo_id, r.nombre_original AS archivo_subido, pr.motor
+            FROM arbol JOIN documentos d ON d.archivo_id = arbol.id
+            JOIN archivos a ON a.id = d.archivo_id JOIN archivos r ON r.id = arbol.raiz
+            LEFT JOIN procesamientos pr ON pr.id = d.procesamiento_id
+            WHERE d.estado <> 'SUSTITUIDO' ORDER BY d.numero""",
+            {"org": p.sfOrgId, "bandeja": p.sfBandejaId},
+        )
+        out = []
+        for d in filas:
+            ver = None
+            try:
+                ver = gcp.url_firmada(d["bucket"], d["objeto"], gcp.disposicion("inline", d["nombre_visible"] or d["nombre_original"]))
+                if ver and d["almacenamiento"] == "REFERENCIA" and d["pagina_inicio"] and d["pagina_inicio"] > 1:
+                    ver += f"#page={d['pagina_inicio']}"
+            except Exception:  # noqa: BLE001
+                log.exception("No se ha podido firmar la URL de %s", d["objeto"])
+            out.append({
+                "id": d["id"],
+                "numero": d["numero"],
+                "nombre": d["nombre_visible"],
+                "archivoOrigen": d["ruta_en_zip"] or d["nombre_original"],
+                "archivoSubido": d["archivo_subido"],
+                "sfArchivoId": d["sf_archivo_id"],
+                "paginaInicio": d["pagina_inicio"],
+                "paginaFin": d["pagina_fin"],
+                "tipo": d["tipo"],
+                "confianza": float(d["confianza"]) if d["confianza"] is not None else None,
+                "estado": d["estado"],
+                "motivos": d["motivos_revision"] or [],
+                "lectura": d["lectura"] or {},
+                "separado": d["almacenamiento"] == "DERIVADO",
+                "motor": d["motor"],
+                "createdAt": d["created_at"].isoformat(),
+                "viewUrl": ver,
+            })
+        return {"documentos": out}
+    except Exception:  # noqa: BLE001
+        log.exception("documents error")
+        return error(500, "Error interno al listar los documentos.")
