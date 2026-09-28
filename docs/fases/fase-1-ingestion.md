@@ -176,7 +176,7 @@ DOCS (derivados; regenerables; nunca se sobrescriben: cada reproceso escribe en 
 | 0 | Documentación (`CLAUDE.md`, `docs/`) | Hecho 28/09 |
 | 1 | Infraestructura dev: buckets raw/docs, cola de Cloud Tasks (europe-west1), SA del procesador. El Cloud Run del procesador se crea en el paso 3 y el bucket antiguo se retira en el paso 2 | Hecho 28/09 |
 | 2 | Rutas sin CIF ni nombre, decididas por Google en `/upload-session`; metadatos y `Content-Disposition`; esquema SQL v2 (`esquema.sql`: `archivos` ampliada, `procesamientos`, `documentos`, `incidencias`); `/confirm` encola cuando exista el procesador; bucket antiguo retirado. Probado de extremo a extremo | Hecho 28/09 |
-| 3 | Procesador sin IA: tipo, validación, ZIP, páginas, texto, blancos, protección → documentos provisionales e incidencias | Pendiente |
+| 3 | Procesador sin IA (Python + FastAPI): tipo, validación, ZIP, páginas, texto, blancos, protección → documentos provisionales e incidencias. Desplegado en dev y probado con las 12 muestras (BC-00007): 12 archivos subidos + 17 extraídos de ZIP (uno anidado), 24 documentos provisionales (19 PDF `SIN_CLASIFICAR`, 5 Excel `FLUJO_PENDIENTE`), incidencias `DUPLICADO_ARCHIVO` ×18, `EXCEL_PENDIENTE_FLUJO` ×5, `SIN_TEXTO` ×4, `ZIP_ANIDADO` ×1; sin errores; nombres con tildes y Ñ correctos también dentro de los ZIP | Hecho 28/09 |
 | 4 | Clasificador intercambiable: Gemini 2.5 Flash-Lite y Claude Haiku 4.5 en Vertex, comparados con muestras | Pendiente |
 | 5 | Integración con Salesforce: endpoints de documentos, aviso de vuelta, pantallas con datos reales | Pendiente |
 

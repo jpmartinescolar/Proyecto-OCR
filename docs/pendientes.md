@@ -4,7 +4,7 @@ Backlog del proyecto. Marcar `[x]` al terminar y mover a "Hecho" con la fecha.
 
 ## Fase actual
 - [ ] Fase 1 · ingestión y separación de documentos: ver pasos en [fases/fase-1-ingestion.md](fases/fase-1-ingestion.md).
-- [ ] Desplegar en el sandbox las pantallas v2 (validadas el 28/09, 31/31 tests Apex) y revisarlas con el usuario.
+- [ ] Revisar con el usuario las pantallas v2 (desplegadas en el sandbox el 28/09).
 - [ ] Datos de ejemplo que hay que sustituir: tabla completa en [diseno.md](diseno.md#de-dónde-sale-cada-dato). Por decidir con el usuario:
   - dónde se registran régimen de IVA, prorrata, ROI y turismos del cliente (no existen en Salesforce);
   - acceso al censo de la AEAT (certificado) y a VIES; listado de deudores de la AEAT; lista completa de paraísos fiscales;
@@ -43,6 +43,7 @@ Backlog del proyecto. Marcar `[x]` al terminar y mover a "Hecho" con la fecha.
 - [ ] Origen Email (ingesta de correos).
 
 ## Hecho
+- 2026-09-28 · Pantallas v2 desplegadas en el sandbox. Backend Python desplegado en dev (API y procesador; la API necesitó `--clear-base-image` por venir de buildpacks). Fase 1 paso 3 probado con las muestras (BC-00007).
 - 2026-09-28 · Fase 1, pasos 1–2:
   - buckets raw/docs y cola de Cloud Tasks;
   - rutas decididas por Google, sin CIF ni nombre: resuelve también la validación de la ruta en el backend;

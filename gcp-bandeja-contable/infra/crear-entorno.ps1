@@ -191,6 +191,8 @@ Invoke-Gcloud @('run', 'deploy', $Servicio,
   "--add-cloudsql-instances=$InstanciaConexion",
   '--max-instances=2',
   '--cpu-boost',
+  # La primera versión (Node) se construyó con buildpacks e imagen base; ahora se construye con el Dockerfile
+  '--clear-base-image',
   "--set-env-vars=$EnvApi",
   "--set-secrets=DB_PASSWORD=${Secreto}:latest")
 Invoke-Gcloud @('run', 'services', 'add-iam-policy-binding', $Servicio, "--region=$Region", "--member=serviceAccount:$SaCall", '--role=roles/run.invoker')
