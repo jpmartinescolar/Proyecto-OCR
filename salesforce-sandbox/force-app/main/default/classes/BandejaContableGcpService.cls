@@ -99,6 +99,8 @@ public with sharing class BandejaContableGcpService {
         /** true si Google ha generado un PDF propio (el archivo tenía varios documentos) */
         @AuraEnabled public Boolean separado;
         @AuraEnabled public String motor;
+        /** Datos extraídos por la IA (JSON tal cual lo guarda Google en extracciones), o null si no se ha extraído */
+        @AuraEnabled public String extraccion;
         @AuraEnabled public Datetime createdAt;
         @AuraEnabled public String viewUrl;
     }
@@ -135,6 +137,7 @@ public with sharing class BandejaContableGcpService {
                 'numero' => b.Name,
                 'sfAccountId' => b.Empresa__c,
                 'cif' => b.Empresa__r.CIF__c,
+                'empresa' => b.Empresa__r.Name,
                 'tipo' => b.Tipo_documentacion__c,
                 'observaciones' => b.Observaciones__c,
                 'origen' => b.Origen__c,
@@ -263,6 +266,7 @@ public with sharing class BandejaContableGcpService {
             d.motor = (String) m.get('motor');
             d.createdAt = parseFecha((String) m.get('createdAt'));
             d.viewUrl = (String) m.get('viewUrl');
+            d.extraccion = m.get('extraccion') == null ? null : JSON.serialize(m.get('extraccion'));
             out.add(d);
         }
         return out;

@@ -225,8 +225,71 @@ export function cambiarEstadoDocumento(id, estado, extra = {}) {
 
 /** Datos extraídos por la IA de un documento (plantilla del diseño) y su consumo de IA */
 export function datosExtraidos(doc) {
+    const real = doc.google && doc.google.extraccion ? desdeExtraccion(JSON.parse(doc.google.extraccion)) : null;
+    if (real) return real;
     const p = clonar(PLANTILLAS[doc.plantilla]);
-    return { x: p.x, conf: p.conf, alerta: p.alerta || null, alertaTono: p.alertaTono || null, consumo: p.consumo };
+    return { x: p.x, conf: p.conf, alerta: p.alerta || null, alertaTono: p.alertaTono || null, consumo: p.consumo, real: false };
+}
+
+// ===== Datos REALES extraídos por la IA (tabla extracciones de Google) =====
+
+const KIND = { FACTURA: 'FACTURA', FACTURA_SIMPLIFICADA: 'FACTURA SIMPL.', RECTIFICATIVA: 'FACTURA RECTIFICATIVA', ALBARAN: 'ALBARÁN', PRESUPUESTO: 'PRESUPUESTO' };
+const ALERTAS = {
+    DESCUADRE: ['Σ bases + Σ cuotas − retención no coincide con el total leído: revisa el desglose de IVA.', 'err'],
+    LECTURA_DISCREPANTE: ['El total extraído no coincide con el leído al separar: comprueba los importes (¿coma decimal?).', 'err'],
+    NO_CORRESPONDE_EMPRESA: ['El NIF del destinatario no es el de la empresa de la bandeja.', 'err'],
+    BAJA_CONFIANZA: ['Algún dato se ha leído con confianza baja: revísalo antes de validar.', 'warn']
+};
+
+const importeEs = (n) => (n === null || n === undefined ? '' : Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+const pct = (n) => (n === null || n === undefined ? '0' : String(Number(n)));
+
+/** Extracción de Google → la forma de datos de las pantallas (la misma que las plantillas de ejemplo) */
+export function desdeExtraccion(ext) {
+    const d = (ext && ext.datos) || {};
+    const emisor = d.emisor || {};
+    const lineas = d.lineas_iva || [];
+    const ivas = lineas.map((l) => ({
+        base: importeEs(l.base),
+        pct: pct(l.tipo),
+        cuota: importeEs(l.cuota),
+        ...(l.cuota_recargo ? { re: importeEs(l.cuota_recargo) } : {})
+    }));
+    const ret = d.retencion || {};
+    const c = d.confianzas || {};
+    const pc = (v) => (v === null || v === undefined ? undefined : Math.round(Number(v) * 100));
+    const motivo = (ext.motivos || []).find((m) => ALERTAS[m]);
+    return {
+        real: true,
+        motor: ext.motor,
+        x: {
+            kind: KIND[d.tipo] || 'FACTURA',
+            emisor: emisor.nombre || '',
+            nif: emisor.nif || '',
+            dir: [emisor.direccion, emisor.codigo_postal].filter(Boolean).join(' '),
+            cp: emisor.codigo_postal || '',
+            sumin: d.direccion_suministro || null,
+            ctaProv: '', // FALTA: cuenta de proveedor del plan del cliente (Sage)
+            numero: d.numero || '',
+            fecha: d.fecha_emision || '',
+            devengo: d.fecha_operacion || d.fecha_emision || '',
+            irpf: importeEs(ret.importe || 0),
+            total: importeEs(d.total),
+            cuenta: '', // FALTA: la cuenta de gasto la propondrán las reglas y skills del cliente
+            exMen: d.mencion_exencion || null,
+            rectRef: d.factura_rectificada || null,
+            ivasDoc: ivas.map((r) => ({ ...r })),
+            ivas,
+            lineas: (d.productos || []).map((p) => ({
+                c: (p.descripcion || 'Producto') + (p.cantidad && Number(p.cantidad) !== 1 ? ` · ${Number(p.cantidad).toLocaleString('es-ES')} ud` : ''),
+                i: importeEs(p.importe) + ' €'
+            }))
+        },
+        conf: { emisor: pc(c.emisor), nif: pc(c.emisor), numero: pc(c.numero), fecha: pc(c.fechas), irpf: pc(c.lineas_iva), total: pc(c.total) },
+        alerta: motivo ? ALERTAS[motivo][0] : null,
+        alertaTono: motivo ? ALERTAS[motivo][1] : null,
+        consumo: { entrada: ext.tokensEntrada || 0, salida: ext.tokensSalida || 0, coste: ext.coste || 0 }
+    };
 }
 
 // FALTA: detección real de duplicados (mismo NIF + nº de factura + importe) sobre las facturas ya

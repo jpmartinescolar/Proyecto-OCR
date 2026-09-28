@@ -3,6 +3,10 @@
 Registro de decisiones del proyecto. Formato: fecha · decisión · motivo · alternativas descartadas. Las más recientes arriba.
 
 ## 2026-09-28
+- **Extracción en el mismo procesamiento que la separación** (arranca la Fase 2): cada documento se extrae con todas sus páginas justo después de separarse; resultado inmutable en `extracciones`. Motivo: el modelo ya ve cada página, y el asesor recibe las facturas separadas y leídas sin pasos manuales. Ver [fases/fase-2-extraccion.md](fases/fase-2-extraccion.md).
+- **PDF electrónicos como texto** (más una imagen de apoyo) y escaneos como imagen. Motivo: el texto da las cifras exactas y cuesta menos.
+- **Modelo activo Gemini 2.5 Flash** en lugar de Flash-Lite: con las muestras, Flash-Lite juntaba facturas seguidas y confundía la coma decimal; Flash acertó con ~5 veces el coste (≈ 3 USD por 1.000 páginas). Claude Haiku 4.5 se comparará cuando haya cuota.
+- **Comprobaciones deterministas sobre lo extraído** (cuadre, total frente a la lectura al separar, destinatario, varios documentos): un error del modelo no pasa como correcto, va a revisión con su motivo.
 - **Clasificador (paso 4):** páginas como imagen con `pypdfium2` (Apache/BSD; se mantiene fuera PyMuPDF por AGPL), lotes de 8 páginas por llamada y **reglas deterministas sobre la lectura del modelo** (otro número de factura u otro emisor = otro documento; mismo número y emisor = mismo documento). Motivo: con las muestras, el modelo solo juntaba facturas seguidas del mismo proveedor; con las reglas, el PDF de 19 páginas sale en sus 17 documentos reales. Gemini en `europe-southwest1` (Madrid) y Claude en la multirregión `eu` (residencia en la UE).
 - **Lectura preliminar** (emisor, NIF, número, fecha, total) guardada en `documentos.lectura`: sirve para separar y para que el asesor reconozca cada documento. No es la extracción de la Fase 2, que irá a `extracciones`.
 - **Estados legibles en Salesforce:** "requiere revisión" se muestra en ámbar como trabajo del asesor, no como error; solo ERROR va en rojo. La ficha de la bandeja no muestra documentos de ejemplo cuando el archivo ya está en Google.

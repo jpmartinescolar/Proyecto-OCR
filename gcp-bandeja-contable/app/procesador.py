@@ -29,7 +29,7 @@ TIPOS_FACTURA = ("FACTURA", "FACTURA_SIMPLIFICADA", "RECTIFICATIVA")
 # Un archivo en PROCESANDO más tiempo que esto se considera abandonado (instancia caída) y se retoma
 MINUTOS_ABANDONADO = 70
 
-_EXT_ESPERADAS = {"pdf": ["pdf"], "png": ["png"], "jpeg": ["jpg", "jpeg"], "xlsx": ["xlsx"], "xls": ["xls"], "zip": ["zip"]}
+_EXT_ESPERADAS = {"pdf": ["pdf"], "png": ["png"], "jpeg": ["jpg", "jpeg"], "xlsx": ["xlsx"], "xls": ["xls"], "zip": ["zip"], "xml": ["xml", "xsig"]}
 
 
 # ===== Registro en base de datos =====
@@ -113,16 +113,18 @@ def crear_documento(p: Procesamiento, bandeja: dict, sha: str, *, estado: str, m
     return doc_id
 
 
-def separar(p: Procesamiento, bandeja: dict, sha: str, imagenes: list[bytes], *, pdf: bytes | None, ext: str,
+def separar(p: Procesamiento, bandeja: dict, sha: str, paginas: list[clasificador.Pagina], *, pdf: bytes | None, ext: str,
             duplicado: bool) -> list[str]:
-    """Clasifica las páginas con Vertex AI y crea un documento por cada documento encontrado.
+    """Etapa 1: clasifica las páginas y crea un documento por cada documento encontrado.
+    Etapa 2: extrae todos los datos de cada documento contable (tabla `extracciones`).
 
     Devuelve los estados de los documentos creados. Si el clasificador falla, deja un único
     documento SIN_CLASIFICAR (con incidencia) para no perder el archivo; se puede reprocesar.
     """
-    n = len(imagenes)
+    n = len(paginas)
+    contexto = clasificador.contexto_cliente(bandeja.get("empresa"), bandeja.get("cif"), bandeja.get("tipo"))
     try:
-        r = clasificador.clasificar(imagenes)
+        r = clasificador.clasificar(paginas, cliente=contexto)
     except Exception as e:  # noqa: BLE001 - un fallo de Vertex no convierte el archivo en error
         log.exception("clasificador error %s", p.archivo["id"])
         p.incidencia("CLASIFICADOR_FALLIDO", "AVISO", {"error": str(e)[:500], "modelo": clasificador.modelo_configurado()})
@@ -148,14 +150,41 @@ def separar(p: Procesamiento, bandeja: dict, sha: str, imagenes: list[bytes], *,
     un_solo_documento = len(docs) == 1 and docs[0]["pagina_inicio"] == 1 and docs[0]["pagina_fin"] == n
     for d in docs:
         motivos = list(d["motivos"]) + (["DUPLICADO"] if duplicado else [])
+        paginas_doc = paginas[d["pagina_inicio"] - 1: d["pagina_fin"]]
+        # Etapa 2: los datos de la factura, con todas sus páginas (se reutilizan las mismas páginas)
+        ext_r, motivos_ext = None, []
+        if d["tipo"] in clasificador.TIPOS_EXTRAIBLES:
+            try:
+                ext_r = clasificador.extraer(paginas_doc, d["tipo"], cliente=contexto)
+                p.consumo.sumar(ext_r.consumo)
+                motivos_ext = clasificador.revisar_extraccion(ext_r.datos, bandeja.get("cif"), d["lectura"].get("total"))
+            except Exception as e:  # noqa: BLE001 - el documento se crea igual, sin datos extraídos
+                log.exception("extracción error %s p%s-%s", p.archivo["id"], d["pagina_inicio"], d["pagina_fin"])
+                p.incidencia("EXTRACCION_FALLIDA", "AVISO", {"paginas": [d["pagina_inicio"], d["pagina_fin"]], "error": str(e)[:500]})
+                motivos_ext = ["SIN_EXTRAER"]
+        motivos += [m for m in motivos_ext if m not in motivos]
         estado = "LISTO" if d["tipo"] in TIPOS_FACTURA and not motivos else "REQUIERE_REVISION"
         # Un PDF con varios documentos se recorta; si es uno solo, o es una imagen, se referencia el original
         contenido = None if un_solo_documento or pdf is None else a.recortar_pdf(pdf, d["pagina_inicio"], d["pagina_fin"])
         lectura = {**d["lectura"], **({"dudas": d["dudas"]} if d["dudas"] else {})}
-        crear_documento(p, bandeja, sha, estado=estado, motivos=motivos, tipo=d["tipo"], pagina_inicio=d["pagina_inicio"],
-                        pagina_fin=d["pagina_fin"], ext=ext, contenido=contenido, confianza=d["confianza"], lectura=lectura)
+        doc_id = crear_documento(p, bandeja, sha, estado=estado, motivos=motivos, tipo=d["tipo"], pagina_inicio=d["pagina_inicio"],
+                                 pagina_fin=d["pagina_fin"], ext=ext, contenido=contenido, confianza=d["confianza"], lectura=lectura)
+        if ext_r:
+            guardar_extraccion(p, doc_id, ext_r, [pg.modo for pg in paginas_doc], motivos_ext)
         estados.append(estado)
     return estados
+
+
+def guardar_extraccion(p: Procesamiento, documento_id: str, e: clasificador.Extraccion, modos: list[str], motivos: list[str]) -> None:
+    """Lo que ha extraído la IA, tal cual y para siempre (la confirmación del asesor irá en otra tabla)."""
+    db.ejecutar(
+        """INSERT INTO extracciones (id, documento_id, procesamiento_id, motor, version_prompt, modos_pagina, datos, confianzas,
+                                     motivos_revision, tokens_entrada, tokens_salida, coste_estimado, segundos)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+        (nuevo_id("extraccion"), documento_id, p.id, f"vertex/{e.modelo}", clasificador.VERSION_EXTRACCION, modos, Jsonb(e.datos),
+         Jsonb(e.datos.get("confianzas") or {}), motivos, e.consumo.tokens_entrada, e.consumo.tokens_salida,
+         round(e.consumo.coste(e.modelo), 6), round(e.consumo.segundos, 2)),
+    )
 
 
 def estado_final(p: Procesamiento, estados_docs: list[str]) -> str:
@@ -248,17 +277,20 @@ def procesar_archivo(archivo: dict, bandeja: dict, solicitado_por: str, profundi
             p.incidencia("PDF_SIN_PAGINAS", "ERROR")
             return p.finalizar("ERROR", mime=a.MIME["pdf"], sha=sha, paginas=0, error="PDF sin páginas")
         p.detalle["caracteresPorPagina"] = r.caracteres_por_pagina
+        xml = a.xml_embebidos(contenido)
+        if xml:  # Factur-X / ZUGFeRD: la factura estructurada viaja dentro del PDF (se medirá antes de leerla sin IA)
+            p.incidencia("FACTURA_ESTRUCTURADA", "INFO", {"formato": "XML dentro del PDF", "adjuntos": xml})
         if not r.tiene_texto:
             p.incidencia("SIN_TEXTO", "INFO", {"nota": "Escaneo o imagen: se lee con visión"})
         elif r.paginas_sin_texto:
             p.incidencia("PAGINAS_SIN_TEXTO", "INFO", {"paginas": r.paginas_sin_texto})
         try:
-            imagenes = clasificador.paginas_pdf(contenido)
+            paginas = clasificador.paginas_pdf(contenido, a.textos_pdf(contenido) if r.tiene_texto else None)
         except Exception as e:  # noqa: BLE001 - PDF que pypdf abre pero no se puede dibujar
             p.incidencia("PDF_NO_RENDERIZABLE", "AVISO", {"error": str(e)[:500]})
             crear_documento(p, bandeja, sha, estado="REQUIERE_REVISION", motivos=["ILEGIBLE"], pagina_inicio=1, pagina_fin=r.num_paginas, ext="pdf")
             return p.finalizar("PROCESADO_CON_INCIDENCIAS", mime=a.MIME["pdf"], sha=sha, paginas=r.num_paginas, tiene_texto=r.tiene_texto)
-        estados = separar(p, bandeja, sha, imagenes, pdf=contenido, ext="pdf", duplicado=bool(iguales))
+        estados = separar(p, bandeja, sha, paginas, pdf=contenido, ext="pdf", duplicado=bool(iguales))
         return p.finalizar(estado_final(p, estados), mime=a.MIME["pdf"], sha=sha, paginas=r.num_paginas, tiene_texto=r.tiene_texto)
 
     # ===== Imagen: un documento =====
@@ -271,6 +303,13 @@ def procesar_archivo(archivo: dict, bandeja: dict, solicitado_por: str, profundi
         estados = separar(p, bandeja, sha, [clasificador.pagina_imagen(contenido)], pdf=None,
                           ext="jpg" if tipo == "jpeg" else "png", duplicado=bool(iguales))
         return p.finalizar(estado_final(p, estados), mime=a.MIME[tipo], sha=sha, paginas=1, tiene_texto=False)
+
+    # ===== Factura electrónica en XML (Facturae, UBL, CII): pendiente de lectura determinista =====
+    formato = a.es_factura_estructurada(contenido) if tipo == "xml" else None
+    if formato:
+        p.incidencia("FACTURA_ESTRUCTURADA", "INFO", {"formato": formato})
+        crear_documento(p, bandeja, sha, tipo="FACTURA", estado="REQUIERE_REVISION", motivos=["FLUJO_PENDIENTE"], ext="xml")
+        return p.finalizar("PROCESADO_CON_INCIDENCIAS", mime=a.MIME["xml"], sha=sha)
 
     # ===== Formato no soportado: se conserva el original =====
     p.incidencia("FORMATO_NO_SOPORTADO", "AVISO", {"extension": ext, "mimeDeclarado": archivo.get("mime_declarado")})
@@ -397,7 +436,7 @@ def procesar(p: ProcesarEntrada):
         archivo = reclamar(p.archivoId, p.reprocesar)
         if not archivo:
             return {"archivoId": p.archivoId, "omitido": "El archivo no está pendiente de procesar."}
-        bandeja = db.uno("SELECT id, numero FROM bandejas WHERE id = %s", (archivo["bandeja_id"],))
+        bandeja = db.uno("SELECT id, numero, cif, empresa, tipo FROM bandejas WHERE id = %s", (archivo["bandeja_id"],))
         estado = procesar_archivo(archivo, bandeja, "reproceso" if p.reprocesar else "automatico")
         log.info("procesado %s → %s", p.archivoId, estado)
         return {"archivoId": p.archivoId, "estado": estado}

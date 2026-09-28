@@ -213,7 +213,12 @@
                                 </template>
                             </div>
                             <template lwc:if={v.google.dudas}><div class="doc-google-dudas">Dudas del modelo: {v.google.dudas}</div></template>
-                            <div class="doc-google-nota">Los datos contables de las pestañas (desglose de IVA, asiento, comprobaciones…) siguen siendo <b>de ejemplo</b> hasta la extracción completa con IA (Fase 2).</div>
+                            <template lwc:if={v.google.conExtraccion}>
+                                <div class="doc-google-nota">Los datos de la pestaña Datos (partes, fechas, desglose de IVA, totales y productos) los ha <b>leído la IA</b> ({v.google.motor}). Siguen siendo <b>de ejemplo</b>: cuentas contables, reglas, skills y las comprobaciones que dependen de fuentes externas.</div>
+                            </template>
+                            <template lwc:else>
+                                <div class="doc-google-nota">Este documento no tiene datos extraídos: los datos contables de las pestañas son <b>de ejemplo</b>.</div>
+                            </template>
                         </section>
                     </template>
 

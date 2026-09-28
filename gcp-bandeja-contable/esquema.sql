@@ -121,3 +121,26 @@ CREATE INDEX IF NOT EXISTS incidencias_archivo_idx ON incidencias (archivo_id);
 -- Fase 1, paso 4: lectura preliminar del clasificador (emisor, NIF, número, fecha, total) y dudas del
 -- modelo. No es la extracción de la Fase 2 (esa irá a la tabla extracciones).
 ALTER TABLE documentos ADD COLUMN IF NOT EXISTS lectura JSONB;
+
+-- Nombre de la empresa cliente (contexto para la IA: reconocer al cliente entre emisor y receptor)
+ALTER TABLE bandejas ADD COLUMN IF NOT EXISTS empresa TEXT;
+
+-- Fase 2: lo que extrae la IA de cada documento, tal cual. NUNCA se modifica: lo que confirme el
+-- asesor irá a `confirmaciones`, y comparando las dos se mide el acierto de cada modelo campo a campo.
+CREATE TABLE IF NOT EXISTS extracciones (
+  id                 TEXT PRIMARY KEY,               -- ext_…
+  documento_id       TEXT NOT NULL REFERENCES documentos (id),
+  procesamiento_id   TEXT REFERENCES procesamientos (id),
+  motor              TEXT NOT NULL,                  -- p. ej. vertex/gemini-2.5-flash-lite
+  version_prompt     TEXT NOT NULL,                  -- p. ej. extractor@1
+  modos_pagina       TEXT[],                         -- texto / imagen por página enviada
+  datos              JSONB NOT NULL,                 -- campos extraídos (esquema en app/clasificador.py)
+  confianzas         JSONB,
+  motivos_revision   TEXT[] NOT NULL DEFAULT '{}',   -- DESCUADRE, LECTURA_DISCREPANTE, BAJA_CONFIANZA…
+  tokens_entrada     INTEGER,
+  tokens_salida      INTEGER,
+  coste_estimado     NUMERIC(12, 6),
+  segundos           NUMERIC(8, 2),
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS extracciones_documento_idx ON extracciones (documento_id, created_at DESC);

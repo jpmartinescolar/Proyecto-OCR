@@ -108,7 +108,9 @@ const INCIDENCIAS = {
     LIMITE_SEGURIDAD: 'Supera los límites de seguridad',
     ARCHIVO_NO_ENCONTRADO: 'El archivo no está en Google',
     ENCOLAR_FALLIDO: 'No se pudo poner en cola',
-    PROCESAMIENTO_FALLIDO: 'Fallo temporal (se reintenta solo)'
+    PROCESAMIENTO_FALLIDO: 'Fallo temporal (se reintenta solo)',
+    EXTRACCION_FALLIDA: 'No se pudieron extraer los datos de algún documento (se puede reprocesar)',
+    FACTURA_ESTRUCTURADA: 'Factura electrónica estructurada (XML)'
 };
 
 const MOTIVOS_REVISION = {
@@ -120,7 +122,11 @@ const MOTIVOS_REVISION = {
     SEPARACION_INCIERTA: 'Separación dudosa',
     DUPLICADO: 'Archivo duplicado',
     PAGINA_EN_BLANCO: 'En blanco',
-    ILEGIBLE: 'Ilegible'
+    ILEGIBLE: 'Ilegible',
+    DESCUADRE: 'Los importes no cuadran',
+    LECTURA_DISCREPANTE: 'Importes a comprobar',
+    NO_CORRESPONDE_EMPRESA: 'Otro destinatario',
+    SIN_EXTRAER: 'Sin datos extraídos'
 };
 
 export const TIPOS_DOCUMENTO = {

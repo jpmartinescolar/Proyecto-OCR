@@ -397,7 +397,7 @@ public with sharing class BandejaContableController {
         List<Bandeja_Contable_Archivo__c> rs = [
             SELECT Id, Name, Nombre__c, Tamano__c, Tipo_mime__c, GCS_ruta__c, Google_Id__c, Estado__c,
                    Intentos__c, Ultimo_error__c, CreatedById, Bandeja__c,
-                   Bandeja__r.Id, Bandeja__r.Name, Bandeja__r.Empresa__c, Bandeja__r.Empresa__r.CIF__c,
+                   Bandeja__r.Id, Bandeja__r.Name, Bandeja__r.Empresa__c, Bandeja__r.Empresa__r.CIF__c, Bandeja__r.Empresa__r.Name,
                    Bandeja__r.Tipo_documentacion__c, Bandeja__r.Observaciones__c, Bandeja__r.Origen__c,
                    Bandeja__r.Google_Id__c, Bandeja__r.CreatedById
             FROM Bandeja_Contable_Archivo__c

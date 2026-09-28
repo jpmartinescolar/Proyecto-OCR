@@ -53,6 +53,7 @@ class BandejaEntrada(BaseModel):
     numero: str | None = None
     sfAccountId: str | None = None
     cif: str | None = None
+    empresa: str | None = None
     tipo: str | None = None
     observaciones: str | None = None
     origen: str | None = None
@@ -89,13 +90,13 @@ def upload_session(p: SesionEntrada):
     try:
         with db.conexion() as conn:
             bandeja_id = conn.execute(
-                """INSERT INTO bandejas (id, sf_org_id, sf_bandeja_id, numero, sf_account_id, cif, tipo, observaciones, origen, sf_user_id)
-                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """INSERT INTO bandejas (id, sf_org_id, sf_bandeja_id, numero, sf_account_id, cif, empresa, tipo, observaciones, origen, sf_user_id)
+                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                    ON CONFLICT (sf_bandeja_id) DO UPDATE SET
-                     numero = EXCLUDED.numero, sf_account_id = EXCLUDED.sf_account_id, cif = EXCLUDED.cif, tipo = EXCLUDED.tipo,
+                     numero = EXCLUDED.numero, sf_account_id = EXCLUDED.sf_account_id, cif = EXCLUDED.cif, empresa = EXCLUDED.empresa, tipo = EXCLUDED.tipo,
                      observaciones = EXCLUDED.observaciones, origen = EXCLUDED.origen, updated_at = now()
                    RETURNING id""",
-                (nuevo_id("bandeja"), p.sfOrgId, b.sfId, b.numero, b.sfAccountId, b.cif, b.tipo, b.observaciones, b.origen, b.sfUserId),
+                (nuevo_id("bandeja"), p.sfOrgId, b.sfId, b.numero, b.sfAccountId, b.cif, b.empresa, b.tipo, b.observaciones, b.origen, b.sfUserId),
             ).fetchone()["id"]
 
             existente = conn.execute("SELECT id, objeto, estado FROM archivos WHERE sf_archivo_id = %s", (a.sfId,)).fetchone()
@@ -318,10 +319,13 @@ def documents(p: RegistrosEntrada):
             f"""{_ARBOL}
             SELECT d.id, d.numero, d.nombre_visible, d.pagina_inicio, d.pagina_fin, d.tipo, d.confianza, d.estado,
                    d.motivos_revision, d.almacenamiento, d.bucket, d.objeto, d.lectura, d.created_at,
-                   a.nombre_original, a.ruta_en_zip, r.sf_archivo_id, r.nombre_original AS archivo_subido, pr.motor
+                   a.nombre_original, a.ruta_en_zip, r.sf_archivo_id, r.nombre_original AS archivo_subido, pr.motor,
+                   ex.datos AS ext_datos, ex.motor AS ext_motor, ex.version_prompt AS ext_version, ex.modos_pagina AS ext_modos,
+                   ex.motivos_revision AS ext_motivos, ex.tokens_entrada AS ext_te, ex.tokens_salida AS ext_ts, ex.coste_estimado AS ext_coste
             FROM arbol JOIN documentos d ON d.archivo_id = arbol.id
             JOIN archivos a ON a.id = d.archivo_id JOIN archivos r ON r.id = arbol.raiz
             LEFT JOIN procesamientos pr ON pr.id = d.procesamiento_id
+            LEFT JOIN LATERAL (SELECT * FROM extracciones e WHERE e.documento_id = d.id ORDER BY e.created_at DESC LIMIT 1) ex ON true
             WHERE d.estado <> 'SUSTITUIDO' ORDER BY d.numero""",
             {"org": p.sfOrgId, "bandeja": p.sfBandejaId},
         )
@@ -352,6 +356,17 @@ def documents(p: RegistrosEntrada):
                 "motor": d["motor"],
                 "createdAt": d["created_at"].isoformat(),
                 "viewUrl": ver,
+                # Datos extraídos por la IA (última extracción; nunca modificada). None si no se ha extraído.
+                "extraccion": None if d["ext_datos"] is None else {
+                    "datos": d["ext_datos"],
+                    "motor": d["ext_motor"],
+                    "version": d["ext_version"],
+                    "modos": d["ext_modos"] or [],
+                    "motivos": d["ext_motivos"] or [],
+                    "tokensEntrada": d["ext_te"],
+                    "tokensSalida": d["ext_ts"],
+                    "coste": float(d["ext_coste"]) if d["ext_coste"] is not None else None,
+                },
             })
         return {"documentos": out}
     except Exception:  # noqa: BLE001

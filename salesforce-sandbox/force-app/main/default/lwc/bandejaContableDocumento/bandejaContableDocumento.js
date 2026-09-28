@@ -392,7 +392,9 @@ export default class BandejaContableDocumento extends LightningElement {
             estadoTxt: e.estadoTxt,
             claseEstado: e.clase,
             motivosTxt: e.motivosTxt,
-            dudas: (g.dudas || []).join(' · ')
+            dudas: (g.dudas || []).join(' · '),
+            conExtraccion: !!g.extraccion,
+            motor: g.motor ? g.motor.replace('vertex/', '') : ''
         };
     }
 

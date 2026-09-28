@@ -416,7 +416,7 @@ export function consumoIa(consumo) {
     const n = (v) => Number(v || 0).toLocaleString('es-ES');
     return {
         tokens: n(consumo.entrada + consumo.salida),
-        coste: Number(consumo.coste || 0).toLocaleString('es-ES', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) + ' €',
-        tip: `Entrada ${n(consumo.entrada)} · Salida ${n(consumo.salida)} tokens (OCR + extracción + riesgo fiscal + skills)`
+        coste: Number(consumo.coste || 0).toLocaleString('es-ES', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) + ' USD',
+        tip: `Entrada ${n(consumo.entrada)} · Salida ${n(consumo.salida)} tokens (extracción de este documento en Vertex AI; precio en dólares)`
     };
 }

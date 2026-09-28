@@ -97,7 +97,8 @@ private class BandejaContableGcpServiceTest {
                 + '"archivoSubido":"f.pdf","sfArchivoId":"a01","paginaInicio":13,"paginaFin":15,"tipo":"FACTURA","confianza":0.9,'
                 + '"estado":"REQUIERE_REVISION","motivos":["DUPLICADO"],"lectura":{"emisor":"OBRAMAT","nif_emisor":"B84406289",'
                 + '"numero":"011-0004-027945","fecha":"06/04/2026","total":"178,84","dudas":["borroso"]},"separado":true,'
-                + '"motor":"vertex/gemini-2.5-flash-lite","createdAt":"2026-09-28T12:38:26.874644+00:00","viewUrl":"https://firmada"}]}')
+                + '"motor":"vertex/gemini-2.5-flash-lite","createdAt":"2026-09-28T12:38:26.874644+00:00","viewUrl":"https://firmada",'
+                + '"extraccion":{"datos":{"total":178.84},"motor":"vertex/gemini-2.5-flash-lite","motivos":[]}}]}')
             .responder('/reprocess', 200, '{"encolados":2}'));
         List<BandejaContableGcpService.DocumentoGoogle> docs = BandejaContableGcpService.listarDocumentos(null);
         Assert.areEqual(1, docs.size());
@@ -111,6 +112,7 @@ private class BandejaContableGcpServiceTest {
         Assert.areEqual('DUPLICADO', d.motivos[0]);
         Assert.areEqual('borroso', d.dudas[0]);
         Assert.isTrue(d.separado);
+        Assert.isTrue(d.extraccion.contains('178.84'), d.extraccion);
         Assert.isNotNull(d.createdAt);
         Assert.areEqual(2, BandejaContableGcpService.reprocesar(null, null));
     }

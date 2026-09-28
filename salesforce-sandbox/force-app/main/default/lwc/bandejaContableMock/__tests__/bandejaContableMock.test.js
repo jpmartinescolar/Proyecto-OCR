@@ -82,3 +82,25 @@ describe('datos del cliente', () => {
         expect(r.origen).toBe('Aprendida');
     });
 });
+
+describe('datos extraídos reales', () => {
+    it('convierte la extracción de Google al formato de las pantallas', () => {
+        const { desdeExtraccion } = require('c/bandejaContableMock');
+        const r = desdeExtraccion({
+            motor: 'vertex/gemini-2.5-flash-lite', motivos: ['DESCUADRE'], tokensEntrada: 1000, tokensSalida: 200, coste: 0.0002,
+            datos: {
+                tipo: 'FACTURA', emisor: { nombre: 'OBRAMAT', nif: 'B84406289' }, numero: 'F-1', fecha_emision: '06/04/2026',
+                lineas_iva: [{ base: 1234.5, tipo: 21, cuota: 259.25 }], retencion: { importe: 15 }, total: 1478.75,
+                productos: [{ descripcion: 'Tornillos', cantidad: 3, importe: 12 }], confianzas: { emisor: 0.9, total: 0.75 }
+            }
+        });
+        expect(r.real).toBe(true);
+        expect(r.x.emisor).toBe('OBRAMAT');
+        expect(r.x.ivas[0]).toEqual({ base: '1234,50', pct: '21', cuota: '259,25' }); // es-ES no agrupa miles con 4 cifras
+        expect(r.x.irpf).toBe('15,00');
+        expect(r.x.total).toBe('1478,75');
+        expect(r.x.lineas[0]).toEqual({ c: 'Tornillos · 3 ud', i: '12,00 €' });
+        expect(r.conf.total).toBe(75);
+        expect(r.alertaTono).toBe('err');
+    });
+});

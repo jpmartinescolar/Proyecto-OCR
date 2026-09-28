@@ -4,7 +4,9 @@ Backlog del proyecto. Marcar `[x]` al terminar y mover a "Hecho" con la fecha.
 
 ## Fase actual
 - [ ] **Cuota de Claude Haiku 4.5 en Vertex (multirregión `eu`)**: hoy es 0 y la llamada devuelve 429. Pedir el aumento en la consola (Cuotas → `eu_multi_region_online_prediction_requests_per_base_model`, modelo `anthropic-claude-haiku-4-5`) para comparar con Gemini.
-- [ ] Comparar Gemini 2.5 Flash-Lite y Claude Haiku 4.5 con todas las muestras (cortes, tipos, % en revisión, coste, latencia).
+- [ ] Comparar Gemini 2.5 Flash (activo) y Claude Haiku 4.5 con todas las muestras (cortes, tipos, campos, % en revisión, coste, latencia).
+- [ ] Lectura sin IA de facturas estructuradas (Facturae / UBL / CII, y XML dentro de PDF).
+- [ ] Tabla `confirmaciones` y confirmación del asesor en Salesforce.
 - [ ] Listado OCR (pantalla 03) con los documentos reales de Google (hoy de ejemplo): endpoint de documentos para varias bandejas.
 - [ ] Aviso de Google a Salesforce al terminar (`Documentos_total__c` y estado) para listados sin llamar a Google.
 - [ ] Fase 1 · ingestión y separación de documentos: ver pasos en [fases/fase-1-ingestion.md](fases/fase-1-ingestion.md).

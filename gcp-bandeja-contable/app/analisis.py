@@ -24,6 +24,7 @@ MIME = {
     "zip": "application/zip",
     "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "xls": "application/vnd.ms-excel",
+    "xml": "application/xml",
 }
 
 # Entradas de ZIP que no son documentos del cliente: se ignoran (con incidencia INFO)
@@ -66,7 +67,22 @@ def detectar_tipo(datos: bytes) -> str:
     # La norma PDF admite bytes antes de la cabecera: se busca en el primer KB
     if b"%PDF-" in datos[:1024]:
         return "pdf"
+    if datos[:200].lstrip(b"\xef\xbb\xbf \t\r\n").startswith(b"<?xml"):
+        return "xml"
     return "desconocido"
+
+
+def es_factura_estructurada(datos: bytes) -> str | None:
+    """Formato de una factura electrónica estructurada (XML), o None: Facturae (España), UBL o CII
+    (europeas, también dentro de PDF Factur-X/ZUGFeRD)."""
+    cabecera = datos[:4000]
+    if b"Facturae" in cabecera:
+        return "Facturae"
+    if b"CrossIndustryInvoice" in cabecera:
+        return "CII"
+    if b"urn:oasis:names:specification:ubl" in cabecera:
+        return "UBL"
+    return None
 
 
 # ===== PDF =====
@@ -111,6 +127,36 @@ def analizar_pdf(datos: bytes) -> ResultadoPdf:
         return ResultadoPdf(num_paginas=len(lector.pages), caracteres_por_pagina=caracteres)
     except (PdfReadError, ValueError, KeyError, TypeError) as e:
         return ResultadoPdf(corrupto=True, error=str(e))
+
+
+def textos_pdf(datos: bytes) -> list[str]:
+    """Texto de cada página de un PDF electrónico, conservando la disposición en columnas (modo
+    layout de pypdf) para que las tablas de la factura se lean en orden. "" si la página no tiene texto."""
+    lector = PdfReader(io.BytesIO(datos), strict=False)
+    if lector.is_encrypted:
+        lector.decrypt("")
+    out = []
+    for pagina in lector.pages:
+        try:
+            texto = pagina.extract_text(extraction_mode="layout") or ""
+        except Exception:  # noqa: BLE001 - el modo layout falla en algunos PDF: se usa el normal
+            try:
+                texto = pagina.extract_text() or ""
+            except Exception:  # noqa: BLE001
+                texto = ""
+        # Líneas en blanco y espacios de relleno del modo layout no aportan: fuera
+        lineas = [ln.rstrip() for ln in texto.splitlines() if ln.strip()]
+        out.append("\n".join(re.sub(r" {4,}", "   ", ln) for ln in lineas))
+    return out
+
+
+def xml_embebidos(datos: bytes) -> list[str]:
+    """Nombres de los XML adjuntos dentro del PDF (Factur-X / ZUGFeRD llevan la factura estructurada así)."""
+    try:
+        lector = PdfReader(io.BytesIO(datos), strict=False)
+        return [n for n in (lector.attachments or {}) if n.lower().endswith(".xml")]
+    except Exception:  # noqa: BLE001 - sin adjuntos legibles no hay nada que avisar
+        return []
 
 
 def recortar_pdf(datos: bytes, pagina_inicio: int, pagina_fin: int) -> bytes:

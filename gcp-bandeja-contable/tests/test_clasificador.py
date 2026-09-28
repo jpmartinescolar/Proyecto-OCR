@@ -61,15 +61,92 @@ def test_recortar_pdf():
     assert len(PdfReader(io.BytesIO(recorte)).pages) == 3
 
 
-def test_paginas_pdf_como_imagen():
+def pdf_en_blanco(paginas=1):
     w = PdfWriter()
-    w.add_blank_page(width=200, height=300)
+    for _ in range(paginas):
+        w.add_blank_page(width=200, height=300)
     buf = io.BytesIO()
     w.write(buf)
-    imgs = clasificador.paginas_pdf(buf.getvalue())
-    assert len(imgs) == 1 and imgs[0][:2] == b"\xff\xd8"  # JPEG
+    return buf.getvalue()
+
+
+def test_paginas_escaneadas_van_como_imagen():
+    pags = clasificador.paginas_pdf(pdf_en_blanco())
+    assert len(pags) == 1 and pags[0].modo == "imagen" and pags[0].imagen[:2] == b"\xff\xd8"  # JPEG
+
+
+def test_paginas_con_texto_van_como_texto_con_imagen_de_apoyo():
+    texto = "Factura 123 " * 30
+    pags = clasificador.paginas_pdf(pdf_en_blanco(2), [texto, "poco"])
+    assert pags[0].modo == "texto" and pags[0].texto == texto and pags[0].imagen
+    assert pags[1].modo == "imagen" and pags[1].texto is None  # poco texto: se lee como imagen
+
+
+def test_importes_en_formato_espanol():
+    assert clasificador.importe("1.234,56 €") == 1234.56
+    assert clasificador.importe("371,59") == 371.59
+    assert clasificador.importe("0.31") == 0.31
+    assert clasificador.importe("-100,88") == -100.88
+    assert clasificador.importe(None) is None
+
+
+FACTURA = {"lineas_iva": [{"base": 100, "tipo": 21, "cuota": 21}], "total": 121, "confianzas": {"total": 0.95},
+           "emisor": {"nif": "A11111111"}, "receptor": {"nif": "B22222222"}}
+
+
+def test_revisar_extraccion_correcta():
+    assert clasificador.revisar_extraccion(FACTURA, "B22222222", "121,00") == []
+
+
+def test_revisar_extraccion_descuadre_y_confianza():
+    x = {**FACTURA, "total": 150, "confianzas": {"total": 0.5}}
+    assert clasificador.revisar_extraccion(x) == ["DESCUADRE", "BAJA_CONFIANZA"]
+
+
+def test_retencion_y_recargo_cuadran():
+    x = {"lineas_iva": [{"base": 100, "tipo": 21, "cuota": 21, "tipo_recargo": 5.2, "cuota_recargo": 5.2}],
+         "retencion": {"tipo": 15, "importe": 15}, "total": 111.2, "confianzas": {}}
+    assert clasificador.revisar_extraccion(x) == []
+
+
+def test_coma_decimal_mal_leida_se_detecta():
+    # Caso real: "371,59" extraído como 371591 (bases y cuotas infladas igual: el cuadre no lo ve)
+    x = {"lineas_iva": [{"base": 307100, "tipo": 21, "cuota": 64491}], "total": 371591, "confianzas": {}}
+    assert clasificador.revisar_extraccion(x, None, "371,59") == ["LECTURA_DISCREPANTE"]
+
+
+def test_otra_empresa_y_ticket_sin_receptor():
+    assert clasificador.revisar_extraccion(FACTURA, "B99999999") == ["NO_CORRESPONDE_EMPRESA"]
+    assert clasificador.revisar_extraccion(FACTURA, "ESB22222222") == []  # con prefijo de país
+    ticket = {**FACTURA, "receptor": None}
+    assert clasificador.revisar_extraccion(ticket, "B99999999") == []  # los tickets no traen receptor
+
+
+def test_contexto_cliente():
+    assert "RECEPTOR" in clasificador.contexto_cliente("ABANTI", "B84816925", "Recibida")
+    assert "EMISOR" in clasificador.contexto_cliente(None, "B84816925", "Emitida")
+    assert clasificador.contexto_cliente(None, None, "Recibida") == ""
+
+
+def test_factura_estructurada():
+    assert analisis.detectar_tipo(b'<?xml version="1.0"?><fe:Facturae xmlns:fe="http://www.facturae.es/">') == "xml"
+    assert analisis.es_factura_estructurada(b'<?xml version="1.0"?><fe:Facturae>') == "Facturae"
+    assert analisis.es_factura_estructurada(b"<rsm:CrossIndustryInvoice>") == "CII"
+    assert analisis.es_factura_estructurada(b"<nada/>") is None
+    assert analisis.xml_embebidos(pdf_en_blanco()) == []
 
 
 def test_catalogo_con_un_modelo_activo():
     assert clasificador.MODELO_ACTIVO in clasificador.MODELOS
     assert clasificador.modelo_configurado() == clasificador.MODELO_ACTIVO
+
+
+def test_iva_agrupado_por_tipo():
+    lineas = [{"base": 10, "tipo": 21, "cuota": 2.1}, {"base": 5.5, "tipo": 21, "cuota": 1.16}, {"base": 3, "tipo": 10, "cuota": 0.3}]
+    g = clasificador.agrupar_iva(lineas)
+    assert g == [{"base": 15.5, "tipo": 21, "cuota": 3.26, "tipo_recargo": None, "cuota_recargo": None},
+                 {"base": 3.0, "tipo": 10, "cuota": 0.3, "tipo_recargo": None, "cuota_recargo": None}]
+
+
+def test_varios_documentos_en_la_extraccion():
+    assert clasificador.revisar_extraccion({**FACTURA, "varios_documentos": True}) == ["SEPARACION_INCIERTA"]

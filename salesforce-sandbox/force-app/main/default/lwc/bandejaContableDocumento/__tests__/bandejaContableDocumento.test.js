@@ -91,12 +91,18 @@ describe('c-bandeja-contable-documento con documentos de Google', () => {
         const el = await montar([{
             id: 'doc_1', numero: 3, nombre: 'BC-00001_D03.pdf', archivoOrigen: 'lote.zip', archivoSubido: 'lote.zip', sfArchivoId: 'arc1',
             paginaInicio: 13, paginaFin: 15, tipo: 'FACTURA', confianza: 0.9, estado: 'LISTO', motivos: [], emisor: 'OBRAMAT',
-            numeroFactura: '011-0004-027945', fecha: '06/04/2026', total: '178,84', dudas: [], separado: true, viewUrl: 'https://firmada/doc.pdf'
+            numeroFactura: '011-0004-027945', fecha: '06/04/2026', total: '178,84', dudas: [], separado: true, viewUrl: 'https://firmada/doc.pdf',
+            motor: 'vertex/gemini-2.5-flash-lite',
+            extraccion: JSON.stringify({ motor: 'vertex/gemini-2.5-flash-lite', motivos: [], datos: { tipo: 'FACTURA', emisor: { nombre: 'BRICOLAJE BRICOMAN', nif: 'B84406289' }, numero: '011-0004-027945', lineas_iva: [{ base: 147.8, tipo: 21, cuota: 31.04 }], total: 178.84, productos: [], confianzas: {} } })
         }]);
         const r = el.shadowRoot;
         expect(r.querySelector('.doc-titulo').textContent).toBe('Factura 011-0004-027945');
         expect(r.querySelector('.doc-google').textContent).toContain('OBRAMAT');
         expect(r.querySelector('.doc-google').textContent).toContain('págs. 13–15');
         expect(r.querySelector('.doc-iframe').getAttribute('src')).toBe('https://firmada/doc.pdf');
+        expect(r.querySelector('.doc-google').textContent).toContain('leído la IA');
+        const campos = [...r.querySelectorAll('.doc-campo input')].map((i) => i.value);
+        expect(campos).toContain('BRICOLAJE BRICOMAN');
+        expect(campos).toContain('178,84');
     });
 });
