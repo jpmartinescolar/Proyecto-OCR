@@ -175,7 +175,7 @@
                     <template lwc:else>
                         <div class="doc-mesa">
                             <template lwc:if={v.esPdf}>
-                                <iframe class="doc-iframe" src={v.archivoUrl} title="Archivo original"></iframe>
+                                <iframe class="doc-iframe" src={v.urlVisorPdf} title="Archivo original"></iframe>
                             </template>
                             <template lwc:if={v.esImagen}>
                                 <img class="doc-imagen" src={v.archivoUrl} alt={v.doc.archivoNombre} style={v.estiloPapel}>
@@ -340,7 +340,53 @@
                             <fieldset class="doc-fieldset" disabled={v.bloqueado}>
                                 <section class="bc-card doc-seccion-card doc-seccion-campos">
                                     <template lwc:if={v.alerta}><div class={v.alerta.clase}>{v.alerta.texto}</div></template>
-                                    <template for:each={v.grupos} for:item="g">
+                                    <template for:each={v.gruposCabecera} for:item="g">
+                                        <div key={g.titulo} class="doc-seccion">
+                                            <div class="doc-seccion-titulo">{g.titulo}</div>
+                                            <div class={g.clase}>
+                                                <template for:each={g.campos} for:item="f">
+                                                    <label key={f.k} class="doc-campo" data-k={f.k} onmouseenter={entrar} onmouseleave={salir}>
+                                                        <span class="doc-campo-label">{f.label}</span>
+                                                        <input class={f.clase} value={f.valor} data-k={f.k} readonly={f.soloLectura} placeholder={f.placeholder} title={f.titulo} onchange={handleCampo}>
+                                                    </label>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Conceptos (líneas de la factura): solo si la factura los trae -->
+                                    <template lwc:if={v.conceptos.hay}>
+                                        <div class="doc-seccion">
+                                            <div class="doc-seccion-cab">
+                                                <span class="doc-seccion-titulo doc-flex">Conceptos</span>
+                                                <span class="bc-card-nota">{v.conceptos.resumen}</span>
+                                            </div>
+                                            <div class="doc-tabla doc-tabla-peq">
+                                                <div class="doc-concepto-fila doc-tabla-cab">
+                                                    <span>Descripción</span><span class="bc-derecha">Cant.</span><span class="bc-derecha">Precio (€)</span>
+                                                    <span class="bc-derecha">IVA %</span><span class="bc-derecha">Importe (€)</span><span></span>
+                                                </div>
+                                                <template for:each={v.conceptos.filas} for:item="c">
+                                                    <div key={c.key} class={c.clase} data-i={c.i} onmouseenter={entrarConcepto} onmouseleave={salirConcepto}>
+                                                        <input class="doc-iva-input doc-iva-izq" value={c.descripcion} title={c.descripcion} data-i={c.i} data-k="descripcion" onchange={handleConcepto}>
+                                                        <input class="doc-iva-input" value={c.cantidad} data-i={c.i} data-k="cantidad" onchange={handleConcepto}>
+                                                        <input class="doc-iva-input" value={c.precio} data-i={c.i} data-k="precio_unitario" onchange={handleConcepto}>
+                                                        <input class="doc-iva-input" value={c.tipoIva} data-i={c.i} data-k="tipo_iva" onchange={handleConcepto}>
+                                                        <input class={c.claseImporte} value={c.importe} data-i={c.i} data-k="importe" onchange={handleConcepto}>
+                                                        <button class="bc-boton-quitar doc-quitar" title="Quitar concepto" data-i={c.i} onclick={quitarConcepto}>×</button>
+                                                    </div>
+                                                </template>
+                                                <div class="doc-concepto-fila doc-tabla-pie">
+                                                    <span class="bc-card-nota">Suma de conceptos</span><span></span><span></span><span></span>
+                                                    <span class="bc-derecha">{v.conceptos.suma}</span><span></span>
+                                                </div>
+                                            </div>
+                                            <button class="bc-boton-linea" onclick={anadirConcepto}>+ Añadir concepto</button>
+                                            <div class={v.conceptos.claseCuadre}>{v.conceptos.cuadre}</div>
+                                        </div>
+                                    </template>
+
+                                    <template for:each={v.gruposTotales} for:item="g">
                                         <div key={g.titulo} class="doc-seccion">
                                             <div class="doc-seccion-titulo">{g.titulo}</div>
                                             <div class={g.clase}>

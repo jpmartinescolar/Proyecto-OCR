@@ -280,6 +280,8 @@ export function desdeExtraccion(ext) {
             rectRef: d.factura_rectificada || null,
             ivasDoc: ivas.map((r) => ({ ...r })),
             ivas,
+            // Conceptos tal como los ha leído la IA (la sección Conceptos de la pestaña Datos los edita)
+            productos: (d.productos || []).map((p) => ({ descripcion: p.descripcion || '', cantidad: p.cantidad, precio_unitario: p.precio_unitario, tipo_iva: p.tipo_iva, importe: p.importe })),
             lineas: (d.productos || []).map((p) => ({
                 c: (p.descripcion || 'Producto') + (p.cantidad && Number(p.cantidad) !== 1 ? ` · ${Number(p.cantidad).toLocaleString('es-ES')} ud` : ''),
                 i: importeEs(p.importe) + ' €'

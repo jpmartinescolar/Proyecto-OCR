@@ -258,3 +258,9 @@ select.doc-iva-input { cursor: pointer; }
 .doc-google-campo { display: flex; flex-direction: column; gap: 2px; }
 .doc-google-dudas { font-size: 12px; color: var(--bc-warm-ink); }
 .doc-google-nota { font-size: 11px; color: var(--bc-ink-3); }
+
+/* Conceptos (líneas de la factura) */
+.doc-concepto-fila { display: grid; grid-template-columns: minmax(120px, 3fr) 52px 70px 44px 76px 20px; gap: 4px; padding: 4px 10px; border-top: 1px solid var(--bc-line); align-items: center; }
+.doc-tabla-cab.doc-concepto-fila { border-top: none; padding: 5px 10px; font-size: 10px; }
+.doc-iva-aviso { border-color: var(--bc-warm); background: var(--bc-warm-soft); }
+.doc-concepto-aviso { color: var(--bc-warm-ink); }

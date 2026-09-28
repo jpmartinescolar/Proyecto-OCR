@@ -37,6 +37,20 @@ const COLORES_TIPO = { Emitida: 'doc-tipo-emitida', Recibida: 'doc-tipo-recibida
 const ORIGEN = { Email: 'buzón de correo', Manual: 'carga manual', Portal: 'portal del cliente', 'Portal del cliente': 'portal del cliente' };
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+/**
+ * Opciones del visor de PDF del navegador (van tras el #, no afectan a la firma de la URL):
+ * sin el panel de miniaturas, que en PDF de varias páginas encoge la factura, y ajustada al ancho.
+ * Conserva la página inicial (#page=N) de los documentos que son parte de un PDF mayor.
+ */
+function urlVisorPdf(url) {
+    if (!url) return url;
+    const [base, fragmento] = url.split('#');
+    const opciones = new URLSearchParams(fragmento || '');
+    opciones.set('navpanes', '0');
+    opciones.set('view', 'FitH');
+    return `${base}#${opciones.toString()}`;
+}
+
 let claveLinea = 0;
 
 function hoy() {
@@ -226,6 +240,7 @@ export default class BandejaContableDocumento extends LightningElement {
         const checksMal = checks.filter((c) => c.estado !== 'ok').length;
         const is = analisisIs({ x, ivas, textoLineas, direccionesAfectas });
         const prods = productos(x0.lineas, x0.ivasDoc || x0.ivas);
+        const conceptos = this.conceptos(ed.productos || this.conceptosBase(x0, prods), sumas.base);
 
         // Skills aplicadas: las del reparto de líneas y las del proveedor
         const aplicadas = [...new Set([...ivas.map((r) => r.sk).filter(Boolean), ...skills.filter((s) => s.nif && s.nif === nifActual).map((s) => s.num)])];
@@ -239,7 +254,7 @@ export default class BandejaContableDocumento extends LightningElement {
         const hl = {};
         Object.entries(ZONAS).forEach(([k, z]) => { hl[k] = marca(this.hover === k, z); });
         const ivaPreview = (x0.ivasDoc || x0.ivas).map((r, i) => ({ ...r, key: 'p' + i, estilo: marca(this.hover === 'iva' + i, AMARILLO) }));
-        const lineasDoc = (x0.lineas || []).map((l, i) => ({ ...l, key: 'l' + i, estilo: marca(this.productoResaltado === i && this.pestana === 'prod', AMARILLO) }));
+        const lineasDoc = (x0.lineas || []).map((l, i) => ({ ...l, key: 'l' + i, estilo: marca(this.productoResaltado === i, AMARILLO) }));
         // Documento real de Google: su propio PDF (recortado si venía con otros); si no, el archivo subido
         const urlsArchivo = doc.google && doc.google.viewUrl ? { ver: doc.google.viewUrl, descargar: doc.google.viewUrl } : this.urls[doc.archivoId] || {};
         const vista = this.vistaVisor || (doc.google ? 'original' : 'ocr');
@@ -315,7 +330,9 @@ export default class BandejaContableDocumento extends LightningElement {
             enColaboracion: ['notas', 'tareas', 'chat'].includes(this.pestana),
             enSkills: this.pestana === 'sk',
             // Datos
-            grupos,
+            gruposCabecera: grupos.filter((g) => g.titulo !== 'Totales'),
+            gruposTotales: grupos.filter((g) => g.titulo === 'Totales'),
+            conceptos,
             filasIva,
             ivaTipos: ivas.length === 1 ? '1 tipo' : `${ivas.length} tipos`,
             sumas: { base: euros(sumas.base), cuota: euros(sumas.cuota), re: euros(sumas.re), ret: euros(sumas.ret), ded: euros(sumas.ded), noDed: euros(sumas.noDed), hayNoDed: sumas.noDed > 0.004 },
@@ -361,6 +378,7 @@ export default class BandejaContableDocumento extends LightningElement {
             clienteNombre: cliente.nombre || this.detalle.resumen.empresa,
             clienteCif: cliente.cif || this.detalle.resumen.cif,
             archivoUrl,
+            urlVisorPdf: urlVisorPdf(archivoUrl),
             descargaUrl: urlsArchivo.descargar,
             verOriginalPosible: !!archivoUrl && (mime === 'application/pdf' || mime.startsWith('image/')),
             esPdf: mime === 'application/pdf',
@@ -377,6 +395,76 @@ export default class BandejaContableDocumento extends LightningElement {
             avisoValidar: this.avisoValidar,
             riesgoModal: this.riesgoModal
         };
+    }
+
+    /** Conceptos de partida: los que ha leído la IA; en un documento de ejemplo, los de su plantilla */
+    conceptosBase(x0, prods) {
+        if (x0.productos) return x0.productos.map((p) => ({ ...p }));
+        return prods.filas.map((f) => ({ descripcion: f.desc, cantidad: num(f.cantidad), precio_unitario: num(f.unitario), tipo_iva: num(f.pct), importe: num(f.importe) }));
+    }
+
+    /** Sección "Conceptos": filas editables y comprobación contra la base imponible */
+    conceptos(lista, base) {
+        const n = (v) => (v === null || v === undefined || v === '' ? '' : euros(v));
+        const cant = (v) => (v === null || v === undefined || v === '' ? '' : Number(v).toLocaleString('es-ES', { maximumFractionDigits: 3 }));
+        const suma = lista.reduce((a, c) => a + (Number(c.importe) || 0), 0);
+        const diff = suma - base;
+        const cuadra = Math.abs(diff) <= 0.05;
+        return {
+            hay: lista.length > 0,
+            resumen: lista.length === 1 ? '1 concepto' : `${lista.length} conceptos`,
+            filas: lista.map((c, i) => {
+                const calc = Number(c.cantidad) && Number(c.precio_unitario) ? Number(c.cantidad) * Number(c.precio_unitario) : null;
+                // Cantidad × precio muy distinto del importe: se marca (puede ser un descuento o un error de lectura)
+                const raro = calc !== null && c.importe !== null && c.importe !== undefined && Math.abs(calc - Number(c.importe)) > Math.max(0.05, Math.abs(calc) * 0.02);
+                return {
+                    i, key: 'c' + i,
+                    descripcion: c.descripcion || '',
+                    cantidad: cant(c.cantidad),
+                    precio: n(c.precio_unitario),
+                    tipoIva: c.tipo_iva === null || c.tipo_iva === undefined ? '' : String(c.tipo_iva),
+                    importe: n(c.importe),
+                    claseImporte: 'doc-iva-input' + (raro ? ' doc-iva-aviso' : ''),
+                    clase: 'doc-concepto-fila' + (this.productoResaltado === i ? ' doc-iva-fila-on' : '')
+                };
+            }),
+            suma: euros(suma),
+            cuadre: cuadra ? 'Los conceptos suman la base imponible.'
+                : `Los conceptos suman ${euros(suma)} € y la base imponible es ${euros(base)} € (diferencia ${euros(diff)} €): revisa descuentos, portes o líneas sin leer.`,
+            claseCuadre: 'doc-nota ' + (cuadra ? 'doc-verde' : 'doc-concepto-aviso')
+        };
+    }
+
+    conceptosActuales() {
+        const ed = this.edits[this.docId] || {};
+        if (ed.productos) return ed.productos.map((c) => ({ ...c }));
+        const x0 = datosExtraidos(this.v.doc).x;
+        return this.conceptosBase(x0, productos(x0.lineas, x0.ivasDoc || x0.ivas));
+    }
+
+    handleConcepto(e) {
+        const lista = this.conceptosActuales();
+        const { i, k } = e.target.dataset;
+        lista[Number(i)][k] = k === 'descripcion' ? e.target.value : e.target.value === '' ? null : num(e.target.value);
+        this.editar({ productos: lista });
+    }
+
+    quitarConcepto(e) {
+        this.editar({ productos: this.conceptosActuales().filter((_, j) => j !== Number(e.currentTarget.dataset.i)) });
+    }
+
+    anadirConcepto() {
+        this.editar({ productos: [...this.conceptosActuales(), { descripcion: '', cantidad: 1, precio_unitario: null, tipo_iva: 21, importe: null }] });
+    }
+
+    entrarConcepto(e) {
+        this.productoResaltado = Number(e.currentTarget.dataset.i);
+        this.recalcular();
+    }
+
+    salirConcepto() {
+        this.productoResaltado = null;
+        this.recalcular();
     }
 
     /** Lo que ha leído Google de este documento (real): tipo, emisor, número, fecha, total, páginas y estado */
