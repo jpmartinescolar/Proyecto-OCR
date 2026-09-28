@@ -46,7 +46,9 @@ El archivo **nunca pasa por Salesforce** ni por la API: va del navegador a Cloud
 | Bucket | `centro-inteligencia-bandeja-contable-dev` (se sustituirá por raw/docs, ver Fase 1) | — |
 | Cloud SQL | BD `bandeja_contable_dev`, usuario `bandeja_contable_app_dev`, instancia compartida `centro-inteligencia-db` (Postgres 16) | — |
 | Secreto | `bandeja-contable-db-password-dev` | — |
-| Cuentas de servicio | `bandeja-contable-run-dev` (ejecución) · `bandeja-contable-caller-dev` (Salesforce) | — |
+| Cuentas de servicio | `bandeja-contable-run-dev` (API) · `bandeja-contable-caller-dev` (Salesforce) · `bandeja-contable-proc-dev` (procesador) | — |
+| Buckets Fase 1 | `centro-inteligencia-bandeja-contable-raw-dev` (originales) · `…-docs-dev` (derivados) | — |
+| Cola Cloud Tasks | `bandeja-contable-procesar-dev` en **europe-west1** (Cloud Tasks no existe en Madrid) | — |
 
 Se crean con `gcp-bandeja-contable-api/infra/crear-entorno.ps1 -Entorno dev|prod`.
 

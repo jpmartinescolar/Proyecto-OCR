@@ -3,6 +3,7 @@
 Registro de decisiones del proyecto. Formato: fecha · decisión · motivo · alternativas descartadas. Las más recientes arriba.
 
 ## 2026-09-28
+- **La cola de Cloud Tasks va en europe-west1 (Bélgica).** Motivo: Cloud Tasks no está disponible en europe-southwest1. La cola solo guarda el id del archivo a procesar; archivos, BD y procesador siguen en Madrid (todo en la UE).
 - **Clasificador: probar primero Gemini 2.5 Flash-Lite y Claude Haiku 4.5, ambos en Vertex AI.** Motivo: son las opciones más económicas dentro de Google (≈ $0,15 y ≈ $2,75 por 1.000 páginas, estimado). La elección final se hará por calidad medida con muestras reales. El código tendrá el catálogo de modelos comentado, con uno activo, para cambiar comentando/descomentando. Descartado como principal: Document AI Custom Splitter/Classifier (≈ $5–10/1.000 páginas, requiere entrenamiento o su versión preentrenada nueva no garantiza residencia de datos en la UE).
 - **Dos tablas para los datos de las facturas: lo que extrae la IA y lo que confirma el operador; nunca se sobrescriben.** Motivo: medir la tasa de acierto real de cada modelo (campo a campo) comparando extracción con confirmación.
 - **Dos buckets por entorno: `…-raw` (originales, inmutables) y `…-docs` (derivados, regenerables).** Motivo: permisos, retención e inmutabilidad distintos; reprocesar sin tocar originales; auditoría separada. Descartado: un bucket con prefijos (IAM por prefijo complejo, la retención afectaría a todo).

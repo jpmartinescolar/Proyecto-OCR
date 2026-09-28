@@ -123,7 +123,7 @@ DOCS (derivados; regenerables; nunca se sobrescriben: cada reproceso escribe en 
 
 | Servicio | Uso |
 |---|---|
-| Cloud Tasks | `/confirm` encola "procesar archivo X": reintentos, concurrencia limitada y sin duplicados (nombre de tarea) |
+| Cloud Tasks (`bandeja-contable-procesar-dev`, **europe-west1**: no existe en Madrid; solo guarda el id a procesar) | `/confirm` encola "procesar archivo X": reintentos, concurrencia limitada y sin duplicados (nombre de tarea) |
 | Cloud Run `bandeja-contable-procesador-dev` (privado, nuevo) | Procesa: más memoria y CPU, hasta 60 min; solo lo invoca Cloud Tasks |
 | Cloud Storage | Buckets raw y docs |
 | Cloud SQL | Tablas nuevas en `bandeja_contable_dev` |
@@ -164,7 +164,7 @@ DOCS (derivados; regenerables; nunca se sobrescriben: cada reproceso escribe en 
 | Paso | Qué | Estado |
 |---|---|---|
 | 0 | Documentación (`CLAUDE.md`, `docs/`) | Hecho 28/09 |
-| 1 | Infraestructura dev: buckets raw/docs, cola de Cloud Tasks, SA y Cloud Run del procesador; retirar el bucket actual | Pendiente |
+| 1 | Infraestructura dev: buckets raw/docs, cola de Cloud Tasks (europe-west1), SA del procesador. El Cloud Run del procesador se crea en el paso 3 y el bucket antiguo se retira en el paso 2 | Hecho 28/09 |
 | 2 | Rutas sin CIF ni nombre + metadatos + `Content-Disposition`; esquema SQL v2 (`archivos` ampliada, `procesamientos`, `documentos`, `incidencias`) | Pendiente |
 | 3 | Procesador sin IA: tipo, validación, ZIP, páginas, texto, blancos, protección → documentos provisionales e incidencias | Pendiente |
 | 4 | Clasificador intercambiable: Gemini 2.5 Flash-Lite y Claude Haiku 4.5 en Vertex, comparados con muestras | Pendiente |
