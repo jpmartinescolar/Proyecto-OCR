@@ -4,7 +4,7 @@ Bandeja Contable: los asesores suben documentación contable de una empresa desd
 
 ## Dónde está cada cosa
 - `salesforce-sandbox/`: proyecto Salesforce DX (org sandbox `comunidad--full`, alias `sandbox`).
-- `gcp-bandeja-contable/`: código de Google (Node/Express), desplegado como dos servicios de Cloud Run que comparten módulos: la API y el procesador (`SERVICIO=procesador`). Infraestructura en `infra/crear-entorno.ps1`.
+- `gcp-bandeja-contable/`: código de Google en **Python + FastAPI** (paquete `app/`, `Dockerfile`), desplegado como dos servicios de Cloud Run que comparten módulos: la API y el procesador (`SERVICIO=procesador`). Infraestructura en `infra/crear-entorno.ps1`. Tests: `..\.venv\Scripts\python -m pytest` desde esa carpeta (entorno virtual `.venv` en la raíz, no versionado).
 - `docs/hoja-de-ruta.md`: fases del proyecto y decisiones abiertas por fase.
 - `docs/diseno.md`: el diseño de Claude Design (zip en la raíz, no versionado) y qué implica.
 - `docs/arquitectura.md`: cómo funciona hoy (flujo, entornos, modelo de datos, autenticación).
@@ -20,4 +20,6 @@ Bandeja Contable: los asesores suben documentación contable de una empresa desd
 - **Los archivos solo se guardan en Google Cloud Storage.** Salesforce guarda datos del formulario, seguimiento y referencias (IDs de Google). Cloud SQL guarda los IDs de Salesforce.
 - **Nunca sobrescribir lo que extrae la IA con lo que confirma el operador**: son tablas distintas (sirven para medir la tasa de acierto de cada modelo).
 - Los cambios que tocan el sandbox o Google se confirman con el usuario antes de ejecutarlos.
+- **Backend en Python + FastAPI, nunca Node.** Si algo no fuera viable en Python, explicarlo y preguntar.
+- **Lo que no tiene todavía datos reales va como datos de ejemplo, bien comentado** en el código (qué falta, de dónde saldrá, qué hay que aclarar) y marcado en pantalla como "Datos de ejemplo".
 - El usuario escribe en español; documentación y mensajes de la aplicación en español.

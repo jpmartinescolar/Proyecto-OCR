@@ -1,0 +1,8 @@
+fastapi==0.141.1
+uvicorn[standard]
+google-cloud-storage
+google-cloud-tasks
+psycopg[binary]
+psycopg-pool
+pypdf==6.19.0
+Pillow
