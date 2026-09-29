@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Retirada del prototipo de la rama test/buzon-contable (desplegado en el sandbox el 24/09/2026).
+  Todo lo de aquí lo sustituye la Bandeja Contable (manifest/bandeja-contable.xml). No incluye nada
+  de producción: el Buzón contable (Buzon_contable__c, areaContableFiscal) no se toca.
+  Procedimiento completo en docs/despliegue.md ("Retirada del prototipo").
+
+    sf project deploy validate -x manifest/retirada-prototipo/package.xml \
+      --post-destructive-changes manifest/retirada-prototipo/destructiveChanges.xml -o sandbox \
+      -l RunSpecifiedTests -t BandejaContableControllerTest -t BandejaContableGcpServiceTest \
+      -t BandejaContableEmpresasServiceTest -t BandejaContableClienteServiceTest
+-->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Bandeja_Contable_Panel</members>
+        <members>Subir_Facturas_A_Test</members>
+        <name>CustomTab</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable_Panel</members>
+        <members>Test_Subir_Facturas_A</members>
+        <name>FlexiPage</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable__c-Formato Bandeja Contable</members>
+        <name>Layout</name>
+    </types>
+    <types>
+        <members>testBandejaPanel</members>
+        <members>testOcrBandeja</members>
+        <members>testSubirFacturasA</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>BandejaEmpresasService</members>
+        <members>BandejaEmpresasServiceTest</members>
+        <members>GcpBandejaService</members>
+        <members>GcpBandejaServiceTest</members>
+        <members>GcpSyncQueueable</members>
+        <members>SubirFacturasController</members>
+        <members>SubirFacturasControllerTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <!-- Antes hay que quitar su asignación (Ivan Mendoza) -->
+        <members>Bandeja_Contable_Access</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>GCP_Bandeja_Contable</members>
+        <name>NamedCredential</name>
+    </types>
+    <types>
+        <members>Bandeja_GCS_Storage</members>
+        <name>CspTrustedSite</name>
+    </types>
+    <types>
+        <members>Google_OAuth_Token</members>
+        <name>RemoteSiteSetting</name>
+    </types>
+    <types>
+        <members>Bandeja_Contable__c.Archivo_nombre__c</members>
+        <members>Bandeja_Contable__c.Archivo_tamano__c</members>
+        <members>Bandeja_Contable__c.Archivo_tipo__c</members>
+        <members>Bandeja_Contable__c.Estado_sincronizacion__c</members>
+        <members>Bandeja_Contable__c.GCS_ruta__c</members>
+        <members>Bandeja_Contable__c.Intentos__c</members>
+        <members>Bandeja_Contable__c.Opcion__c</members>
+        <members>Bandeja_Contable__c.Ultimo_error__c</members>
+        <name>CustomField</name>
+    </types>
+    <version>67.0</version>
+</Package>
