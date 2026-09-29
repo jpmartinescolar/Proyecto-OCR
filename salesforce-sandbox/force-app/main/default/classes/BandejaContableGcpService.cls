@@ -99,10 +99,20 @@ public with sharing class BandejaContableGcpService {
         /** true si Google ha generado un PDF propio (el archivo tenía varios documentos) */
         @AuraEnabled public Boolean separado;
         @AuraEnabled public String motor;
-        /** Datos extraídos por la IA (JSON tal cual lo guarda Google en extracciones), o null si no se ha extraído */
+        /** Datos extraídos por la IA (JSON tal cual lo guarda Google en extracciones). Solo al abrir el documento. */
         @AuraEnabled public String extraccion;
         @AuraEnabled public Datetime createdAt;
+        /** URL firmada para verlo. Solo al abrir el documento (firmarla es una llamada a Google por documento). */
         @AuraEnabled public String viewUrl;
+    }
+
+    /** Estado técnico del procesamiento de una bandeja, para calcular el estado que ve el usuario */
+    public class EstadoGoogle {
+        @AuraEnabled public String bandejaId;
+        /** Archivos subidos por estado de Google (RECIBIDO, EN_COLA, PROCESANDO, PROCESADO…) */
+        @AuraEnabled public Map<String, Integer> archivos = new Map<String, Integer>();
+        @AuraEnabled public Integer documentos = 0;
+        @AuraEnabled public Integer enRevision = 0;
     }
 
     @TestVisible
@@ -233,7 +243,10 @@ public with sharing class BandejaContableGcpService {
         return p;
     }
 
-    /** Documentos separados por Google en una bandeja (la bandeja ya debe estar validada por el llamante) */
+    /**
+     * Documentos separados por Google en una bandeja, solo con sus datos (sin URL ni extracción: se piden
+     * con obtenerDocumento al abrir uno). La bandeja ya debe estar validada por el llamante.
+     */
     public static List<DocumentoGoogle> listarDocumentos(Id bandejaId) {
         Map<String, Object> res = enviar('/documents', new Map<String, Object>{
             'sfOrgId' => UserInfo.getOrganizationId(),
@@ -241,35 +254,69 @@ public with sharing class BandejaContableGcpService {
         });
         List<DocumentoGoogle> out = new List<DocumentoGoogle>();
         for (Object o : (List<Object>) res.get('documentos')) {
-            Map<String, Object> m = (Map<String, Object>) o;
-            DocumentoGoogle d = new DocumentoGoogle();
-            d.id = (String) m.get('id');
-            d.numero = entero(m.get('numero'));
-            d.nombre = (String) m.get('nombre');
-            d.archivoOrigen = (String) m.get('archivoOrigen');
-            d.archivoSubido = (String) m.get('archivoSubido');
-            d.sfArchivoId = (String) m.get('sfArchivoId');
-            d.paginaInicio = entero(m.get('paginaInicio'));
-            d.paginaFin = entero(m.get('paginaFin'));
-            d.tipo = (String) m.get('tipo');
-            d.confianza = m.get('confianza') == null ? null : Decimal.valueOf(String.valueOf(m.get('confianza')));
-            d.estado = (String) m.get('estado');
-            d.motivos = textos(m.get('motivos'));
-            Map<String, Object> l = m.get('lectura') == null ? new Map<String, Object>() : (Map<String, Object>) m.get('lectura');
-            d.emisor = (String) l.get('emisor');
-            d.nifEmisor = (String) l.get('nif_emisor');
-            d.numeroFactura = (String) l.get('numero');
-            d.fecha = (String) l.get('fecha');
-            d.total = (String) l.get('total');
-            d.dudas = textos(l.get('dudas'));
-            d.separado = m.get('separado') == true;
-            d.motor = (String) m.get('motor');
-            d.createdAt = parseFecha((String) m.get('createdAt'));
-            d.viewUrl = (String) m.get('viewUrl');
-            d.extraccion = m.get('extraccion') == null ? null : JSON.serialize(m.get('extraccion'));
-            out.add(d);
+            out.add(toDocumento((Map<String, Object>) o));
         }
         return out;
+    }
+
+    /** Un documento de la bandeja para abrirlo: con URL firmada y datos extraídos por la IA */
+    public static DocumentoGoogle obtenerDocumento(Id bandejaId, String documentoId) {
+        return toDocumento(enviar('/document', new Map<String, Object>{
+            'sfOrgId' => UserInfo.getOrganizationId(),
+            'sfBandejaId' => bandejaId,
+            'documentoId' => documentoId
+        }));
+    }
+
+    /** Estado del procesamiento de varias bandejas en una sola llamada (las bandejas ya deben estar validadas) */
+    public static Map<String, EstadoGoogle> estadoBandejas(List<Id> bandejaIds) {
+        Map<String, EstadoGoogle> out = new Map<String, EstadoGoogle>();
+        if (bandejaIds == null || bandejaIds.isEmpty()) return out;
+        Map<String, Object> res = enviar('/status', new Map<String, Object>{
+            'sfOrgId' => UserInfo.getOrganizationId(),
+            'sfBandejaIds' => bandejaIds
+        });
+        Map<String, Object> bandejas = (Map<String, Object>) res.get('bandejas');
+        for (String id : bandejas.keySet()) {
+            Map<String, Object> m = (Map<String, Object>) bandejas.get(id);
+            EstadoGoogle e = new EstadoGoogle();
+            e.bandejaId = id;
+            Map<String, Object> archivos = (Map<String, Object>) m.get('archivos');
+            if (archivos != null) for (String estado : archivos.keySet()) e.archivos.put(estado, entero(archivos.get(estado)));
+            e.documentos = entero(m.get('documentos'));
+            e.enRevision = entero(m.get('enRevision'));
+            out.put(id, e);
+        }
+        return out;
+    }
+
+    private static DocumentoGoogle toDocumento(Map<String, Object> m) {
+        DocumentoGoogle d = new DocumentoGoogle();
+        d.id = (String) m.get('id');
+        d.numero = entero(m.get('numero'));
+        d.nombre = (String) m.get('nombre');
+        d.archivoOrigen = (String) m.get('archivoOrigen');
+        d.archivoSubido = (String) m.get('archivoSubido');
+        d.sfArchivoId = (String) m.get('sfArchivoId');
+        d.paginaInicio = entero(m.get('paginaInicio'));
+        d.paginaFin = entero(m.get('paginaFin'));
+        d.tipo = (String) m.get('tipo');
+        d.confianza = m.get('confianza') == null ? null : Decimal.valueOf(String.valueOf(m.get('confianza')));
+        d.estado = (String) m.get('estado');
+        d.motivos = textos(m.get('motivos'));
+        Map<String, Object> l = m.get('lectura') == null ? new Map<String, Object>() : (Map<String, Object>) m.get('lectura');
+        d.emisor = (String) l.get('emisor');
+        d.nifEmisor = (String) l.get('nif_emisor');
+        d.numeroFactura = (String) l.get('numero');
+        d.fecha = (String) l.get('fecha');
+        d.total = (String) l.get('total');
+        d.dudas = textos(l.get('dudas'));
+        d.separado = m.get('separado') == true;
+        d.motor = (String) m.get('motor');
+        d.createdAt = parseFecha((String) m.get('createdAt'));
+        d.viewUrl = (String) m.get('viewUrl');
+        d.extraccion = m.get('extraccion') == null ? null : JSON.serialize(m.get('extraccion'));
+        return d;
     }
 
     /** Vuelve a procesar en Google los archivos de una bandeja (o uno). Devuelve cuántos se han encolado. */

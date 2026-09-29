@@ -21,3 +21,10 @@
 .reg-doc-lectura { font-size: 12px; color: var(--bc-ink-2); }
 .reg-doc-motivo { font-size: 11px; color: var(--bc-warm-ink); margin-top: 2px; }
 .reg-nota { padding: 8px 24px 14px; font-size: 11px; color: var(--bc-ink-3); }
+
+/* OCR documentos: filas de carga (skeleton) y aviso mientras se procesa */
+.reg-carga { padding: 8px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.reg-carga-fila { display: grid; grid-template-columns: 40px 2fr 1fr; gap: 12px; }
+.reg-carga-fila span { height: 14px; border-radius: 4px; background: linear-gradient(90deg, var(--bc-paper-3), var(--bc-paper-2), var(--bc-paper-3)); background-size: 200% 100%; animation: reg-brillo 1.2s ease-in-out infinite; }
+@keyframes reg-brillo { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.reg-aviso-proceso { display: flex; align-items: center; gap: 10px; margin: 8px 16px; padding: 10px 14px; border-radius: 8px; background: var(--bc-info-soft); color: var(--bc-brand-deep); font-size: 13px; }

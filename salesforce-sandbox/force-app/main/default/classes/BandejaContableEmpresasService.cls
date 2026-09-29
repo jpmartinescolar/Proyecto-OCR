@@ -61,6 +61,91 @@ public with sharing class BandejaContableEmpresasService {
         return acc[0];
     }
 
+    // ===== Empresas y grupos empresariales para las skills ("Empresas afectadas") =====
+
+    private static final Integer MAX_BUSQUEDA = 50;
+    private static final Integer MAX_GRUPOS = 30;
+
+    public class EmpresaGrupoDTO {
+        @AuraEnabled public Id id;
+        @AuraEnabled public String nombre;
+        @AuraEnabled public String cif;
+        @AuraEnabled public Id grupoId;
+        @AuraEnabled public String grupo;
+    }
+
+    public class GrupoDTO {
+        @AuraEnabled public Id id;
+        @AuraEnabled public String nombre;
+        @AuraEnabled public List<EmpresaGrupoDTO> miembros = new List<EmpresaGrupoDTO>();
+    }
+
+    public class EmpresasYGruposDTO {
+        @AuraEnabled public List<EmpresaGrupoDTO> empresas = new List<EmpresaGrupoDTO>();
+        @AuraEnabled public List<GrupoDTO> grupos = new List<GrupoDTO>();
+    }
+
+    /**
+     * Empresas y grupos empresariales (Account.Grupo_Empresarial__c) que el usuario puede elegir como
+     * "empresas afectadas" de una skill. Sin modo libre, solo sus empresas asignadas y los grupos de
+     * esas empresas; en modo libre, cualquier empresa visible. `texto` filtra por nombre o CIF.
+     */
+    public static EmpresasYGruposDTO buscarEmpresasYGrupos(String texto) {
+        EmpresasYGruposDTO out = new EmpresasYGruposDTO();
+        Boolean libre = esModoLibre();
+        Set<Id> ids = libre ? new Set<Id>() : getIdsAsignados();
+        if (!libre && ids.isEmpty()) return out;
+        String patron = String.isBlank(texto) ? null : '%' + texto.trim() + '%'; // va como variable enlazada: sin inyección
+        Map<String, Object> binds = new Map<String, Object>{ 'ids' => ids, 'patron' => patron, 'limite' => MAX_BUSQUEDA };
+        String alcance = libre ? '' : ' AND Id IN :ids';
+
+        for (Account a : (List<Account>) Database.queryWithBinds(
+            'SELECT Id, Name, CIF__c, Grupo_Empresarial__c, Grupo_Empresarial__r.Name FROM Account WHERE Id != null' + alcance
+                + (patron == null ? '' : ' AND (Name LIKE :patron OR CIF__c LIKE :patron)') + ' ORDER BY Name LIMIT :limite',
+            binds, AccessLevel.USER_MODE)) {
+            out.empresas.add(toEmpresaGrupo(a));
+        }
+
+        // Grupos: los de las empresas a su alcance cuyo nombre coincide con la búsqueda
+        binds.put('limite', MAX_GRUPOS);
+        Set<Id> grupoIds = new Set<Id>();
+        for (AggregateResult r : (List<AggregateResult>) Database.queryWithBinds(
+            'SELECT Grupo_Empresarial__c g FROM Account WHERE Grupo_Empresarial__c != null' + alcance
+                + (patron == null ? '' : ' AND Grupo_Empresarial__r.Name LIKE :patron') + ' GROUP BY Grupo_Empresarial__c LIMIT :limite',
+            binds, AccessLevel.USER_MODE)) {
+            grupoIds.add((Id) r.get('g'));
+        }
+        if (grupoIds.isEmpty()) return out;
+        binds.put('grupoIds', grupoIds);
+        binds.put('limite', MAX_EMPRESAS);
+        Map<Id, GrupoDTO> grupos = new Map<Id, GrupoDTO>();
+        for (Account a : (List<Account>) Database.queryWithBinds(
+            'SELECT Id, Name, CIF__c, Grupo_Empresarial__c, Grupo_Empresarial__r.Name FROM Account WHERE Grupo_Empresarial__c IN :grupoIds'
+                + alcance + ' ORDER BY Grupo_Empresarial__r.Name, Name LIMIT :limite',
+            binds, AccessLevel.USER_MODE)) {
+            GrupoDTO g = grupos.get(a.Grupo_Empresarial__c);
+            if (g == null) {
+                g = new GrupoDTO();
+                g.id = a.Grupo_Empresarial__c;
+                g.nombre = a.Grupo_Empresarial__r.Name;
+                grupos.put(g.id, g);
+            }
+            g.miembros.add(toEmpresaGrupo(a));
+        }
+        out.grupos = grupos.values();
+        return out;
+    }
+
+    private static EmpresaGrupoDTO toEmpresaGrupo(Account a) {
+        EmpresaGrupoDTO e = new EmpresaGrupoDTO();
+        e.id = a.Id;
+        e.nombre = a.Name;
+        e.cif = a.CIF__c;
+        e.grupoId = a.Grupo_Empresarial__c;
+        e.grupo = a.Grupo_Empresarial__c == null ? null : a.Grupo_Empresarial__r.Name;
+        return e;
+    }
+
     private static Set<Id> getIdsAsignados() {
         Set<Id> ids = new Set<Id>();
         Id userId = UserInfo.getUserId();

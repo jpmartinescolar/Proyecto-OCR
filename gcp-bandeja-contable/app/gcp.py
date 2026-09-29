@@ -15,6 +15,7 @@ from . import config
 
 _storage: storage.Client | None = None
 _tareas: tasks_v2.CloudTasksClient | None = None
+_credenciales = None
 
 
 def cliente_storage() -> storage.Client:
@@ -29,11 +30,22 @@ def disposicion(tipo: str, nombre: str) -> str:
     return f"{tipo}; filename*=UTF-8''{quote(nombre, safe='')}"
 
 
+def credenciales_firma():
+    """Credenciales del servicio para firmar. Se reutilizan mientras el token es válido: renovarlas en
+    cada firma era una llamada de red más por URL."""
+    global _credenciales
+    if _credenciales is None:
+        _credenciales, _ = google.auth.default()
+    if not _credenciales.valid:
+        _credenciales.refresh(Request())
+    return _credenciales
+
+
 def url_firmada(bucket: str, objeto: str, disposicion_respuesta: str) -> str:
     """URL firmada V4 de solo lectura. En Cloud Run no hay clave privada: se firma con la API IAM
-    (signBlob) con la identidad del servicio, que necesita roles/iam.serviceAccountTokenCreator sobre sí misma."""
-    credenciales, _ = google.auth.default()
-    credenciales.refresh(Request())
+    (signBlob) con la identidad del servicio, que necesita roles/iam.serviceAccountTokenCreator sobre sí misma.
+    Cada firma es una llamada a IAM: los listados no firman, solo se firma lo que se va a abrir."""
+    credenciales = credenciales_firma()
     blob = cliente_storage().bucket(bucket).blob(objeto)
     return blob.generate_signed_url(
         version="v4",

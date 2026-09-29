@@ -127,8 +127,10 @@ foreach ($b in @($BucketRaw, $BucketDocs)) {
     Invoke-Gcloud @('storage', 'buckets', 'create', "gs://$b", "--location=$Region", '--uniform-bucket-level-access', '--public-access-prevention')
   }
 }
-# El navegador sube directamente a raw: necesita el CORS de Salesforce. docs solo se lee con URL firmadas.
+# CORS de Salesforce: el navegador sube directamente a raw y el visor del documento (pdf.js) lee de docs
+# con fetch. El CORS no da acceso: los objetos solo se leen o escriben con URL firmadas.
 Invoke-Gcloud @('storage', 'buckets', 'update', "gs://$BucketRaw", "--cors-file=$Cors")
+Invoke-Gcloud @('storage', 'buckets', 'update', "gs://$BucketDocs", "--cors-file=$Cors")
 # En prod los originales son evidencia: retencion bloqueable (se configurara al crear prod, ver docs/pendientes.md).
 # API: crea las sesiones de subida y comprueba los objetos en raw; firma URL de lectura de docs
 Invoke-Gcloud @('storage', 'buckets', 'add-iam-policy-binding', "gs://$BucketRaw", "--member=serviceAccount:$SaRun", '--role=roles/storage.objectAdmin')
@@ -190,6 +192,8 @@ Invoke-Gcloud @('run', 'deploy', $Servicio,
   '--no-allow-unauthenticated',
   "--add-cloudsql-instances=$InstanciaConexion",
   '--max-instances=2',
+  # Una instancia siempre encendida: sin ella, la primera consulta tras un rato sin uso tarda ~6 s (arranque en frío)
+  '--min-instances=1',
   '--cpu-boost',
   # La primera versión (Node) se construyó con buildpacks e imagen base; ahora se construye con el Dockerfile
   '--clear-base-image',

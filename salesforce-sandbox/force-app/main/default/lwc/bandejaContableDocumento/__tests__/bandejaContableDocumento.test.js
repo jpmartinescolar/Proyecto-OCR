@@ -4,11 +4,13 @@ import getBandeja from '@salesforce/apex/BandejaContableController.getBandeja';
 import getDatosCliente from '@salesforce/apex/BandejaContableController.getDatosCliente';
 import listarArchivosGoogle from '@salesforce/apex/BandejaContableController.listarArchivosGoogle';
 import listarDocumentosGoogle from '@salesforce/apex/BandejaContableController.listarDocumentosGoogle';
+import obtenerDocumentoGoogle from '@salesforce/apex/BandejaContableController.obtenerDocumentoGoogle';
 
 jest.mock('@salesforce/apex/BandejaContableController.getBandeja', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/BandejaContableController.getDatosCliente', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/BandejaContableController.listarArchivosGoogle', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/BandejaContableController.listarDocumentosGoogle', () => ({ default: jest.fn() }), { virtual: true });
+jest.mock('@salesforce/apex/BandejaContableController.obtenerDocumentoGoogle', () => ({ default: jest.fn() }), { virtual: true });
 
 const DETALLE = {
     resumen: { id: 'a00B', numero: 'BC-00001', empresaId: '001E', empresa: 'Talleres', cif: 'B12345678', tipoValor: 'Recibida', estado: 'Pendiente', origen: 'Manual', fecha: '2026-09-25T10:00:00Z' },
@@ -27,7 +29,9 @@ async function montar(docsGoogle = []) {
     getBandeja.mockResolvedValue(DETALLE);
     getDatosCliente.mockResolvedValue(CLIENTE);
     listarArchivosGoogle.mockResolvedValue([]);
-    listarDocumentosGoogle.mockResolvedValue(docsGoogle);
+    // Como la API: el listado sin enlace ni extracción; el documento completo, al abrirlo
+    listarDocumentosGoogle.mockResolvedValue(docsGoogle.map((d) => ({ ...d, viewUrl: null, extraccion: null })));
+    obtenerDocumentoGoogle.mockImplementation(({ documentoId }) => Promise.resolve(docsGoogle.find((d) => d.id === documentoId)));
     const el = createElement('c-bandeja-contable-documento', { is: BandejaContableDocumento });
     el.bandejaId = 'a00B';
     document.body.appendChild(el);
@@ -36,10 +40,12 @@ async function montar(docsGoogle = []) {
     return el;
 }
 
-const pulsarPestana = async (el, k) => {
-    el.shadowRoot.querySelector(`.doc-pestana[data-k="${k}"]`).click();
+const pulsar = async (el, selector) => {
+    el.shadowRoot.querySelector(selector).click();
     await esperar();
 };
+const pulsarPestana = (el, k) => pulsar(el, `.doc-pestana[data-k="${k}"]`);
+const pestanasVisibles = (el) => [...el.shadowRoot.querySelectorAll('.doc-pestana')].map((b) => b.dataset.k);
 
 describe('c-bandeja-contable-documento', () => {
     afterEach(() => {
@@ -51,21 +57,73 @@ describe('c-bandeja-contable-documento', () => {
         const el = await montar();
         const r = el.shadowRoot;
         expect(r.querySelector('.doc-titulo').textContent).toMatch(/^Factura /);
-        expect(r.querySelectorAll('.doc-pestana')).toHaveLength(12);
+        // Capa 1 · Extracción de datos: solo sus pestañas
+        expect(pestanasVisibles(el)).toEqual(['general', 'sk', 'prod', 'notas', 'tareas']);
         expect(r.querySelectorAll('.doc-iva-fila').length).toBeGreaterThan(2);
         expect(r.querySelector('.doc-riesgos')).not.toBeNull();
         expect(getDatosCliente).toHaveBeenCalledWith({ empresaId: '001E' });
     });
 
-    it('abre cada pestaña sin errores', async () => {
+    it('abre cada pestaña de las dos capas sin errores', async () => {
         const el = await montar();
-        for (const k of ['pf', 'chk', 'is', 'prod', 'notas', 'tareas', 'chat', 'iae', 'loc', 'tur', 'sk', 'general']) {
+        for (const k of ['sk', 'prod', 'notas', 'tareas', 'general']) {
             // eslint-disable-next-line no-await-in-loop
             await pulsarPestana(el, k);
         }
-        await pulsarPestana(el, 'iae');
+        await pulsar(el, '.doc-capa[data-k="intel"]');
+        expect(pestanasVisibles(el)).toEqual(['pf', 'chk', 'is', 'chat', 'iae', 'loc', 'tur']);
+        for (const k of ['pf', 'chk', 'is', 'chat', 'loc', 'tur', 'iae']) {
+            // eslint-disable-next-line no-await-in-loop
+            await pulsarPestana(el, k);
+        }
         const cliente = el.shadowRoot.querySelector('c-bandeja-contable-doc-cliente');
         expect(cliente.shadowRoot.textContent).toContain('691.2');
+    });
+
+    it('capas: análisis provisional hasta confirmar los datos y cada capa recuerda su pestaña', async () => {
+        const el = await montar();
+        const r = el.shadowRoot;
+        await pulsarPestana(el, 'notas');
+        await pulsar(el, '.doc-capa[data-k="intel"]');
+        expect(r.querySelector('.doc-pestana-on').dataset.k).toBe('chk');
+        expect(r.querySelector('.doc-provisional')).not.toBeNull();
+        await pulsarPestana(el, 'is');
+        await pulsar(el, '.doc-provisional button'); // "Validar datos" vuelve a la capa 1
+        expect(r.querySelector('.doc-pestana-on').dataset.k).toBe('notas');
+        await pulsar(el, '.doc-confirmar-datos');
+        expect(r.querySelector('.doc-pestana-on').dataset.k).toBe('is');
+        expect(r.querySelector('.doc-provisional')).toBeNull();
+        expect(r.querySelector('.doc-capa-ext .doc-capa-badge').textContent).toBe('Validado');
+        expect(r.querySelectorAll('.doc-paso-hecho')).toHaveLength(4);
+        await pulsar(el, '.doc-pasos-fila .bc-boton-sec'); // Reabrir datos
+        expect(r.querySelector('.doc-capa-ext .doc-capa-badge').textContent).toBe('Pendiente');
+        expect(pestanasVisibles(el)).toContain('general');
+    });
+
+    it('la contrapartida y la cuenta del asiento se eligen en el buscador de cuentas', async () => {
+        const el = await montar();
+        const r = el.shadowRoot;
+        await pulsar(el, '.doc-iva-fila input[data-tipo="iva"]');
+        const buscador = r.querySelector('c-bandeja-contable-cuentas');
+        expect(buscador.grupo).toBe('Gastos');
+        buscador.dispatchEvent(new CustomEvent('elegir', { detail: { valor: '6220000 Reparaciones y conservación' } }));
+        await esperar();
+        expect(r.querySelector('c-bandeja-contable-cuentas')).toBeNull();
+        expect(r.querySelector('.doc-iva-fila input[data-tipo="iva"]').value).toBe('6220000 Reparaciones y conservación');
+        expect(r.querySelector('.doc-aprender')).not.toBeNull(); // cuenta cambiada a mano: propone la regla
+
+        await pulsar(el, 'input[data-tipo="asiento"]');
+        const cuentas = r.querySelector('c-bandeja-contable-cuentas');
+        expect(cuentas.soloCodigo).toBe(true);
+        cuentas.dispatchEvent(new CustomEvent('elegir', { detail: { valor: '6290000' } }));
+        await esperar();
+        expect(r.querySelector('input[data-tipo="asiento"]').value).toBe('6290000');
+
+        await pulsar(el, 'input[data-k="ctaProv"]');
+        expect(r.querySelector('c-bandeja-contable-cuentas').grupo).toBe('Proveedores');
+        r.querySelector('c-bandeja-contable-cuentas').dispatchEvent(new CustomEvent('cerrar'));
+        await esperar();
+        expect(r.querySelector('c-bandeja-contable-cuentas')).toBeNull();
     });
 
     it('no contabilizar exige motivo y bloquea la factura', async () => {
@@ -99,7 +157,12 @@ describe('c-bandeja-contable-documento con documentos de Google', () => {
         expect(r.querySelector('.doc-titulo').textContent).toBe('Factura 011-0004-027945');
         expect(r.querySelector('.doc-google').textContent).toContain('OBRAMAT');
         expect(r.querySelector('.doc-google').textContent).toContain('págs. 13–15');
-        expect(r.querySelector('.doc-iframe').getAttribute('src')).toBe('https://firmada/doc.pdf#navpanes=0&view=FitH');
+        const visor = r.querySelector('c-bandeja-contable-visor');
+        expect(visor.url).toBe('https://firmada/doc.pdf');
+        expect(visor.mime).toBe('application/pdf');
+        expect(visor.nombre).toBe('BC-00001_D03.pdf');
+        expect(visor.paginas).toBe(3); // págs. 13–15 del PDF original
+        expect(obtenerDocumentoGoogle).toHaveBeenCalledWith({ bandejaId: 'a00B', documentoId: 'doc_1' });
         const conceptos = r.querySelectorAll('.doc-concepto-fila:not(.doc-tabla-cab):not(.doc-tabla-pie)');
         expect(conceptos).toHaveLength(2);
         expect(conceptos[0].querySelector('input').value).toBe('Silicona neutra');

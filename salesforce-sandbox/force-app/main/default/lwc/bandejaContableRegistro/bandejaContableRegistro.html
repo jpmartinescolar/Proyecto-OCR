@@ -20,12 +20,12 @@
                     <div class="bc-acciones">
                         <button class="bc-boton-sec" onclick={handleEditar}>Editar</button>
                         <button class="bc-boton-sec" disabled={noPuedeReprocesar} onclick={reprocesar}
-                                title="Vuelve a separar y leer en Google todos los archivos de la bandeja">Reprocesar OCR</button>
+                                title="Vuelve a separar y leer todos los archivos de la bandeja">Reprocesar OCR</button>
                     </div>
                 </div>
                 <template lwc:if={procesamiento}>
                     <div class="reg-procesamiento">
-                        <span class="reg-procesamiento-label">Procesamiento en Google</span>
+                        <span class="reg-procesamiento-label">Procesamiento</span>
                         <span class={procesamiento.clase}>{procesamiento.texto}</span>
                         <template lwc:if={procesamiento.girando}><span class="reg-girando"></span></template>
                         <span class="bc-card-nota">{procesamiento.detalle}</span>
@@ -74,7 +74,7 @@
                                     <div class="reg-tipo" style={a.estiloTipo}>{a.ext}</div>
                                     <div class="reg-archivo-info">
                                         <div class="reg-archivo-nombre" title={a.nombre}>{a.nombre}</div>
-                                        <div class="reg-archivo-meta">{a.meta}<template lwc:if={a.resumenGoogle}> · {a.resumenGoogle}</template></div>
+                                        <div class="reg-archivo-meta">{a.meta}<template lwc:if={a.resumen}> · {a.resumen}</template></div>
                                         <template lwc:if={a.error}><div class="reg-archivo-error">{a.error}</div></template>
                                         <template lwc:if={a.hayIncidencias}>
                                             <div class="reg-incidencias">
@@ -90,7 +90,7 @@
                             </template>
                         </div>
                         <template lwc:if={errorGoogle}>
-                            <div class="bc-vacio bc-rojo">No se ha podido consultar Google: {errorGoogle}</div>
+                            <div class="bc-vacio bc-rojo">No se ha podido consultar el procesamiento: {errorGoogle}</div>
                         </template>
                     </section>
 
@@ -98,9 +98,19 @@
                         <div class="bc-card-titulo">
                             <span class="bc-card-titulo-texto">{tituloDocumentos}</span>
                             <template lwc:if={hayDocumentosGoogle}>
-                                <span class="bc-card-nota">Separados y leídos por Google · 1 registro por documento</span>
+                                <span class="bc-card-nota">1 registro por documento</span>
                             </template>
                         </div>
+                        <template lwc:if={cargandoDocumentos}>
+                            <div class="reg-carga" aria-busy="true" aria-label="Cargando documentos">
+                                <template for:each={filasCarga} for:item="n">
+                                    <div key={n} class="reg-carga-fila"><span></span><span></span><span></span></div>
+                                </template>
+                            </div>
+                        </template>
+                        <template lwc:if={avisoProceso}>
+                            <div class="reg-aviso-proceso"><span class="reg-girando"></span><span>{avisoProceso}</span></div>
+                        </template>
                         <template lwc:if={hayDocumentosGoogle}>
                             <div class="bc-tabla-wrap">
                                 <table class="bc-tabla bc-tabla-peq">
@@ -110,7 +120,7 @@
                                             <th>Documento</th>
                                             <th>Tipo</th>
                                             <th>Lectura preliminar</th>
-                                            <th>Google</th>
+                                            <th>Estado</th>
                                             <th class="bc-ultima" title="Decisión del asesor (datos de ejemplo hasta la Fase 2)">Contable</th>
                                         </tr>
                                     </thead>
@@ -136,7 +146,7 @@
                             </div>
                             <div class="reg-nota">La lectura preliminar sirve para separar y reconocer cada documento; la extracción completa de los datos contables llega en la siguiente fase.</div>
                         </template>
-                        <template lwc:else>
+                        <template lwc:if={sinDocumentos}>
                             <div class="bc-vacio">{sinDocumentosTxt}</div>
                         </template>
                     </section>

@@ -15,8 +15,12 @@ Salesforce (LWC bandejaContableNuevo)
   4. confirmarSubida         → Apex → Cloud Run /confirm: comprueba el objeto → RECIBIDO → encola el procesamiento
                                en Cloud Tasks (EN_COLA) cuando exista el procesador (Fase 1, paso 3).
                                Si Google falla: reintento en la cola de Salesforce a 1/5/10 min.
-Pantallas (LWC bandejaContableApp): Salesforce + Cloud Run /records (URL firmadas de 15 min para ver y
-para descargar con el nombre original)
+Pantallas (LWC bandejaContableApp): Salesforce + Cloud Run
+  /records    archivos de una bandeja (URL firmadas de 15 min para ver y descargar con el nombre original)
+  /documents  documentos separados de una bandeja, solo datos (sin URL ni extracción)
+  /document   un documento al abrirlo: URL firmada y datos extraídos por la IA
+  /status     estado del procesamiento de varias bandejas en una llamada (listados)
+Estado que ve el usuario: Cargando · Procesando · Procesado · Error (bandejaContableUtils.estadoProceso)
 ```
 
 El archivo **nunca pasa por Salesforce** ni por la API: va del navegador a Cloud Storage.

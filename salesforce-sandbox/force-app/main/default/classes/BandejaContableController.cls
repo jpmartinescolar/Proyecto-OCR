@@ -79,6 +79,9 @@ public with sharing class BandejaContableController {
         @AuraEnabled public String tipoValor;
         @AuraEnabled public String tipo;
         @AuraEnabled public Integer archivos;
+        /** Archivos ya registrados en Google y con error de subida: el resto se está subiendo */
+        @AuraEnabled public Integer archivosSincronizados;
+        @AuraEnabled public Integer archivosError;
         @AuraEnabled public String origen;
         @AuraEnabled public String estado;
         @AuraEnabled public String estadoSubida;
@@ -128,7 +131,8 @@ public with sharing class BandejaContableController {
     public static List<BandejaResumenDTO> listarBandejas(Id empresaId) {
         List<BandejaResumenDTO> out = new List<BandejaResumenDTO>();
         String soql = 'SELECT Id, Name, CreatedDate, Empresa__c, Empresa__r.Name, Empresa__r.CIF__c, Tipo_documentacion__c, '
-            + 'Archivos_total__c, Origen__c, Estado__c, Estado_subida__c, CreatedBy.Name FROM Bandeja_Contable__c '
+            + 'Archivos_total__c, Archivos_sincronizados__c, Archivos_error__c, Origen__c, Estado__c, Estado_subida__c, CreatedBy.Name '
+            + 'FROM Bandeja_Contable__c '
             + (empresaId == null ? '' : 'WHERE Empresa__c = :empresaId ')
             + 'ORDER BY CreatedDate DESC LIMIT :limite';
         Map<String, Object> binds = new Map<String, Object>{ 'empresaId' => empresaId, 'limite' => MAX_BANDEJAS_LISTADO };
@@ -216,6 +220,8 @@ public with sharing class BandejaContableController {
         r.tipoValor = b.Tipo_documentacion__c;
         r.tipo = etiqueta(Bandeja_Contable__c.Tipo_documentacion__c, b.Tipo_documentacion__c);
         r.archivos = b.Archivos_total__c == null ? 0 : b.Archivos_total__c.intValue();
+        r.archivosSincronizados = b.Archivos_sincronizados__c == null ? 0 : b.Archivos_sincronizados__c.intValue();
+        r.archivosError = b.Archivos_error__c == null ? 0 : b.Archivos_error__c.intValue();
         r.origen = etiqueta(Bandeja_Contable__c.Origen__c, b.Origen__c);
         r.estado = b.Estado__c;
         r.estadoSubida = b.Estado_subida__c;
@@ -360,7 +366,7 @@ public with sharing class BandejaContableController {
         try {
             return BandejaContableGcpService.listarArchivos(bandejaId);
         } catch (BandejaContableGcpService.GcpException e) {
-            throw error('No se han podido consultar los archivos en Google. ' + e.getMessage());
+            throw error('No se ha podido consultar el procesamiento de los archivos. ' + e.getMessage());
         }
     }
 
@@ -371,8 +377,42 @@ public with sharing class BandejaContableController {
         try {
             return BandejaContableGcpService.listarDocumentos(bandejaId);
         } catch (BandejaContableGcpService.GcpException e) {
-            throw error('No se han podido consultar los documentos en Google. ' + e.getMessage());
+            throw error('No se han podido consultar los documentos. ' + e.getMessage());
         }
+    }
+
+    /** Un documento para abrirlo en la pantalla Documento: URL para verlo y datos extraídos por la IA */
+    @AuraEnabled
+    public static BandejaContableGcpService.DocumentoGoogle obtenerDocumentoGoogle(Id bandejaId, String documentoId) {
+        comprobarAcceso(bandejaId);
+        try {
+            return BandejaContableGcpService.obtenerDocumento(bandejaId, documentoId);
+        } catch (BandejaContableGcpService.GcpException e) {
+            throw error('No se ha podido abrir el documento. ' + e.getMessage());
+        }
+    }
+
+    /**
+     * Estado del procesamiento de las bandejas de un listado, en una sola llamada. Solo de las que el
+     * usuario puede ver (USER_MODE); con el estado de sus archivos en Salesforce, el LWC calcula el estado
+     * que ve el usuario (bandejaContableUtils.estadoProceso).
+     */
+    @AuraEnabled
+    public static List<BandejaContableGcpService.EstadoGoogle> estadoProcesamiento(List<Id> bandejaIds) {
+        if (bandejaIds == null || bandejaIds.isEmpty()) return new List<BandejaContableGcpService.EstadoGoogle>();
+        List<Id> visibles = new List<Id>(new Map<Id, Bandeja_Contable__c>(
+            [SELECT Id FROM Bandeja_Contable__c WHERE Id IN :bandejaIds WITH USER_MODE LIMIT 200]).keySet());
+        try {
+            return BandejaContableGcpService.estadoBandejas(visibles).values();
+        } catch (BandejaContableGcpService.GcpException e) {
+            throw error('No se ha podido consultar el procesamiento. ' + e.getMessage());
+        }
+    }
+
+    /** Empresas y grupos empresariales para elegir las "empresas afectadas" de una skill */
+    @AuraEnabled
+    public static BandejaContableEmpresasService.EmpresasYGruposDTO buscarEmpresasYGrupos(String texto) {
+        return BandejaContableEmpresasService.buscarEmpresasYGrupos(texto);
     }
 
     /** "Reprocesar OCR": vuelve a separar y clasificar en Google los archivos de la bandeja */
@@ -382,7 +422,7 @@ public with sharing class BandejaContableController {
         try {
             return BandejaContableGcpService.reprocesar(bandejaId, null);
         } catch (BandejaContableGcpService.GcpException e) {
-            throw error('No se ha podido pedir el reproceso a Google. ' + e.getMessage());
+            throw error('No se ha podido pedir que se vuelvan a procesar los archivos. ' + e.getMessage());
         }
     }
 

@@ -1,33 +1,105 @@
 <template>
-    <div class="skl-caja">
-        <div class="skl-cab">
-            <span class="skl-flex">Skills del cliente <span class="skl-cab-nota">({total})</span></span>
-            <span class="bc-ejemplo">Datos de ejemplo</span>
-            <button class="bc-boton bc-boton-mini" onclick={nueva}>+ Nueva skill</button>
-        </div>
-        <div class="skl-buscar">
-            <input class="bc-buscar skl-flex" type="search" placeholder="Buscar por número, título, proveedor o texto…" value={busqueda} oninput={buscar}>
-            <span class="skl-gris">{contador}</span>
-        </div>
-        <template lwc:if={sinResultados}><div class="bc-vacio">No hay skills que coincidan con la búsqueda.</div></template>
-        <div class={claseLista}>
-            <template for:each={skills} for:item="s">
-                <div key={s.num} class={s.clase} data-num={s.num} onclick={editarClic} title="Editar skill">
-                    <div class="skl-fila-cab">
-                        <span class="skl-num">{s.num}</span>
-                        <span class="skl-flex skl-titulo">{s.title}</span>
-                        <template lwc:if={s.aplica}><span class="bc-pill bc-pill-peq bc-pill-brand">Aplica</span></template>
-                        <span class="bc-pill bc-pill-peq">{s.alcance}</span>
+    <div class={claseCaja}>
+        <!-- ===== Lista de skills ===== -->
+        <div class="skl-caja">
+            <div class="skl-cab">
+                <span class="skl-flex">Skills particulares <span class="skl-cab-nota">({total})</span></span>
+                <span class="bc-ejemplo">Datos de ejemplo</span>
+                <button class="bc-boton bc-boton-mini" onclick={nueva}>+ Nueva skill</button>
+            </div>
+            <div class="skl-buscar">
+                <input class="bc-buscar skl-flex" type="search" placeholder="Buscar por número, título, proveedor o texto…" value={busqueda} oninput={buscar}>
+                <span class="skl-gris">{contador}</span>
+            </div>
+            <template lwc:if={sinResultados}><div class="bc-vacio">No hay skills que coincidan con la búsqueda.</div></template>
+            <div class={claseLista}>
+                <template for:each={skills} for:item="s">
+                    <div key={s.num} class={s.clase} data-num={s.num} onclick={editarClic} title="Editar skill">
+                        <div class="skl-fila-cab">
+                            <span class="skl-num">{s.num}</span>
+                            <span class="skl-flex skl-titulo">{s.title}</span>
+                            <span class={s.claseEstado}>{s.estado}</span>
+                            <template lwc:if={s.aplica}><span class="bc-pill bc-pill-peq bc-pill-brand">Aplica</span></template>
+                            <template lwc:if={esTarjetas}><span class="bc-pill bc-pill-peq">{s.alcance}</span></template>
+                        </div>
+                        <span class="skl-texto">{s.text}</span>
+                        <template lwc:if={s.finalizada}><span class="skl-gris skl-peq">{s.finalizada}</span></template>
+                        <template lwc:if={esTarjetas}><template lwc:if={s.meta}><span class="skl-gris">{s.meta}</span></template></template>
+                        <div class="skl-empresas-fila">
+                            <button class="skl-empresas-boton" data-num={s.num} title="Ver empresas afectadas" onclick={desplegar}>
+                                <lightning-icon icon-name="utility:company" size="xx-small"></lightning-icon>{s.textoEmpresas}<span class="skl-flecha">{s.flecha}</span>
+                            </button>
+                        </div>
+                        <template lwc:if={s.abierta}>
+                            <div class="skl-empresas" onclick={parar}>
+                                <template for:each={s.gruposLista} for:item="g">
+                                    <span key={g.id} class="skl-emp skl-emp-grupo" title="Grupo empresarial">{g.nombre}</span>
+                                </template>
+                                <template for:each={s.empresasLista} for:item="e">
+                                    <span key={e.id} class={e.clase}>{e.nombre}</span>
+                                </template>
+                            </div>
+                        </template>
                     </div>
-                    <span class="skl-texto">{s.text}</span>
-                    <template lwc:if={s.meta}><span class="skl-gris">{s.meta}</span></template>
-                </div>
-            </template>
+                </template>
+            </div>
         </div>
+
+        <!-- ===== Editor en la pestaña (documento) ===== -->
+        <template lwc:if={abiertoPestana}>
+            <div class="skl-editor" role="form" aria-label={titulo}>
+                <div class="skl-editor-cab">
+                    <span class="skl-num-badge">{ed.num}</span>
+                    <input class={claseTitulo} data-k="title" value={ed.title} placeholder="Título de la skill" onchange={cambiar}>
+                    <div class="skl-estados">
+                        <template for:each={estados} for:item="x"><button key={x.o} class={x.clase} data-v={x.v} onclick={elegirEstado}>{x.o}</button></template>
+                    </div>
+                    <template lwc:if={esInactiva}>
+                        <label class="skl-fin">Fecha de finalización <b class="skl-obligatorio">*</b>
+                            <input type="date" class={claseFin} data-k="fin" value={ed.fin} onchange={cambiar}>
+                        </label>
+                    </template>
+                    <button class="bc-boton-sec bc-boton-mini" onclick={cerrar}>Cancelar</button>
+                    <button class="bc-boton bc-boton-mini" onclick={guardar}>Guardar</button>
+                </div>
+                <div class="skl-editor-bloque">
+                    <c-bandeja-contable-skill-empresas emps={ed.emps} grps={ed.grps} actual-id={empresaId} oncambio={cambiarEmpresas}></c-bandeja-contable-skill-empresas>
+                    <template lwc:if={errEmpresas}><span class="skl-error">Elige al menos una empresa o grupo para la skill.</span></template>
+                </div>
+                <div class="skl-editor-bloque skl-editor-ambito">
+                    <div class="skl-segmentos skl-segmentos-peq">
+                        <template for:each={ambitos} for:item="a"><button key={a.o} class={a.clase} data-k={a.k} data-o={a.o} onclick={elegir}>{a.o}</button></template>
+                    </div>
+                    <template lwc:if={esProveedor}>
+                        <input class={claseNif} data-k="nif" value={ed.nif} placeholder="NIF del proveedor" onchange={cambiar}>
+                        <input class="skl-input skl-input-peq" data-k="prov" value={ed.prov} placeholder="Nombre (opcional)" onchange={cambiar}>
+                    </template>
+                    <div class="skl-segmentos skl-segmentos-peq">
+                        <template for:each={tipos} for:item="t"><button key={t.o} class={t.clase} data-k={t.k} data-o={t.o} onclick={elegir}>{t.o}</button></template>
+                    </div>
+                    <input class="skl-input skl-input-peq" data-k="cuenta" value={ed.cuenta} placeholder="Cuenta contable (opcional)" onchange={cambiar}>
+                </div>
+                <template lwc:if={errNif}><span class="skl-error skl-error-pad">El NIF del proveedor debe tener 9 caracteres.</span></template>
+                <template lwc:if={errFin}><span class="skl-error skl-error-pad">Indica la fecha de finalización de la skill inactiva.</span></template>
+                <div class="skl-papel-fondo">
+                    <div class="skl-papel">
+                        <lightning-input-rich-text value={ed.html} label="Instrucción para la IA" label-visible="false"
+                                                   placeholder="Explícalo como a un compañero: qué facturas, a qué cuenta van, qué porcentaje de IVA se deduce y cuándo avisar."
+                                                   onchange={cambiarHtml}></lightning-input-rich-text>
+                    </div>
+                    <template lwc:if={errTitulo}><span class="skl-error">Pon un título corto para reconocerla.</span></template>
+                    <template lwc:if={errTexto}><span class="skl-error">Escribe la instrucción que debe seguir la IA.</span></template>
+                </div>
+                <div class="skl-editor-pie">
+                    <span class="skl-flex">La IA leerá este texto al procesar las facturas del cliente.</span>
+                    <template lwc:if={esEdicion}><button class="skl-eliminar" onclick={eliminar}>Eliminar skill</button></template>
+                </div>
+            </div>
+        </template>
     </div>
 
-    <!-- Editor de skill (modal) -->
-    <template lwc:if={abierto}>
+    <!-- ===== Editor en ventana (ficha de la empresa) ===== -->
+    <template lwc:if={abiertoModal}>
         <div class="skl-fondo" onclick={cerrar}>
             <div class="skl-modal" onclick={parar} role="dialog" aria-modal="true" aria-label={titulo}>
                 <div class="skl-modal-cab">
@@ -43,6 +115,25 @@
                         <input class={claseTitulo} data-k="title" value={ed.title} placeholder="p. ej. Telefónica: móviles de empresa" onchange={cambiar}>
                         <template lwc:if={errTitulo}><span class="skl-error">Pon un título corto para reconocerla.</span></template>
                     </label>
+                    <div class="skl-dos">
+                        <div class="skl-campo">
+                            <span class="skl-label">Estado</span>
+                            <div class="skl-estados skl-estados-grande">
+                                <template for:each={estados} for:item="x"><button key={x.o} class={x.clase} data-v={x.v} onclick={elegirEstado}>{x.o}</button></template>
+                            </div>
+                        </div>
+                        <template lwc:if={esInactiva}>
+                            <label class="skl-campo">
+                                <span class="skl-label">Fecha de finalización <b class="skl-obligatorio">*</b></span>
+                                <input type="date" class={claseFin} data-k="fin" value={ed.fin} onchange={cambiar}>
+                                <template lwc:if={errFin}><span class="skl-error">Indica la fecha de finalización de la skill inactiva.</span></template>
+                            </label>
+                        </template>
+                    </div>
+                    <div class="skl-campo">
+                        <c-bandeja-contable-skill-empresas emps={ed.emps} grps={ed.grps} actual-id={empresaId} oncambio={cambiarEmpresas}></c-bandeja-contable-skill-empresas>
+                        <template lwc:if={errEmpresas}><span class="skl-error">Elige al menos una empresa o grupo para la skill.</span></template>
+                    </div>
                     <div class="skl-dos">
                         <div class="skl-campo">
                             <span class="skl-label">Ámbito</span>
@@ -82,7 +173,7 @@
                     <div class="skl-campo">
                         <span class="skl-eyebrow">Vista previa</span>
                         <div class="skl-previa">
-                            <div class="skl-fila-cab"><span class="skl-num">{vista.num}</span><span class="skl-flex skl-titulo">{vista.title}</span><span class="bc-pill bc-pill-peq">{vista.scope}</span></div>
+                            <div class="skl-fila-cab"><span class="skl-num">{vista.num}</span><span class="skl-flex skl-titulo">{vista.title}</span><span class={vista.claseEstado}>{vista.estado}</span><span class="bc-pill bc-pill-peq">{vista.scope}</span></div>
                             <span class="skl-texto">{vista.text}</span>
                             <span class="skl-gris">{vista.meta}</span>
                         </div>

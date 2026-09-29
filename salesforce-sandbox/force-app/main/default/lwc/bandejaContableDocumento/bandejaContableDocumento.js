@@ -4,9 +4,11 @@ import getBandeja from '@salesforce/apex/BandejaContableController.getBandeja';
 import getDatosCliente from '@salesforce/apex/BandejaContableController.getDatosCliente';
 import listarArchivosGoogle from '@salesforce/apex/BandejaContableController.listarArchivosGoogle';
 import listarDocumentosGoogle from '@salesforce/apex/BandejaContableController.listarDocumentosGoogle';
+import obtenerDocumentoGoogle from '@salesforce/apex/BandejaContableController.obtenerDocumentoGoogle';
 import {
     documentosDeBandeja, datosExtraidos, datosEmpresa, aprenderRegla, cambiarEstadoDocumento, duplicadoDe, historicoProveedor,
-    anadirNota, notasDe, tareasDe, chatsDe, SOFTWARE_CLIENTE, MOTIVOS_NO_CONTABILIZAR
+    anadirNota, notasDe, tareasDe, chatsDe, skillsDeEmpresa, skillActiva, extraccionValidada, validarExtraccion,
+    SOFTWARE_CLIENTE, MOTIVOS_NO_CONTABILIZAR
 } from 'c/bandejaContableMock';
 import {
     TIPOS_IVA, TIPOS_RETENCION, CODIGOS_TRANSACCION, CONCEPTOS_RIESGO, nif as normalizarNif, porcentajeDeducible, contrapartidaPorDefecto,
@@ -30,26 +32,19 @@ const GRUPOS = [
     { titulo: 'Totales', clase: 'doc-campos doc-campos-4', campos: [['_base', 'Base imponible (€)'], ['_cuota', 'Total IVA (€)'], ['irpf', 'Retención IRPF (€)'], ['total', 'Total factura (€)']] }
 ];
 const PESTANAS = [
-    ['general', 'Datos'], ['pf', 'Perfil fiscal'], ['chk', 'Comprobaciones'], ['is', 'IS'], ['prod', 'Productos'], ['notas', 'Notas'],
-    ['tareas', 'Tareas'], ['chat', 'Chat IA'], ['iae', 'Actividades'], ['loc', 'Locales'], ['tur', 'Turismos'], ['sk', 'Skills']
+    ['general', 'Datos'], ['sk', 'Skills'], ['pf', 'Perfil fiscal'], ['chk', 'Check'], ['is', 'IS'], ['prod', 'Productos'], ['notas', 'Notas y Archivos'],
+    ['tareas', 'Tareas'], ['chat', 'Chat IA'], ['iae', 'Actividades'], ['loc', 'Locales'], ['tur', 'Turismos']
 ];
+// Capas del documento (diseño v2 Híbrido): 1 · Extracción de datos, 2 · Inteligencia fiscal.
+// La barra solo muestra las pestañas de la capa activa; cada capa recuerda su última pestaña.
+const INTEL = ['chk', 'pf', 'is', 'iae', 'loc', 'tur', 'chat'];
+const capaDe = (pestana) => (INTEL.includes(pestana) ? 'intel' : 'ext');
+const PASOS = [['Extraído', 'Lectura OCR'], ['Validado', 'Revisado por ti'], ['Interpretado', 'Reglas y skills del cliente'], ['Insight fiscal', 'Alertas y riesgo']];
+// Buscador de cuentas: grupo con el que se abre según el campo (la contrapartida depende de la cuenta)
+const GRUPO_CUENTA = { prov: 'Proveedores', asiento: 'Todas', extra: 'Todas' };
 const COLORES_TIPO = { Emitida: 'doc-tipo-emitida', Recibida: 'doc-tipo-recibida', Ticket: 'doc-tipo-ticket' };
 const ORIGEN = { Email: 'buzón de correo', Manual: 'carga manual', Portal: 'portal del cliente', 'Portal del cliente': 'portal del cliente' };
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-
-/**
- * Opciones del visor de PDF del navegador (van tras el #, no afectan a la firma de la URL):
- * sin el panel de miniaturas, que en PDF de varias páginas encoge la factura, y ajustada al ancho.
- * Conserva la página inicial (#page=N) de los documentos que son parte de un PDF mayor.
- */
-function urlVisorPdf(url) {
-    if (!url) return url;
-    const [base, fragmento] = url.split('#');
-    const opciones = new URLSearchParams(fragmento || '');
-    opciones.set('navpanes', '0');
-    opciones.set('view', 'FitH');
-    return `${base}#${opciones.toString()}`;
-}
 
 let claveLinea = 0;
 
@@ -77,7 +72,7 @@ export default class BandejaContableDocumento extends LightningElement {
     set documentoId(v) {
         this._documentoId = v;
         this.cerrarVentanas();
-        if (this.docs) this.recalcular();
+        if (this.docs) this.abrirDocumentoActual();
     }
 
     cargando = true;
@@ -100,11 +95,10 @@ export default class BandejaContableDocumento extends LightningElement {
     dedError = {};
 
     pestana = 'general';
+    ultimaPestana = { ext: 'general', intel: 'chk' };
+    cuentas = null; // buscador de cuentas abierto: { tipo, i, grupo, valor, soloCodigo, ancla }
     hover = null;
     productoResaltado = null;
-    vistaVisor = null; // null: original si es un documento real de Google; si no, la vista OCR de ejemplo
-    zoom = 100;
-    giro = 0;
 
     ncBorrador = null; // { motivo, comentario, avisar }
     avisoValidar = false;
@@ -142,7 +136,39 @@ export default class BandejaContableDocumento extends LightningElement {
         this.docsGoogle = docs.status === 'fulfilled' ? docs.value : [];
         this.docs = documentosDeBandeja(this.detalle, this.docsGoogle);
         this.error = this.docs.length ? null : 'Esta bandeja todavía no tiene documentos OCR.';
+        await this.cargarDetalleDocumento();
         this.cargando = false;
+        this.recalcular();
+    }
+
+    // El listado de documentos trae solo datos: el enlace firmado para verlo y los datos extraídos por la
+    // IA se piden al abrir cada documento (y se guardan para no volver a pedirlos en la sesión).
+    documentoGoogleActual() {
+        const doc = this.docs.find((d) => d.id === this._documentoId) || this.docs[0];
+        return doc && this.docsGoogle.find((g) => g.id === doc.id);
+    }
+
+    async cargarDetalleDocumento() {
+        const g = this.documentoGoogleActual();
+        if (!g || g.conDetalle) return;
+        let cambios;
+        try {
+            const d = await obtenerDocumentoGoogle({ bandejaId: this.bandejaId, documentoId: g.id });
+            cambios = { viewUrl: d.viewUrl, extraccion: d.extraccion, conDetalle: true };
+        } catch (e) {
+            cambios = { conDetalle: true, errorDetalle: mensajeError(e) };
+        }
+        this.docsGoogle = this.docsGoogle.map((x) => (x.id === g.id ? { ...x, ...cambios } : x));
+        this.docs = documentosDeBandeja(this.detalle, this.docsGoogle);
+    }
+
+    async abrirDocumentoActual() {
+        const g = this.documentoGoogleActual();
+        if (g && !g.conDetalle) {
+            this.cargando = true;
+            await this.cargarDetalleDocumento();
+            this.cargando = false;
+        }
         this.recalcular();
     }
 
@@ -159,6 +185,9 @@ export default class BandejaContableDocumento extends LightningElement {
         const ed = this.edits[doc.id] || {};
         const emp = datosEmpresa(doc.empresaId);
         const cliente = this.cliente || {};
+        const skillsEmpresa = skillsDeEmpresa({ id: doc.empresaId, nombre: cliente.nombre || this.detalle.resumen.empresa });
+        const skills = skillsEmpresa.filter((s) => skillActiva(s)); // las inactivas no se aplican
+        const validada = extraccionValidada(doc.id);
 
         const val = (k) => (ed[k] !== undefined ? ed[k] : x0[k]);
         const x = { ...x0, ...ed };
@@ -177,7 +206,6 @@ export default class BandejaContableDocumento extends LightningElement {
         const contraDef = contrapartidaPorDefecto(tipo, cuentaBase);
         const ttDef = esExtranjero(nifActual, val('dir')) ? '02' : '01';
         const sugerencia = sugerenciaDeducible(regla, textoLineas);
-        const skills = emp.skills;
         const filasIva = ivas.map((r, i) => this.filaIva(r, i, { regla, contraDef, ttDef, sugerencia, skills, nifActual }));
         const sumas = sumasIva(ivas);
         const irpf = num(val('irpf'));
@@ -195,6 +223,7 @@ export default class BandejaContableDocumento extends LightningElement {
                 if (k === '_base') return { ...campo, valor: euros(sumas.base), soloLectura: true };
                 if (k === '_cuota') return { ...campo, valor: euros(sumas.cuota), soloLectura: true };
                 if (k === 'irpf' || k === 'total') return { ...campo, clase: 'doc-input doc-input-num' };
+                if (k === 'ctaProv') return { ...campo, soloLectura: true, titulo: 'Pulsa para buscar la cuenta', clase: 'doc-input doc-input-cuenta' };
                 return campo;
             })
         }));
@@ -242,8 +271,9 @@ export default class BandejaContableDocumento extends LightningElement {
         const prods = productos(x0.lineas, x0.ivasDoc || x0.ivas);
         const conceptos = this.conceptos(ed.productos || this.conceptosBase(x0, prods), sumas.base);
 
-        // Skills aplicadas: las del reparto de líneas y las del proveedor
-        const aplicadas = [...new Set([...ivas.map((r) => r.sk).filter(Boolean), ...skills.filter((s) => s.nif && s.nif === nifActual).map((s) => s.num)])];
+        // Skills aplicadas (solo activas): las del reparto de líneas, las de % deducible y las del proveedor
+        const activas = new Set(skills.map((s) => s.num));
+        const aplicadas = [...new Set([...ivas.flatMap((r) => [r.sk, r.sk2]).filter((n) => n && activas.has(n)), ...skills.filter((s) => s.nif && s.nif === nifActual).map((s) => s.num)])];
 
         // ----- Aprendizaje: contrapartida cambiada a mano → regla del proveedor -----
         const cambiada = ivas.find((r) => r.contraManual && String(r.contra || '').trim());
@@ -257,8 +287,6 @@ export default class BandejaContableDocumento extends LightningElement {
         const lineasDoc = (x0.lineas || []).map((l, i) => ({ ...l, key: 'l' + i, estilo: marca(this.productoResaltado === i, AMARILLO) }));
         // Documento real de Google: su propio PDF (recortado si venía con otros); si no, el archivo subido
         const urlsArchivo = doc.google && doc.google.viewUrl ? { ver: doc.google.viewUrl, descargar: doc.google.viewUrl } : this.urls[doc.archivoId] || {};
-        const vista = this.vistaVisor || (doc.google ? 'original' : 'ocr');
-        const archivoUrl = urlsArchivo.ver;
         const mime = String(doc.archivoMime || '');
 
         // ----- Divisa -----
@@ -282,8 +310,9 @@ export default class BandejaContableDocumento extends LightningElement {
         const chats = chatsDe(doc.id).length;
         const contadores = {
             chk: checksMal, is: is.total, prod: prods.filas.length, notas, tareas: tareasPend, chat: chats,
-            iae: (cliente.actividades || []).length, loc: (cliente.locales || []).length, tur: emp.turismos.length, sk: skills.length
+            iae: (cliente.actividades || []).length, loc: (cliente.locales || []).length, tur: emp.turismos.length, sk: skillsEmpresa.length
         };
+        const capa = capaDe(this.pestana);
         const consumo = consumoIa(base.consumo);
         const tiposCabecera = ['Emitida', 'Recibida', 'Ticket'].map((t) => ({ t, clase: 'doc-tipo' + (t === tipo ? ' ' + COLORES_TIPO[t] : '') }));
 
@@ -311,7 +340,8 @@ export default class BandejaContableDocumento extends LightningElement {
                 software: cliente.softwareContable && cliente.softwareContable !== 'Otros' ? cliente.softwareContable : SOFTWARE_CLIENTE,
                 softwareEjemplo: !(cliente.softwareContable && cliente.softwareContable !== 'Otros')
             },
-            pestanas: PESTANAS.map(([k, label]) => {
+            ...this.capas(capa, validada, checksMal),
+            pestanas: PESTANAS.filter(([k]) => capaDe(k) === capa).map(([k, label]) => {
                 const on = this.pestana === k;
                 const n = contadores[k];
                 return {
@@ -377,23 +407,57 @@ export default class BandejaContableDocumento extends LightningElement {
             conCliente: !/SIMPL/i.test(x0.kind),
             clienteNombre: cliente.nombre || this.detalle.resumen.empresa,
             clienteCif: cliente.cif || this.detalle.resumen.cif,
-            archivoUrl,
-            urlVisorPdf: urlVisorPdf(archivoUrl),
-            descargaUrl: urlsArchivo.descargar,
-            verOriginalPosible: !!archivoUrl && (mime === 'application/pdf' || mime.startsWith('image/')),
-            esPdf: mime === 'application/pdf',
-            esImagen: mime.startsWith('image/'),
-            enVistaOcr: vista === 'ocr' || !archivoUrl,
-            claseVistaOcr: 'bc-chip' + (vista === 'ocr' ? ' bc-chip-on' : ''),
-            claseVistaOriginal: 'bc-chip' + (vista === 'original' ? ' bc-chip-on' : ''),
-            zoomTxt: `${this.zoom} %`,
-            estiloPapel: `transform:scale(${this.zoom / 100}) rotate(${this.giro}deg);transform-origin:top center`,
+            // Visor (bandejaContableVisor): el archivo real si lo hay; si no, la vista de ejemplo
+            visor: {
+                url: urlsArchivo.ver,
+                mime,
+                nombre: doc.google ? doc.google.nombre || doc.nombre : doc.archivoNombre || doc.nombre,
+                descargaUrl: urlsArchivo.descargar,
+                // Páginas del documento separado (Google lo recorta del PDF original)
+                paginas: doc.google && doc.google.paginaFin ? doc.google.paginaFin - doc.google.paginaInicio + 1 : null
+            },
             desdeOcr: this.origen === 'ocr',
             // Ventanas
             nc: nc ? { ...nc, motivos, claseOk: 'doc-boton-peligro' + (nc.motivo ? '' : ' doc-boton-bloqueado') } : null,
             claseBotonNc: 'doc-boton-nc' + (nc ? ' doc-boton-nc-on' : ''),
             avisoValidar: this.avisoValidar,
-            riesgoModal: this.riesgoModal
+            riesgoModal: this.riesgoModal,
+            cuentas: this.cuentas
+        };
+    }
+
+    /**
+     * Tarjetas de capas y línea de pasos. "Validado" es la confirmación del asesor de los datos
+     * extraídos (en memoria: FALTA guardarla en la tabla confirmaciones, ver bandejaContableMock).
+     */
+    capas(capa, validada, alertas) {
+        const intel = capa === 'intel';
+        const tarjeta = (k, n, titulo, sub, badge, claseBadge) => ({
+            k, n, titulo, sub, badge,
+            claseBadge: 'doc-capa-badge ' + claseBadge,
+            clase: 'doc-capa doc-capa-' + k + ((k === 'intel') === intel ? ' doc-capa-on' : '')
+        });
+        const activo = validada ? 3 : 1;
+        return {
+            capasLista: [
+                tarjeta('ext', '1', 'Extracción de datos', validada ? 'Datos revisados y confirmados' : 'Revisa y corrige lo que ha leído el OCR',
+                    validada ? 'Validado' : 'Pendiente', validada ? 'doc-capa-badge-ok' : 'doc-capa-badge-info'),
+                tarjeta('intel', '2', 'Inteligencia fiscal', (alertas ? `${alertas} comprobación(es) con incidencias` : 'Sin incidencias') + ' · perfil, IS y chat IA',
+                    validada ? (alertas ? `${alertas} alertas` : 'Sin alertas') : 'Provisional',
+                    validada ? (alertas ? 'doc-capa-badge-error' : 'doc-capa-badge-ok') : 'doc-capa-badge-provisional')
+            ],
+            pasos: PASOS.map(([label, quien], i) => {
+                const hecho = i === 0 || validada;
+                return {
+                    label, quien, conLinea: i > 0,
+                    marca: hecho ? '✓' : String(i + 1),
+                    clase: 'doc-paso' + (hecho ? ' doc-paso-hecho' : i === activo ? ' doc-paso-activo' : ''),
+                    claseLinea: 'doc-paso-linea' + (hecho ? ' doc-paso-linea-hecha' : '')
+                };
+            }),
+            puedeConfirmarDatos: !intel && !validada,
+            puedeReabrirDatos: validada,
+            provisional: intel && !validada
         };
     }
 
@@ -506,7 +570,10 @@ export default class BandejaContableDocumento extends LightningElement {
         if (r.sk) {
             const s = skills.find((k) => k.num === r.sk);
             chips.push({ key: r.sk, label: `${r.sk} · Reparto ${r.skPart || ''}`.trim(), tip: s ? `${s.title}: ${s.text}` : r.sk, num: r.sk });
-        } else if (!chips.length) {
+        }
+        const s2 = r.sk2 && skills.find((k) => k.num === r.sk2);
+        if (s2) chips.push({ key: s2.num, label: `${s2.num} · ${s2.short || s2.title}`, tip: `${s2.title}: ${s2.text}`, num: s2.num });
+        else if (!chips.length) {
             skills.filter((s) => s.nif && s.nif === nifActual).slice(0, 1).forEach((s) => chips.push({ key: s.num, label: `${s.num} · ${s.title.replace(/^[^:]+:\s*/, '').split(/\s+/).slice(0, 3).join(' ')}`, tip: s.text, num: s.num }));
         }
         if (!chips.length && sugerencia && r.ded != null && ded === sugerencia.v) chips.push({ key: 'ded', label: `% deducible ${sugerencia.v} % · ${sugerencia.motivo}`, tip: sugerencia.texto, num: '' });
@@ -565,7 +632,6 @@ export default class BandejaContableDocumento extends LightningElement {
         const ivas = this.ivasActuales();
         const { i, k } = e.target.dataset;
         ivas[Number(i)][k] = e.target.value;
-        if (k === 'contra') ivas[Number(i)].contraManual = true;
         this.editar({ ivas });
     }
 
@@ -706,10 +772,88 @@ export default class BandejaContableDocumento extends LightningElement {
         this.toast('Regla guardada en Skills del cliente', `Las próximas facturas de este proveedor irán a la cuenta ${c}. Datos de ejemplo.`, 'success');
     }
 
-    // ===== Pestañas =====
+    // ===== Capas y pestañas =====
     elegirPestana(e) {
-        this.pestana = e.currentTarget.dataset.k;
+        this.irAPestana(e.currentTarget.dataset.k);
+    }
+
+    /** Cambia de pestaña (y de capa si hace falta), recordando la última pestaña de cada capa */
+    irAPestana(pestana) {
+        this.ultimaPestana = { ...this.ultimaPestana, [capaDe(this.pestana)]: this.pestana };
+        this.pestana = pestana;
         this.dedAbierto = null;
+        this.cuentas = null;
+        this.recalcular();
+    }
+
+    irACapa(capa) {
+        if (capaDe(this.pestana) === capa) return;
+        this.irAPestana(this.ultimaPestana[capa]);
+    }
+
+    elegirCapa(e) {
+        this.irACapa(e.currentTarget.dataset.k);
+    }
+
+    confirmarDatos() {
+        validarExtraccion(this.docId, true);
+        this.irACapa('intel');
+        this.recalcular();
+    }
+
+    reabrirDatos() {
+        validarExtraccion(this.docId, false);
+        this.irACapa('ext');
+        this.recalcular();
+    }
+
+    irAValidar() {
+        this.irACapa('ext');
+    }
+
+    // ===== Buscador de cuentas contables =====
+    abrirCuentas(e) {
+        const el = e.currentTarget;
+        const { tipo, i } = el.dataset;
+        const valor = el.value || '';
+        const grupo = tipo === 'iva' ? (String(valor).trim().startsWith('7') ? 'Ingresos' : 'Gastos') : GRUPO_CUENTA[tipo];
+        const r = el.getBoundingClientRect();
+        this.cuentas = {
+            tipo, i: Number(i), grupo, valor, soloCodigo: tipo === 'asiento' || tipo === 'extra',
+            ancla: { top: r.top, bottom: r.bottom, left: r.left, width: r.width }
+        };
+        this.recalcular();
+    }
+
+    clickCampo(e) {
+        if (e.currentTarget.dataset.k === 'ctaProv') this.abrirCuentas(e);
+    }
+
+    elegirCuenta(e) {
+        const { tipo, i } = this.cuentas;
+        const valor = e.detail.valor;
+        this.cuentas = null;
+        if (tipo === 'iva') {
+            const ivas = this.ivasActuales();
+            ivas[i].contra = valor;
+            ivas[i].contraManual = true;
+            this.editar({ ivas });
+        } else if (tipo === 'prov') {
+            this.editar({ ctaProv: valor });
+        } else if (tipo === 'asiento') {
+            const actual = this.asientoEd[this.docId] || {};
+            this.asientoEd = { ...this.asientoEd, [this.docId]: { ...actual, [i]: { ...(actual[i] || {}), cuenta: valor } } };
+            this.recalcular();
+        } else {
+            const lineas = (this.lineasExtra[this.docId] || []).map((l) => ({ ...l }));
+            lineas[i].cuenta = valor;
+            this.lineasExtra = { ...this.lineasExtra, [this.docId]: lineas };
+            this.recalcular();
+        }
+    }
+
+    cerrarCuentas() {
+        this.cuentas = null;
         this.recalcular();
     }
 
@@ -722,29 +866,25 @@ export default class BandejaContableDocumento extends LightningElement {
 
     abrirChip(e) {
         const numero = e.currentTarget.dataset.num;
-        this.pestana = 'sk';
         this.skillAbrir = numero ? { num: numero, t: Date.now() } : null;
-        this.recalcular();
+        this.irAPestana('sk');
     }
 
     verSkills(e) {
         if (e) e.preventDefault();
-        this.pestana = 'sk';
-        this.recalcular();
+        this.irAPestana('sk');
     }
 
     verComprobaciones(e) {
         if (e) e.preventDefault();
-        this.pestana = 'chk';
-        this.recalcular();
+        this.irAPestana('chk');
     }
 
     preguntarIa(e) {
         const w = [...this.v.fiscal.items, ...this.v.operativo.items].find((x) => x.clave === e.currentTarget.dataset.clave);
         if (!w) return;
         this.consulta = { id: Date.now(), tag: w.tag, titulo: w.titulo, texto: w.texto };
-        this.pestana = 'chat';
-        this.recalcular();
+        this.irAPestana('chat');
     }
 
     // ===== Riesgo económico =====
@@ -775,14 +915,10 @@ export default class BandejaContableDocumento extends LightningElement {
         this.riesgoModal = null;
         this.dedAbierto = null;
         this.dedError = {};
+        this.cuentas = null;
     }
 
     // ===== Visor =====
-    verOcr() { this.vistaVisor = 'ocr'; this.recalcular(); }
-    verOriginal() { this.vistaVisor = 'original'; this.recalcular(); }
-    menosZoom() { this.zoom = Math.max(50, this.zoom - 10); this.recalcular(); }
-    masZoom() { this.zoom = Math.min(200, this.zoom + 10); this.recalcular(); }
-    girar() { this.giro = (this.giro + 90) % 360; this.recalcular(); }
 
     // ===== Acciones de cabecera =====
     irA(n) {

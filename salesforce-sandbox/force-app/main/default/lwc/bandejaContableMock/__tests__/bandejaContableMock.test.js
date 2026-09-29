@@ -1,5 +1,6 @@
 import {
-    documentosDeBandeja, datosExtraidos, datosEmpresa, aprenderRegla, cambiarEstadoDocumento, guardarSkill, eliminarSkill, anadirNota, notasDe, tareasDe
+    documentosDeBandeja, datosExtraidos, datosEmpresa, aprenderRegla, cambiarEstadoDocumento, guardarSkill, eliminarSkill, anadirNota, notasDe, tareasDe,
+    skillsDeEmpresa, empresasAfectadas, skillActiva
 } from 'c/bandejaContableMock';
 
 const bandeja = (archivos, extra = {}) => ({
@@ -48,13 +49,31 @@ describe('documentosDeBandeja', () => {
 
 describe('skills y colaboración', () => {
     it('crea, edita y elimina skills numerándolas', () => {
-        const antes = datosEmpresa('001S').skills.length;
-        const s = guardarSkill('001S', { title: 'Nueva', text: 'Texto', tipo: 'Todas' });
-        expect(s.num).toBe('SK-' + String(antes + 1).padStart(3, '0'));
-        guardarSkill('001S', { num: s.num, title: 'Editada' });
-        expect(datosEmpresa('001S').skills.find((x) => x.num === s.num).title).toBe('Editada');
-        eliminarSkill('001S', s.num);
-        expect(datosEmpresa('001S').skills).toHaveLength(antes);
+        const emp = { id: '001S', nombre: 'Empresa S' };
+        const antes = skillsDeEmpresa(emp).length; // las de ejemplo se asignan a la primera empresa que las abre
+        expect(antes).toBe(6);
+        const s = guardarSkill({ title: 'Nueva', text: 'Texto', tipo: 'Todas', emps: [emp] });
+        expect(s.num).toBe('SK-007');
+        guardarSkill({ num: s.num, title: 'Editada' });
+        expect(skillsDeEmpresa(emp).find((x) => x.num === s.num).title).toBe('Editada');
+        eliminarSkill(s.num);
+        expect(skillsDeEmpresa(emp)).toHaveLength(antes);
+    });
+
+    it('una skill afecta a las empresas elegidas y a las de sus grupos', () => {
+        const grupo = { id: 'g1', nombre: 'Grupo', miembros: [{ id: '001A', nombre: 'A' }, { id: '001B', nombre: 'B' }] };
+        const s = guardarSkill({ title: 'De grupo', text: 'x', emps: [{ id: '001A', nombre: 'A' }, { id: '001C', nombre: 'C' }], grps: [grupo] });
+        expect(empresasAfectadas(s).map((e) => e.id)).toEqual(['001A', '001C', '001B']);
+        expect(skillsDeEmpresa({ id: '001B' }).some((x) => x.num === s.num)).toBe(true);
+        expect(skillsDeEmpresa({ id: '001Z' }).some((x) => x.num === s.num)).toBe(false);
+        eliminarSkill(s.num);
+    });
+
+    it('una skill inactiva o con fecha de fin pasada no se aplica', () => {
+        expect(skillActiva({ activa: true })).toBe(true);
+        expect(skillActiva({ activa: false, fin: '2026-06-30' })).toBe(false);
+        expect(skillActiva({ activa: true, fin: '2026-01-01' }, '2026-09-29')).toBe(false);
+        expect(skillActiva({ activa: true, fin: '2026-12-31' }, '2026-09-29')).toBe(true);
     });
 
     it('notas y tareas son independientes por documento', () => {

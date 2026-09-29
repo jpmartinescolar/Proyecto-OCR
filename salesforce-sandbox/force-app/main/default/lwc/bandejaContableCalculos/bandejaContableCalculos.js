@@ -343,20 +343,16 @@ export function comprobaciones(c) {
     return it;
 }
 
-/** Pestaña IS: gastos no deducibles, ajustes al modelo 200 y deducciones */
+/** Pestaña IS: gastos no deducibles (diferencias permanentes que se ajustan en el modelo 200) */
 export function analisisIs({ x, ivas, textoLineas, direccionesAfectas }) {
     const base = ivas.reduce((a, r) => a + num(r.base), 0);
     const texto = [textoLineas, x.emisor].join(' ').toLowerCase();
     const E = (n) => euros(n) + ' €';
     const noAfecto = x.sumin && !coincideDireccion(x.sumin, direccionesAfectas);
-    const vehiculo = /gasóleo|gasolina|combustible|parking|peaje/.test(texto) && !x.sumin;
     const nd = [];
-    const aj = [];
-    const de = [];
     let noDeducible = 0;
     if (noAfecto) {
         nd.push({ titulo: 'Gasto en inmueble no afecto', ref: 'Art. 15.e LIS', texto: 'Suministro de un inmueble que no está afecto a la actividad: no hay correlación con los ingresos.', importe: E(base) });
-        aj.push({ titulo: 'Aumento · diferencia permanente', ref: 'Modelo 200', texto: 'Ajuste positivo por el gasto contabilizado no deducible.', importe: '+' + E(base) });
         noDeducible += base;
     }
     const ivaNoDed = sumasIva(ivas).noDed;
@@ -364,22 +360,14 @@ export function analisisIs({ x, ivas, textoLineas, direccionesAfectas }) {
         nd.push({ titulo: 'IVA no deducible como mayor gasto', ref: 'Art. 15 LIS', texto: 'El IVA soportado no deducible es gasto fiscal deducible en IS solo si el gasto principal lo es.', importe: E(ivaNoDed) });
         noDeducible += ivaNoDed;
     }
-    if (vehiculo) aj.push({ titulo: 'Gasto de vehículo', ref: 'Art. 15 LIS', texto: 'En IS el gasto es deducible si se acredita la afectación a la actividad; si el uso es mixto, la parte privada es retribución en especie o no deducible.', importe: 'Revisar' });
     if (/multa|sanción|recargo/.test(texto)) {
         nd.push({ titulo: 'Multas y sanciones', ref: 'Art. 15.c LIS', texto: 'Multas, sanciones y recargos del periodo ejecutivo no son deducibles.', importe: E(base) });
         noDeducible += base;
     }
     if (/regalo|obsequio|atenci|restaurante|comida/.test(texto)) nd.push({ titulo: 'Atenciones a clientes', ref: 'Art. 15.e LIS', texto: 'Deducible con el límite del 1 % del importe neto de la cifra de negocios.', importe: 'Límite 1 %' });
-    if (base > LIMITE_BIEN_INVERSION && /maquin|equipo|ordenador|elevador/.test(texto)) {
-        aj.push({ titulo: 'Amortización acelerada / libertad de amortización', ref: 'Art. 12 y 102 LIS', texto: 'Empresa de reducida dimensión: puede amortizar el doble del coeficiente máximo. Diferencia temporaria.', importe: '−' + E(base * 0.2) });
-    }
-    if (/ordenador|software|licencia|digital/.test(texto)) de.push({ titulo: 'Deducción por I+D+i / innovación tecnológica', ref: 'Art. 35 LIS', texto: 'Revisa si el gasto forma parte de un proyecto de innovación.', importe: 'Revisar' });
-    if (/placa solar|fotovolt|eficiencia|eléctrico|recarga/.test(texto)) de.push({ titulo: 'Incentivos de eficiencia energética', ref: 'Amortización acelerada', texto: 'Inversiones en autoconsumo o puntos de recarga.', importe: 'Revisar' });
     return {
-        noDeducibles: nd,
-        ajustes: aj,
-        deducciones: de,
-        total: nd.length + aj.length + de.length,
+        noDeducibles: nd.map((g) => ({ ...g, cat: 'Diferencia permanente · ajuste fiscal +' })),
+        total: nd.length,
         kpis: [
             { l: 'Gasto contable', v: E(base), tono: '' },
             { l: 'Gasto no deducible', v: E(noDeducible), tono: noDeducible ? 'mal' : '' },

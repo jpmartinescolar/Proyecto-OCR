@@ -1,0 +1,23 @@
+@import 'c/bandejaContableEstilos';
+
+:host { display: block; }
+.vis-barra { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--bc-line); font-size: 13px; color: var(--bc-ink-2); }
+.vis-grupo { display: flex; align-items: center; gap: 4px; }
+.vis-herramienta { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid var(--bc-line); border-radius: 4px; background: var(--bc-paper); color: var(--bc-ink-2); cursor: pointer; font: 13px var(--bc-font-body); }
+.vis-herramienta:hover:not([disabled]) { border-color: var(--bc-brand-primary); color: var(--bc-brand-deep); }
+.vis-herramienta[disabled] { opacity: 0.45; cursor: default; }
+.vis-flecha { padding: 2px 8px; font-size: 15px; line-height: 1; }
+.vis-zoom, .vis-pagina { min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+.vis-zoom { min-width: 70px; padding: 4px 6px; border: none; background: transparent; font: 13px var(--bc-font-body); color: var(--bc-ink-2); cursor: pointer; border-radius: 4px; }
+.vis-zoom:hover { background: var(--bc-paper-3); }
+.vis-pagina { min-width: 70px; }
+.vis-descargar { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--bc-line-strong); border-radius: 4px; font: 600 13px var(--bc-font-body); color: var(--bc-brand-deep); background: var(--bc-paper); cursor: pointer; }
+.vis-descargar:hover:not([disabled]) { background: var(--bc-brand-deep); color: #fff; border-color: var(--bc-brand-deep); }
+.vis-descargar[disabled] { opacity: 0.45; cursor: default; }
+.vis-mesa { background: var(--bc-paper-4); padding: 16px; display: flex; flex-direction: column; align-items: center; overflow: auto; height: calc(100vh - 14rem); min-height: 480px; }
+/* PDF: el lector del navegador ocupa toda la mesa, centrado para poder girarlo */
+.vis-mesa-pdf { position: relative; padding: 0; overflow: hidden; }
+.vis-marco { position: absolute; left: 50%; top: 50%; border: none; background: #fff; transition: transform 150ms; }
+.vis-imagen { box-shadow: var(--bc-shadow-md); transition: transform 150ms; transform-origin: center; }
+.vis-papel { width: 100%; max-width: 560px; transition: transform 150ms; }
+.vis-aviso { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-size: 13px; color: var(--bc-ink-3); }

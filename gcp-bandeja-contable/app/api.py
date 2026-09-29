@@ -4,7 +4,9 @@ Contrato (lo usa BandejaContableGcpService.cls):
   POST /upload-session  registra bandeja y archivo y devuelve la sesión de subida resumible
   POST /confirm         comprueba el objeto subido, lo marca RECIBIDO y encola su procesamiento
   POST /records         archivos de una bandeja con URL firmadas y el resumen de su procesamiento
-  POST /documents       documentos separados por Google, con la lectura preliminar del clasificador
+  POST /documents       documentos separados de una bandeja: solo datos (sin URL ni extracción)
+  POST /document        un documento para abrirlo: URL firmada y datos extraídos por la IA
+  POST /status          estado del procesamiento de varias bandejas (para los listados)
 """
 
 from __future__ import annotations
@@ -307,68 +309,133 @@ def reprocess(p: ReprocesoEntrada):
         return error(500, "Error interno al reprocesar.")
 
 
-# ===== /documents =====
+# ===== /documents, /document =====
+# Los listados solo llevan datos. La URL firmada (una llamada a IAM por documento) y los datos extraídos
+# (el JSON más pesado) se piden al abrir el documento, y solo de ese documento.
+
+_DOCUMENTOS = f"""{_ARBOL}
+            SELECT d.id, d.numero, d.nombre_visible, d.pagina_inicio, d.pagina_fin, d.tipo, d.confianza, d.estado,
+                   d.motivos_revision, d.almacenamiento, d.bucket, d.objeto, d.lectura, d.created_at,
+                   a.nombre_original, a.ruta_en_zip, r.sf_archivo_id, r.nombre_original AS archivo_subido, pr.motor
+            FROM arbol JOIN documentos d ON d.archivo_id = arbol.id
+            JOIN archivos a ON a.id = d.archivo_id JOIN archivos r ON r.id = arbol.raiz
+            LEFT JOIN procesamientos pr ON pr.id = d.procesamiento_id
+            WHERE d.estado <> 'SUSTITUIDO'"""
+
+
+def documento_dto(d: dict) -> dict:
+    return {
+        "id": d["id"],
+        "numero": d["numero"],
+        "nombre": d["nombre_visible"],
+        "archivoOrigen": d["ruta_en_zip"] or d["nombre_original"],
+        "archivoSubido": d["archivo_subido"],
+        "sfArchivoId": d["sf_archivo_id"],
+        "paginaInicio": d["pagina_inicio"],
+        "paginaFin": d["pagina_fin"],
+        "tipo": d["tipo"],
+        "confianza": float(d["confianza"]) if d["confianza"] is not None else None,
+        "estado": d["estado"],
+        "motivos": d["motivos_revision"] or [],
+        "lectura": d["lectura"] or {},
+        "separado": d["almacenamiento"] == "DERIVADO",
+        "motor": d["motor"],
+        "createdAt": d["created_at"].isoformat(),
+    }
 
 
 @app.post("/documents")
 def documents(p: RegistrosEntrada):
-    """Documentos vigentes de una bandeja (lo que ha separado Google), con la lectura preliminar del
-    clasificador y una URL firmada para verlos. Un documento por referencia abre el original en su página."""
+    """Documentos vigentes de una bandeja con la lectura preliminar del clasificador (solo datos)."""
     try:
-        filas = db.todos(
-            f"""{_ARBOL}
-            SELECT d.id, d.numero, d.nombre_visible, d.pagina_inicio, d.pagina_fin, d.tipo, d.confianza, d.estado,
-                   d.motivos_revision, d.almacenamiento, d.bucket, d.objeto, d.lectura, d.created_at,
-                   a.nombre_original, a.ruta_en_zip, r.sf_archivo_id, r.nombre_original AS archivo_subido, pr.motor,
-                   ex.datos AS ext_datos, ex.motor AS ext_motor, ex.version_prompt AS ext_version, ex.modos_pagina AS ext_modos,
-                   ex.motivos_revision AS ext_motivos, ex.tokens_entrada AS ext_te, ex.tokens_salida AS ext_ts, ex.coste_estimado AS ext_coste
-            FROM arbol JOIN documentos d ON d.archivo_id = arbol.id
-            JOIN archivos a ON a.id = d.archivo_id JOIN archivos r ON r.id = arbol.raiz
-            LEFT JOIN procesamientos pr ON pr.id = d.procesamiento_id
-            LEFT JOIN LATERAL (SELECT * FROM extracciones e WHERE e.documento_id = d.id ORDER BY e.created_at DESC LIMIT 1) ex ON true
-            WHERE d.estado <> 'SUSTITUIDO' ORDER BY d.numero""",
-            {"org": p.sfOrgId, "bandeja": p.sfBandejaId},
-        )
-        out = []
-        for d in filas:
-            ver = None
-            try:
-                ver = gcp.url_firmada(d["bucket"], d["objeto"], gcp.disposicion("inline", d["nombre_visible"] or d["nombre_original"]))
-                if ver and d["almacenamiento"] == "REFERENCIA" and d["pagina_inicio"] and d["pagina_inicio"] > 1:
-                    ver += f"#page={d['pagina_inicio']}"
-            except Exception:  # noqa: BLE001
-                log.exception("No se ha podido firmar la URL de %s", d["objeto"])
-            out.append({
-                "id": d["id"],
-                "numero": d["numero"],
-                "nombre": d["nombre_visible"],
-                "archivoOrigen": d["ruta_en_zip"] or d["nombre_original"],
-                "archivoSubido": d["archivo_subido"],
-                "sfArchivoId": d["sf_archivo_id"],
-                "paginaInicio": d["pagina_inicio"],
-                "paginaFin": d["pagina_fin"],
-                "tipo": d["tipo"],
-                "confianza": float(d["confianza"]) if d["confianza"] is not None else None,
-                "estado": d["estado"],
-                "motivos": d["motivos_revision"] or [],
-                "lectura": d["lectura"] or {},
-                "separado": d["almacenamiento"] == "DERIVADO",
-                "motor": d["motor"],
-                "createdAt": d["created_at"].isoformat(),
-                "viewUrl": ver,
-                # Datos extraídos por la IA (última extracción; nunca modificada). None si no se ha extraído.
-                "extraccion": None if d["ext_datos"] is None else {
-                    "datos": d["ext_datos"],
-                    "motor": d["ext_motor"],
-                    "version": d["ext_version"],
-                    "modos": d["ext_modos"] or [],
-                    "motivos": d["ext_motivos"] or [],
-                    "tokensEntrada": d["ext_te"],
-                    "tokensSalida": d["ext_ts"],
-                    "coste": float(d["ext_coste"]) if d["ext_coste"] is not None else None,
-                },
-            })
-        return {"documentos": out}
+        filas = db.todos(_DOCUMENTOS + " ORDER BY d.numero", {"org": p.sfOrgId, "bandeja": p.sfBandejaId})
+        return {"documentos": [documento_dto(d) for d in filas]}
     except Exception:  # noqa: BLE001
         log.exception("documents error")
         return error(500, "Error interno al listar los documentos.")
+
+
+class DocumentoEntrada(BaseModel):
+    sfOrgId: str
+    sfBandejaId: str
+    documentoId: str
+
+
+@app.post("/document")
+def document(p: DocumentoEntrada):
+    """Un documento de la bandeja para abrirlo: sus datos, una URL firmada para verlo y la última
+    extracción de la IA (nunca modificada). Un documento por referencia abre el original en su página."""
+    try:
+        d = db.uno(_DOCUMENTOS + " AND d.id = %(documento)s",
+                   {"org": p.sfOrgId, "bandeja": p.sfBandejaId, "documento": p.documentoId})
+        if d is None:
+            return error(404, "El documento no existe en esta bandeja.")
+        out = documento_dto(d)
+        ver = None
+        try:
+            ver = gcp.url_firmada(d["bucket"], d["objeto"], gcp.disposicion("inline", d["nombre_visible"] or d["nombre_original"]))
+            if d["almacenamiento"] == "REFERENCIA" and d["pagina_inicio"] and d["pagina_inicio"] > 1:
+                ver += f"#page={d['pagina_inicio']}"
+        except Exception:  # noqa: BLE001
+            log.exception("No se ha podido firmar la URL de %s", d["objeto"])
+        ex = db.uno(
+            """SELECT datos, motor, version_prompt, modos_pagina, motivos_revision, tokens_entrada, tokens_salida, coste_estimado
+               FROM extracciones WHERE documento_id = %s ORDER BY created_at DESC LIMIT 1""",
+            (d["id"],),
+        )
+        out["viewUrl"] = ver
+        out["extraccion"] = None if ex is None else {
+            "datos": ex["datos"],
+            "motor": ex["motor"],
+            "version": ex["version_prompt"],
+            "modos": ex["modos_pagina"] or [],
+            "motivos": ex["motivos_revision"] or [],
+            "tokensEntrada": ex["tokens_entrada"],
+            "tokensSalida": ex["tokens_salida"],
+            "coste": float(ex["coste_estimado"]) if ex["coste_estimado"] is not None else None,
+        }
+        return out
+    except Exception:  # noqa: BLE001
+        log.exception("document error")
+        return error(500, "Error interno al leer el documento.")
+
+
+# ===== /status =====
+
+
+class EstadoEntrada(BaseModel):
+    sfOrgId: str
+    sfBandejaIds: list[str]
+
+
+@app.post("/status")
+def status(p: EstadoEntrada):
+    """Estado técnico del procesamiento de varias bandejas, en una sola consulta y sin firmar nada:
+    archivos subidos por estado y documentos vigentes (y cuántos requieren revisión). El estado que ve
+    el usuario (Cargando, Procesando, Procesado, Error) lo calcula Salesforce con estos datos."""
+    try:
+        if not p.sfBandejaIds:
+            return {"bandejas": {}}
+        params = {"org": p.sfOrgId, "bandejas": p.sfBandejaIds[:200]}
+        out: dict = {}
+        for f in db.todos(
+            """SELECT sf_bandeja_id, estado, count(*) AS n FROM archivos
+               WHERE sf_org_id = %(org)s AND sf_bandeja_id = ANY(%(bandejas)s) AND origen = 'SUBIDO'
+               GROUP BY sf_bandeja_id, estado""", params):
+            b = out.setdefault(f["sf_bandeja_id"], {"archivos": {}, "documentos": 0, "enRevision": 0})
+            b["archivos"][f["estado"]] = f["n"]
+        for f in db.todos(
+            """WITH RECURSIVE arbol AS (
+                   SELECT id, sf_bandeja_id FROM archivos
+                   WHERE sf_org_id = %(org)s AND sf_bandeja_id = ANY(%(bandejas)s) AND origen = 'SUBIDO'
+                   UNION ALL SELECT h.id, arbol.sf_bandeja_id FROM archivos h JOIN arbol ON h.padre_id = arbol.id)
+               SELECT arbol.sf_bandeja_id, count(*) AS n, count(*) FILTER (WHERE d.estado = 'REQUIERE_REVISION') AS revision
+               FROM arbol JOIN documentos d ON d.archivo_id = arbol.id
+               WHERE d.estado <> 'SUSTITUIDO' GROUP BY arbol.sf_bandeja_id""", params):
+            b = out.setdefault(f["sf_bandeja_id"], {"archivos": {}, "documentos": 0, "enRevision": 0})
+            b["documentos"] = f["n"]
+            b["enRevision"] = f["revision"]
+        return {"bandejas": out}
+    except Exception:  # noqa: BLE001
+        log.exception("status error")
+        return error(500, "Error interno al consultar el estado.")

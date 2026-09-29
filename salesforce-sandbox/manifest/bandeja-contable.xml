@@ -90,6 +90,7 @@
     <types>
         <members>bandejaContableApp</members>
         <members>bandejaContableCalculos</members>
+        <members>bandejaContableCuentas</members>
         <members>bandejaContableDocAnalisis</members>
         <members>bandejaContableDocCliente</members>
         <members>bandejaContableDocColaboracion</members>
@@ -104,8 +105,10 @@
         <members>bandejaContableOcr</members>
         <members>bandejaContableRegistro</members>
         <members>bandejaContableRiesgo</members>
+        <members>bandejaContableSkillEmpresas</members>
         <members>bandejaContableSkills</members>
         <members>bandejaContableUtils</members>
+        <members>bandejaContableVisor</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>

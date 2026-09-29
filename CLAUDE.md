@@ -23,3 +23,4 @@ Bandeja Contable: los asesores suben documentación contable de una empresa desd
 - **Backend en Python + FastAPI, nunca Node.** Si algo no fuera viable en Python, explicarlo y preguntar.
 - **Lo que no tiene todavía datos reales va como datos de ejemplo, bien comentado** en el código (qué falta, de dónde saldrá, qué hay que aclarar) y marcado en pantalla como "Datos de ejemplo".
 - El usuario escribe en español; documentación y mensajes de la aplicación en español.
+- **La interfaz no nombra a Google, AWS ni otros proveedores** (detalle técnico; como mucho en tooltips). El estado de procesamiento que ve el usuario es **Cargando · Procesando · Procesado · Error**, el mismo en listado, ficha y archivo (`bandejaContableUtils.estadoProceso`). No usar "Listo" como estado.

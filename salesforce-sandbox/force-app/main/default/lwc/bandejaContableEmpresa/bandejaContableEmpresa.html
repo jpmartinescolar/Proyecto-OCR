@@ -117,7 +117,7 @@
                     </section>
 
                     <section class="bc-card emp-ancho emp-skills">
-                        <c-bandeja-contable-skills empresa-id={empresaId} modo="tarjetas" oncambio={alCambiarSkills}></c-bandeja-contable-skills>
+                        <c-bandeja-contable-skills empresa-id={empresaId} empresa-nombre={nombreEmpresa} modo="tarjetas" oncambio={alCambiarSkills}></c-bandeja-contable-skills>
                     </section>
                 </div>
             </template>
@@ -130,7 +130,7 @@
                                 <thead>
                                     <tr>
                                         <th class="bc-primera">Nº bandeja</th><th>Tipo de facturas</th><th class="bc-centro">Nº archivos</th>
-                                        <th>Subida</th><th>Estado</th><th class="bc-ultima">Fecha de creación</th>
+                                        <th>Procesamiento</th><th>Estado</th><th class="bc-ultima">Fecha de creación</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -139,7 +139,7 @@
                                             <td class="bc-primera"><a class="bc-enlace" href="#" data-id={b.id} onclick={abrirBandeja}>{b.numero}</a></td>
                                             <td>{b.tipo}</td>
                                             <td class="bc-centro bc-num bc-fuerte">{b.archivos}</td>
-                                            <td>{b.estadoSubida}</td>
+                                            <td><span class={b.proceso.clase} title={b.proceso.detalle}>{b.proceso.texto}</span></td>
                                             <td><span class={b.claseEstado}>{b.estado}</span></td>
                                             <td class="bc-ultima bc-num">{b.fechaTxt}</td>
                                         </tr>

@@ -263,7 +263,7 @@ export default class BandejaContableNuevo extends NavigationMixin(LightningEleme
             }
 
             item.paso = 'confirmacion';
-            item.progresoTxt = 'Registrando en Google…';
+            item.progresoTxt = 'Registrando el archivo…';
             this.actualizarItem(item);
             const c = await confirmarSubida({ archivoId: item.archivoId });
             if (!c.ok) throw new ErrorGuardado(c.mensaje);

@@ -87,7 +87,7 @@
                     <div class="doc-meta-item"><span class="doc-meta-label">Empresa</span><a class="bc-enlace doc-meta-valor" href="#" onclick={verEmpresa}>{v.meta.empresa}</a></div>
                     <div class="doc-meta-item"><span class="doc-meta-label">Archivo</span><span class="doc-meta-valor">{v.doc.nombre}</span></div>
                     <div class="doc-meta-item"><span class="doc-meta-label">Recibido</span><span class="doc-meta-valor">{v.meta.recibido}</span></div>
-                    <div class="doc-meta-item" title="FALTA: fecha real del procesamiento en Google (tabla procesamientos)"><span class="doc-meta-label">Extracción automática</span><span class="doc-meta-valor">{v.meta.extraccion}</span></div>
+                    <div class="doc-meta-item" title="FALTA: fecha real del procesamiento (tabla procesamientos)"><span class="doc-meta-label">Extracción automática</span><span class="doc-meta-valor">{v.meta.extraccion}</span></div>
                     <div class="doc-meta-item" title={v.meta.tokensTip}><span class="doc-meta-label">Consumo IA <span class="doc-ejemplo-mini">ejemplo</span></span><span class="doc-meta-valor bc-num"><b>{v.meta.tokens}</b> tokens · <b>{v.meta.coste}</b></span></div>
                     <div class="doc-meta-item"><span class="doc-meta-label">Software contabilidad destino
                         <template lwc:if={v.meta.softwareEjemplo}><span class="doc-ejemplo-mini">ejemplo</span></template></span>
@@ -103,88 +103,102 @@
             <div class="doc-grid">
                 <!-- ===== Visor ===== -->
                 <section class="bc-card doc-visor">
-                    <div class="doc-visor-barra">
-                        <span class="doc-visor-titulo">Documento original · {v.doc.formato}</span>
-                        <template lwc:if={v.verOriginalPosible}>
-                            <button class={v.claseVistaOcr} onclick={verOcr}>Vista OCR</button>
-                            <button class={v.claseVistaOriginal} onclick={verOriginal}>Archivo original</button>
-                        </template>
-                        <button class="doc-herramienta" onclick={menosZoom} title="Reducir">−</button>
-                        <span>{v.zoomTxt}</span>
-                        <button class="doc-herramienta" onclick={masZoom} title="Ampliar">+</button>
-                        <button class="doc-herramienta" onclick={girar}>Girar</button>
-                        <span>Pág. 1/1</span>
-                        <template lwc:if={v.archivoUrl}>
-                            <a class="doc-descargar" href={v.descargaUrl} target="_blank" rel="noopener" title="Descargar el archivo original">
-                                <lightning-icon icon-name="utility:download" size="xx-small"></lightning-icon>Descargar
-                            </a>
-                        </template>
-                    </div>
-                    <template lwc:if={v.enVistaOcr}>
-                        <div class="doc-mesa">
-                            <div class="doc-papel" style={v.estiloPapel}>
-                                <div class="doc-fila-sep">
-                                    <div class="doc-bloque">
-                                        <span class="doc-marca doc-emisor" style={v.hl.emisor}>{v.x.emisor}</span>
-                                        <div>NIF <span class="doc-marca" style={v.hl.nif}>{v.x.nif}</span></div>
-                                        <span class="doc-marca" style={v.fijo.azul}>{v.x.dir}</span>
-                                    </div>
-                                    <div class="doc-bloque doc-bloque-der">
-                                        <div class="doc-kind">{v.x.kind}</div>
-                                        <div>Nº <span class="doc-marca" style={v.hl.numero}>{v.x.numero}</span></div>
-                                    </div>
+                    <c-bandeja-contable-visor url={v.visor.url} mime={v.visor.mime} nombre={v.visor.nombre}
+                                              descarga-url={v.visor.descargaUrl} paginas={v.visor.paginas}>
+                        <!-- Sin archivo que mostrar: vista de ejemplo del documento (resalta los campos al pasar por ellos) -->
+                        <div class="doc-papel">
+                            <span class="bc-ejemplo doc-papel-ejemplo">Datos de ejemplo</span>
+                            <div class="doc-fila-sep">
+                                <div class="doc-bloque">
+                                    <span class="doc-marca doc-emisor" style={v.hl.emisor}>{v.x.emisor}</span>
+                                    <div>NIF <span class="doc-marca" style={v.hl.nif}>{v.x.nif}</span></div>
+                                    <span class="doc-marca" style={v.fijo.azul}>{v.x.dir}</span>
                                 </div>
-                                <div class="doc-fila-sep">
-                                    <div class="doc-bloque">
-                                        <template lwc:if={v.conCliente}>
-                                            <div class="doc-gris">Cliente</div>
-                                            <span class="doc-marca doc-fuerte" style={v.fijo.verde}>{v.clienteNombre}</span>
-                                            <div>NIF <span class="doc-marca" style={v.fijo.verde}>{v.clienteCif}</span></div>
-                                        </template>
-                                        <template lwc:if={v.x.sumin}>
-                                            <div class="doc-gris">Dirección de suministro</div>
-                                            <span class="doc-marca" style={v.fijo.verde}>{v.x.sumin}</span>
-                                        </template>
-                                    </div>
-                                    <div class="doc-bloque doc-bloque-der">
-                                        <div class="doc-gris">Fecha</div>
-                                        <span class="doc-marca doc-fuerte" style={v.hl.fecha}>{v.x.fecha}</span>
-                                    </div>
-                                </div>
-                                <div class="doc-lineas">
-                                    <div class="doc-linea doc-gris"><span class="doc-flex">Concepto</span><span>Importe</span></div>
-                                    <template for:each={v.x.lineas} for:item="l">
-                                        <div key={l.key} class="doc-linea">
-                                            <span class="doc-flex"><span class="doc-marca" style={l.estilo}>{l.c}</span></span>
-                                            <span class="doc-marca" style={l.estilo}>{l.i}</span>
-                                        </div>
-                                    </template>
-                                </div>
-                                <div class="doc-totales">
-                                    <template for:each={v.ivaPreview} for:item="p">
-                                        <div key={p.key} class="doc-totales-bloque">
-                                            <div class="doc-linea"><span class="doc-flex">Base imponible <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.base} €</span></div>
-                                            <div class="doc-linea"><span class="doc-flex">IVA <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.cuota} €</span></div>
-                                        </div>
-                                    </template>
-                                    <div class="doc-linea doc-total"><span class="doc-flex">TOTAL</span><span class="doc-marca" style={v.hl.total}>{v.x.total} €</span></div>
+                                <div class="doc-bloque doc-bloque-der">
+                                    <div class="doc-kind">{v.x.kind}</div>
+                                    <div>Nº <span class="doc-marca" style={v.hl.numero}>{v.x.numero}</span></div>
                                 </div>
                             </div>
+                            <div class="doc-fila-sep">
+                                <div class="doc-bloque">
+                                    <template lwc:if={v.conCliente}>
+                                        <div class="doc-gris">Cliente</div>
+                                        <span class="doc-marca doc-fuerte" style={v.fijo.verde}>{v.clienteNombre}</span>
+                                        <div>NIF <span class="doc-marca" style={v.fijo.verde}>{v.clienteCif}</span></div>
+                                    </template>
+                                    <template lwc:if={v.x.sumin}>
+                                        <div class="doc-gris">Dirección de suministro</div>
+                                        <span class="doc-marca" style={v.fijo.verde}>{v.x.sumin}</span>
+                                    </template>
+                                </div>
+                                <div class="doc-bloque doc-bloque-der">
+                                    <div class="doc-gris">Fecha</div>
+                                    <span class="doc-marca doc-fuerte" style={v.hl.fecha}>{v.x.fecha}</span>
+                                </div>
+                            </div>
+                            <div class="doc-lineas">
+                                <div class="doc-linea doc-gris"><span class="doc-flex">Concepto</span><span>Importe</span></div>
+                                <template for:each={v.x.lineas} for:item="l">
+                                    <div key={l.key} class="doc-linea">
+                                        <span class="doc-flex"><span class="doc-marca" style={l.estilo}>{l.c}</span></span>
+                                        <span class="doc-marca" style={l.estilo}>{l.i}</span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="doc-totales">
+                                <template for:each={v.ivaPreview} for:item="p">
+                                    <div key={p.key} class="doc-totales-bloque">
+                                        <div class="doc-linea"><span class="doc-flex">Base imponible <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.base} €</span></div>
+                                        <div class="doc-linea"><span class="doc-flex">IVA <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.cuota} €</span></div>
+                                    </div>
+                                </template>
+                                <div class="doc-linea doc-total"><span class="doc-flex">TOTAL</span><span class="doc-marca" style={v.hl.total}>{v.x.total} €</span></div>
+                            </div>
                         </div>
-                    </template>
-                    <template lwc:else>
-                        <div class="doc-mesa">
-                            <template lwc:if={v.esPdf}>
-                                <iframe class="doc-iframe" src={v.urlVisorPdf} title="Archivo original"></iframe>
-                            </template>
-                            <template lwc:if={v.esImagen}>
-                                <img class="doc-imagen" src={v.archivoUrl} alt={v.doc.archivoNombre} style={v.estiloPapel}>
-                            </template>
-                        </div>
-                    </template>
+                    </c-bandeja-contable-visor>
                 </section>
 
                 <div class="doc-derecha">
+                    <!-- ===== Capas del documento ===== -->
+                    <section class="bc-card doc-capas-card">
+                        <div class="doc-capas">
+                            <template for:each={v.capasLista} for:item="c">
+                                <button key={c.k} class={c.clase} data-k={c.k} onclick={elegirCapa}>
+                                    <span class="doc-capa-n">{c.n}</span>
+                                    <span class="doc-capa-textos">
+                                        <span class="doc-capa-titulo">{c.titulo}</span>
+                                        <span class="doc-capa-sub">{c.sub}</span>
+                                    </span>
+                                    <span class={c.claseBadge}>{c.badge}</span>
+                                </button>
+                            </template>
+                        </div>
+                        <div class="doc-pasos-fila">
+                            <div class="doc-pasos">
+                                <template for:each={v.pasos} for:item="p">
+                                    <div key={p.label} class={p.clase}>
+                                        <template lwc:if={p.conLinea}><span class={p.claseLinea}></span></template>
+                                        <span class="doc-paso-marca">{p.marca}</span>
+                                        <span class="doc-paso-textos"><span class="doc-paso-label">{p.label}</span><span class="doc-paso-quien">{p.quien}</span></span>
+                                    </div>
+                                </template>
+                            </div>
+                            <template lwc:if={v.puedeConfirmarDatos}>
+                                <button class="bc-boton bc-boton-peq doc-confirmar-datos" onclick={confirmarDatos}>✓ Confirmar datos y ver análisis fiscal</button>
+                            </template>
+                            <template lwc:if={v.puedeReabrirDatos}>
+                                <button class="bc-boton-sec bc-boton-mini" onclick={reabrirDatos}>Reabrir datos</button>
+                            </template>
+                        </div>
+                        <template lwc:if={v.provisional}>
+                            <div class="doc-provisional">
+                                <lightning-icon icon-name="utility:info" size="xx-small"></lightning-icon>
+                                <span class="doc-flex"><b>Análisis provisional.</b> Se calcula sobre los datos que ha leído el OCR, todavía sin validar. Si corriges algo en la capa 1, se recalcula.</span>
+                                <button class="bc-boton-sec bc-boton-mini" onclick={irAValidar}>Validar datos</button>
+                            </div>
+                        </template>
+                    </section>
+
                     <!-- ===== Pestañas ===== -->
                     <section class="bc-card doc-pestanas-card">
                         <div class="doc-pestanas">
@@ -197,11 +211,11 @@
                         </div>
                     </section>
 
-                    <!-- ===== Lectura de Google (real) ===== -->
+                    <!-- ===== Lectura preliminar (real, del procesamiento en Google) ===== -->
                     <template lwc:if={v.google}>
                         <section class="bc-card doc-google">
                             <div class="doc-google-cab">
-                                <span class="doc-google-titulo">Lectura de Google</span>
+                                <span class="doc-google-titulo">Lectura preliminar</span>
                                 <span class={v.google.claseEstado}>{v.google.estadoTxt}</span>
                                 <template lwc:if={v.google.motivosTxt}><span class="doc-google-motivo">{v.google.motivosTxt}</span></template>
                                 <span class="doc-flex"></span>
@@ -260,7 +274,7 @@
                                             <template for:each={v.filasIva} for:item="r">
                                                 <div key={r.key}>
                                                     <div class={r.claseFila} data-k={r.hk} onmouseenter={entrar} onmouseleave={salir}>
-                                                        <input class={r.claseContra} value={r.contra} data-i={r.i} data-k="contra" onchange={handleIva}>
+                                                        <input class={r.claseContra} value={r.contra} data-i={r.i} data-tipo="iva" readonly title="Pulsa para buscar la cuenta" onclick={abrirCuentas}>
                                                         <input class="doc-iva-input" value={r.base} data-i={r.i} data-k="base" onchange={handleIva}>
                                                         <select class="doc-iva-input doc-iva-izq" data-i={r.i} data-k="pct" onchange={handleIva}>
                                                             <template for:each={r.opcionesPct} for:item="o"><option key={o.v} value={o.v} selected={o.selected}>{o.l}</option></template>
@@ -347,7 +361,7 @@
                                                 <template for:each={g.campos} for:item="f">
                                                     <label key={f.k} class="doc-campo" data-k={f.k} onmouseenter={entrar} onmouseleave={salir}>
                                                         <span class="doc-campo-label">{f.label}</span>
-                                                        <input class={f.clase} value={f.valor} data-k={f.k} readonly={f.soloLectura} placeholder={f.placeholder} title={f.titulo} onchange={handleCampo}>
+                                                        <input class={f.clase} value={f.valor} data-k={f.k} data-tipo="prov" readonly={f.soloLectura} placeholder={f.placeholder} title={f.titulo} onchange={handleCampo} onclick={clickCampo}>
                                                     </label>
                                                 </template>
                                             </div>
@@ -393,7 +407,7 @@
                                                 <template for:each={g.campos} for:item="f">
                                                     <label key={f.k} class="doc-campo" data-k={f.k} onmouseenter={entrar} onmouseleave={salir}>
                                                         <span class="doc-campo-label">{f.label}</span>
-                                                        <input class={f.clase} value={f.valor} data-k={f.k} readonly={f.soloLectura} placeholder={f.placeholder} title={f.titulo} onchange={handleCampo}>
+                                                        <input class={f.clase} value={f.valor} data-k={f.k} data-tipo="prov" readonly={f.soloLectura} placeholder={f.placeholder} title={f.titulo} onchange={handleCampo} onclick={clickCampo}>
                                                     </label>
                                                 </template>
                                             </div>
@@ -420,7 +434,7 @@
                                             <div class="doc-asiento-fila doc-tabla-cab"><span>Cuenta</span><span>Concepto</span><span class="bc-derecha">Debe (€)</span><span class="bc-derecha">Haber (€)</span><span></span></div>
                                             <template for:each={v.asiento.filas} for:item="a">
                                                 <div key={a.key} class="doc-asiento-fila bc-num">
-                                                    <input class={a.claseCuenta} value={a.cuenta} data-i={a.i} data-k="cuenta" onchange={handleAsiento}>
+                                                    <input class={a.claseCuenta} value={a.cuenta} data-i={a.i} data-tipo="asiento" readonly title="Pulsa para buscar la cuenta" onclick={abrirCuentas}>
                                                     <input class={a.claseConcepto} value={a.concepto} title={a.concepto} data-i={a.i} data-k="concepto" onchange={handleAsiento}>
                                                     <input class={a.claseDebe} value={a.debe} data-i={a.i} data-k="debe" onchange={handleAsiento}>
                                                     <input class={a.claseHaber} value={a.haber} data-i={a.i} data-k="haber" onchange={handleAsiento}>
@@ -429,7 +443,7 @@
                                             </template>
                                             <template for:each={v.asiento.extra} for:item="x">
                                                 <div key={x.key} class="doc-asiento-fila doc-asiento-extra">
-                                                    <input class="doc-input doc-input-peq" placeholder="Cuenta" value={x.cuenta} data-i={x.i} data-k="cuenta" onchange={handleLineaExtra}>
+                                                    <input class="doc-input doc-input-peq doc-input-cuenta" placeholder="Cuenta" value={x.cuenta} data-i={x.i} data-tipo="extra" readonly title="Pulsa para buscar la cuenta" onclick={abrirCuentas}>
                                                     <input class="doc-input doc-input-peq" placeholder="Concepto" value={x.concepto} data-i={x.i} data-k="concepto" onchange={handleLineaExtra}>
                                                     <input class="doc-input doc-input-peq doc-input-num" placeholder="0,00" value={x.debe} data-i={x.i} data-k="debe" onchange={handleLineaExtra}>
                                                     <input class="doc-input doc-input-peq doc-input-num" placeholder="0,00" value={x.haber} data-i={x.i} data-k="haber" onchange={handleLineaExtra}>
@@ -508,12 +522,18 @@
                     </template>
                     <template lwc:if={v.enSkills}>
                         <section class="bc-card doc-seccion-card doc-seccion-pad">
-                            <c-bandeja-contable-skills empresa-id={v.doc.empresaId} nif={v.contexto.nif} abrir={skillAbrir}
-                                                       oncambio={alCambiarSkills}></c-bandeja-contable-skills>
+                            <c-bandeja-contable-skills empresa-id={v.doc.empresaId} empresa-nombre={v.contexto.empresa} nif={v.contexto.nif} abrir={skillAbrir}
+                                                       modo="pestana" oncambio={alCambiarSkills}></c-bandeja-contable-skills>
                         </section>
                     </template>
                 </div>
             </div>
+
+            <!-- ===== Buscador de cuentas contables ===== -->
+            <template lwc:if={v.cuentas}>
+                <c-bandeja-contable-cuentas valor={v.cuentas.valor} grupo={v.cuentas.grupo} solo-codigo={v.cuentas.soloCodigo} ancla={v.cuentas.ancla}
+                                            onelegir={elegirCuenta} oncerrar={cerrarCuentas}></c-bandeja-contable-cuentas>
+            </template>
 
             <!-- ===== Validar con riesgo ===== -->
             <template lwc:if={v.avisoValidar}>

@@ -354,6 +354,32 @@ private class BandejaContableControllerTest {
     }
 
     @IsTest
+    static void abreUnDocumentoYConsultaElEstadoDeVariasBandejas() {
+        System.runAs(BandejaContableTestData.asesor()) {
+            BandejaContableGcpMock.configurar();
+            Id bandejaId = leer('pendiente.pdf').Bandeja__c;
+            BandejaContableGcpMock mock = new BandejaContableGcpMock()
+                .responder('/document', 200, '{"id":"doc_1","numero":1,"estado":"LISTO","lectura":{},"viewUrl":"https://firmada",'
+                    + '"extraccion":{"datos":{"total":10}}}')
+                .responder('/status', 200, '{"bandejas":{"' + bandejaId + '":{"archivos":{"PROCESANDO":1},"documentos":0,"enRevision":0}}}');
+            Test.setMock(HttpCalloutMock.class, mock);
+            Test.startTest();
+            BandejaContableGcpService.DocumentoGoogle d = BandejaContableController.obtenerDocumentoGoogle(bandejaId, 'doc_1');
+            List<BandejaContableGcpService.EstadoGoogle> estados = BandejaContableController.estadoProcesamiento(
+                new List<Id>{ bandejaId, UserInfo.getUserId() });
+            Test.stopTest();
+            Assert.areEqual('https://firmada', d.viewUrl);
+            Assert.isTrue(d.extraccion.contains('10'), d.extraccion);
+            Assert.areEqual(1, estados.size());
+            Assert.areEqual(1, estados[0].archivos.get('PROCESANDO'));
+            // Solo se pregunta por las bandejas que el asesor puede ver (un Id de otra cosa se descarta)
+            String cuerpo = mock.peticiones[mock.peticiones.size() - 1].getBody();
+            Assert.isTrue(cuerpo.contains(bandejaId) && !cuerpo.contains(UserInfo.getUserId()), cuerpo);
+            Assert.areEqual(0, BandejaContableController.estadoProcesamiento(new List<Id>()).size());
+        }
+    }
+
+    @IsTest
     static void documentosDeGoogleConError() {
         System.runAs(BandejaContableTestData.asesor()) {
             BandejaContableGcpMock.configurar();
@@ -364,13 +390,13 @@ private class BandejaContableControllerTest {
                 BandejaContableController.listarDocumentosGoogle(bandejaId);
                 Assert.fail('Debe fallar');
             } catch (AuraHandledException e) {
-                Assert.isTrue(e.getMessage().contains('documentos en Google'), e.getMessage());
+                Assert.isTrue(e.getMessage().contains('No se han podido consultar los documentos'), e.getMessage());
             }
             try {
                 BandejaContableController.reprocesarOcr(bandejaId);
                 Assert.fail('Debe fallar');
             } catch (AuraHandledException e) {
-                Assert.isTrue(e.getMessage().contains('reproceso'), e.getMessage());
+                Assert.isTrue(e.getMessage().contains('volver') || e.getMessage().contains('procesar'), e.getMessage());
             }
             Test.stopTest();
         }

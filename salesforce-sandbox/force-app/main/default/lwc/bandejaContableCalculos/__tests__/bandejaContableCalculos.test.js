@@ -88,10 +88,12 @@ describe('riesgos y comprobaciones', () => {
 });
 
 describe('IS y productos', () => {
-    it('gasto en inmueble no afecto: no deducible y ajuste positivo', () => {
+    it('gasto en inmueble no afecto: no deducible como diferencia permanente', () => {
         const is = analisisIs({ x: endesa, ivas: ivasEndesa, textoLineas: '', direccionesAfectas: [] });
         expect(is.noDeducibles).toHaveLength(1);
-        expect(is.ajustes[0].importe.startsWith('+')).toBe(true);
+        expect(is.noDeducibles[0].cat).toBe('Diferencia permanente · ajuste fiscal +');
+        expect(is.total).toBe(1);
+        expect(is.ajustes).toBeUndefined();
     });
 
     it('separa cantidad y precio unitario', () => {

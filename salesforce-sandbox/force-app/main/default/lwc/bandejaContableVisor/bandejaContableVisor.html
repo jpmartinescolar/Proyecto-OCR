@@ -1,0 +1,36 @@
+<template>
+    <div class="vis-barra">
+        <div class="vis-grupo" role="group" aria-label="Zoom">
+            <button class="vis-herramienta" title="Reducir" aria-label="Reducir" disabled={sinMenos} onclick={menosZoom}>−</button>
+            <button class="vis-zoom" title="Ajustar al ancho" onclick={ajustar}>{zoomTxt}</button>
+            <button class="vis-herramienta" title="Ampliar" aria-label="Ampliar" disabled={sinMas} onclick={masZoom}>+</button>
+        </div>
+        <button class="vis-herramienta" title="Girar 90°" onclick={girar}>
+            <lightning-icon icon-name="utility:rotate" size="xx-small"></lightning-icon>Girar
+        </button>
+        <div class="vis-grupo" role="group" aria-label="Páginas">
+            <template lwc:if={conPaginas}>
+                <button class="vis-herramienta vis-flecha" title="Página anterior" aria-label="Página anterior" disabled={sinAnterior} onclick={anterior}>‹</button>
+            </template>
+            <span class="vis-pagina">{paginaTxt}</span>
+            <template lwc:if={conPaginas}>
+                <button class="vis-herramienta vis-flecha" title="Página siguiente" aria-label="Página siguiente" disabled={sinSiguiente} onclick={siguiente}>›</button>
+            </template>
+        </div>
+        <button class="vis-descargar" title="Descargar el documento" disabled={sinDescarga} onclick={descargar}>
+            <lightning-icon icon-name="utility:download" size="xx-small"></lightning-icon>Descargar
+        </button>
+    </div>
+    <div class={claseMesa} lwc:ref="mesa">
+        <template lwc:if={cargandoPdf}><div class="vis-aviso">Cargando documento…</div></template>
+        <template for:each={marcos} for:item="m">
+            <iframe key={m.key} class="vis-marco" src={m.src} style={estiloMarco} title="Documento original"></iframe>
+        </template>
+        <template lwc:if={esImagen}>
+            <img class="vis-imagen" src={url} alt={nombre} style={estiloImagen}>
+        </template>
+        <template lwc:if={sinArchivo}>
+            <div class="vis-papel" style={estiloPapel}><slot></slot></div>
+        </template>
+    </div>
+</template>

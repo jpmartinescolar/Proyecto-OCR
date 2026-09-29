@@ -1,6 +1,24 @@
 # Diseño de la interfaz (Claude Design)
 
-Fuente: `Bandeja contable OCR de Salesforce.zip` (v2, 28/09/2026) en la raíz del repo; no se versiona (`.gitignore`). La v1 (`…-handoff.zip`, 25/09/2026) queda superada. Leer `Bandeja Contable.dc.html`; `support.js` es el motor de Claude Design, sin lógica de negocio.
+Fuente: `Bandeja contable OCR de Salesforce-handoff.zip` (v2 Híbrido, 29/09/2026) en la raíz del repo; no se versiona (`.gitignore`). Leer `project/Bandeja Contable v2 Hibrido.dc.html`, que sustituye como referencia a la v2 (`Bandeja Contable.dc.html`, 28/09/2026); `support.js` es el motor de Claude Design, sin lógica de negocio.
+
+## Qué cambia de la v2 a la v2 Híbrido
+Solo el frontend; el backend de Google no cambia.
+- **Capas del documento** (pantalla "02 Capas del documento", entre la cabecera y las pestañas). Dos tarjetas:
+  - **1 · Extracción de datos** (en el diseño, "Extracción y validación"): Datos, Skills, Productos, Notas y Archivos, Tareas.
+  - **2 · Inteligencia fiscal**: Perfil fiscal, Check, IS, Chat IA, Actividades, Locales, Turismos.
+
+  La barra de pestañas solo muestra las de la capa activa y cada capa recuerda su última pestaña. Debajo, la línea de pasos: Extraído → Validado → Interpretado → Insight fiscal. "Confirmar datos y ver análisis fiscal" marca los datos como validados y salta a la capa 2; "Reabrir datos" lo deshace. En la capa 2, sin validar, aparece el aviso "Análisis provisional" con "Validar datos".
+- **Pestañas renombradas**: "Comprobaciones" pasa a "Check" y "Notas" a "Notas y Archivos". Orden: Datos, Skills, Perfil fiscal, Check, IS, Productos, Notas y Archivos, Tareas, Chat IA, Actividades, Locales, Turismos.
+- **Buscador de cuentas contables** (`bandejaContableCuentas`). Se abre al pulsar la contrapartida de cada línea de IVA (grupo Gastos, o Ingresos si la cuenta empieza por 7), la cuenta de proveedor (Proveedores) y la cuenta de cada fila del asiento y de las líneas añadidas (Todas; ahí escribe solo el código). Busca por código o nombre, filtra por grupo, resalta la cuenta actual y permite "Usar «x» como cuenta nueva". Enter elige la primera y Esc cierra. Si no cabe debajo, se abre hacia arriba.
+- **IS**: solo "Gastos no deducibles", cada uno con la etiqueta "Diferencia permanente · ajuste fiscal +". Desaparecen "Ajustes fiscales" y "Posibles deducciones". El contador de la pestaña es el número de no deducibles.
+- **Skills**:
+  - Estado Activa/Inactiva. Una inactiva exige fecha de finalización, se ve en gris ("Finalizada el …") y no se aplica: no cuenta en "Skills aplicadas" ni sale como chip.
+  - **Empresas afectadas** (`bandejaContableSkillEmpresas`): pestañas Empresas y Grupos empresariales, buscador, "Seleccionar todas", chips con ×, contador de afectadas (las de los grupos incluidas) e "Incluida por grupo".
+  - En la lista, el botón "N empresas · M grupos ▼" despliega las afectadas: la empresa actual en negrita y los grupos como chips oscuros.
+  - Nueva skill de ejemplo SK-006 (Endesa, IVA deducible al 30 %), que sale como segundo chip en sus líneas de IVA. SK-004 pasa a inactiva.
+  - **Editor en la pestaña Skills del documento**: lista a la izquierda y editor a la derecha. Lleva número, título, Activa/Inactiva, fecha de fin, empresas afectadas y texto con formato (`lightning-input-rich-text`), más Guardar, Cancelar y Eliminar. Se guarda el HTML y el texto plano, que es lo que leerá la IA.
+  - En la ficha de empresa sigue la ventana, como en el diseño, con los mismos campos nuevos.
 
 ## Qué cambia de la v1 a la v2
 
@@ -73,7 +91,7 @@ Hoja de ruta ajustada: [hoja-de-ruta.md](hoja-de-ruta.md).
 
 ## De dónde sale cada dato
 
-Estado a 28/09/2026 (pantallas v2 hechas en LWC, pendientes de desplegar). En pantalla, lo que no es real lleva la etiqueta **"Datos de ejemplo"** o **"Ejemplo"**; en el código, cada bloque de ejemplo explica qué falta (`bandejaContableMock`).
+Estado a 29/09/2026 (v2 Híbrido hecha en LWC). En pantalla, lo que no es real lleva la etiqueta **"Datos de ejemplo"** o **"Ejemplo"**; en el código, cada bloque de ejemplo explica qué falta (`bandejaContableMock`).
 
 | Dato | Origen | Dónde |
 |---|---|---|
@@ -91,7 +109,11 @@ Estado a 28/09/2026 (pantallas v2 hechas en LWC, pendientes de desplegar). En pa
 | Software contable de destino | Real si `Account.Software_gesti_n_Despachos__c` está relleno; si no, ejemplo | cabecera del documento |
 | Documentos separados, datos extraídos, productos, confianza, consumo de IA | Ejemplo · Fases 1–2 | `PLANTILLAS` |
 | Estado contable (validar, no contabilizar, reabrir, riesgo aceptado) | Ejemplo · en memoria; irá a `confirmaciones` | `cambiarEstadoDocumento` |
-| Reglas por proveedor, propuestas, validaciones, skills | Ejemplo · en memoria; irán a Cloud SQL | `datosEmpresa` |
+| Reglas por proveedor, propuestas, validaciones | Ejemplo · en memoria; irán a Cloud SQL | `datosEmpresa` |
+| Skills (texto, estado, fecha de fin) | Ejemplo · almacén único en memoria; irán a Cloud SQL y al prompt de extracción | `skillsDeEmpresa`, `guardarSkill` |
+| Empresas y grupos empresariales de las skills | **Real** · Account y `Grupo_Empresarial__c` (empresas del asesor y sus grupos; todas en modo libre) | `buscarEmpresasYGrupos` |
+| Plan de cuentas del buscador de cuentas | Ejemplo · el real está en Sage (clave `Contrato.C_digo_ERP__c`) | `PLAN_CUENTAS` |
+| Datos validados (capa 1 del documento) | Ejemplo · en memoria; irá a `confirmaciones` | `extraccionValidada`, `validarExtraccion` |
 | Notas, tareas, chat IA | Ejemplo · en memoria; almacenamiento por decidir (Fase 5) | `notasDe`, `tareasDe`, `chatsDe` |
 | Censo AEAT / VIES, deudores de la AEAT | Ejemplo · sin integración | comprobaciones marcadas "Ejemplo" |
 | Histórico del proveedor y duplicados | Ejemplo · saldrá de las confirmaciones | `historicoProveedor`, `duplicadoDe` |
@@ -101,6 +123,7 @@ Estado a 28/09/2026 (pantallas v2 hechas en LWC, pendientes de desplegar). En pa
 Los **cálculos** (desglose de IVA, IVA no deducible, asiento y cuadre, riesgos, comprobaciones, IS, productos) son reales sobre esos datos: `bandejaContableCalculos`, con tests.
 
 Diferencias con el prototipo de Claude Design:
-- El editor de skills es el formulario del modal (título, ámbito, aplica a, NIF, instrucción, cuenta, vista previa) en la ficha de la empresa y en la pestaña Skills del documento; no el editor de texto enriquecido de la pestaña del documento.
+- El editor de la pestaña Skills conserva, en una fila compacta, el ámbito (general o proveedor por NIF), "aplica a" y la cuenta, que el diseño solo tiene en la ventana: sin ellos, una skill creada desde el documento no podría ligarse a un proveedor.
+- El texto con formato usa el editor estándar de Salesforce (`lightning-input-rich-text`), no la barra de herramientas propia del prototipo.
 - A la pantalla 06 (riesgo no prescrito) se entra desde la ficha de la empresa: el prototipo no tenía acceso.
 - El aprendizaje de cuenta ("¿Aplicar siempre?") se dispara al cambiar la contrapartida de una línea de IVA, porque la v2 ya no tiene el campo "Cuenta de gasto".

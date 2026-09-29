@@ -2,8 +2,9 @@ import { LightningElement, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getDatosCliente from '@salesforce/apex/BandejaContableController.getDatosCliente';
 import listarBandejas from '@salesforce/apex/BandejaContableController.listarBandejas';
+import estadoProcesamiento from '@salesforce/apex/BandejaContableController.estadoProcesamiento';
 import { datosEmpresa } from 'c/bandejaContableMock';
-import { fechaHora, claseEstado, eventoNavegar, mensajeError } from 'c/bandejaContableUtils';
+import { fechaHora, claseEstado, eventoNavegar, mensajeError, estadoDeFila } from 'c/bandejaContableUtils';
 
 /**
  * Pantalla 05 · Empresa. REAL: datos de la cuenta, perfil fiscal (contrato y cuenta de Salesforce) y
@@ -16,6 +17,8 @@ export default class BandejaContableEmpresa extends LightningElement {
 
     cliente;
     bandejas = [];
+    procesos = {}; // Id de bandeja → estadoProcesamiento
+    consulta = 'cargando';
     cargando = true;
     error;
     pestana = 'skills';
@@ -37,6 +40,7 @@ export default class BandejaContableEmpresa extends LightningElement {
             ]);
             this.cliente = cliente;
             this.bandejas = bandejas;
+            this.consultarProcesamiento();
             this.error = null;
         } catch (e) {
             this.error = mensajeError(e);
@@ -56,6 +60,8 @@ export default class BandejaContableEmpresa extends LightningElement {
     handlePestana(e) { this.pestana = e.currentTarget.dataset.valor; }
 
     // ===== Cabecera (real) =====
+    get nombreEmpresa() { return this.cliente && this.cliente.nombre; }
+
     valorPerfil(label) {
         const p = ((this.cliente && this.cliente.perfil) || []).find((x) => x.label === label);
         return p && p.valor;
@@ -144,8 +150,22 @@ export default class BandejaContableEmpresa extends LightningElement {
     }
 
     // ===== Bandejas (reales) =====
+    /** Estado de procesamiento de las bandejas (una sola llamada, después de pintar la ficha) */
+    async consultarProcesamiento() {
+        const ids = this.bandejas.filter((b) => b.archivosSincronizados > 0).map((b) => b.id);
+        try {
+            const estados = ids.length ? await estadoProcesamiento({ bandejaIds: ids }) : [];
+            this.procesos = Object.fromEntries(estados.map((e) => [e.bandejaId, e]));
+            this.consulta = 'ok';
+        } catch {
+            this.consulta = 'error';
+        }
+    }
+
     get filasBandejas() {
-        return this.bandejas.map((b) => ({ ...b, fechaTxt: fechaHora(b.fecha), claseEstado: claseEstado(b.estado) }));
+        return this.bandejas.map((b) => ({
+            ...b, fechaTxt: fechaHora(b.fecha), claseEstado: claseEstado(b.estado), proceso: estadoDeFila(b, this.procesos, this.consulta)
+        }));
     }
     get hayBandejas() { return this.bandejas.length > 0; }
 

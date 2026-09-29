@@ -116,4 +116,18 @@ private class BandejaContableGcpServiceTest {
         Assert.isNotNull(d.createdAt);
         Assert.areEqual(2, BandejaContableGcpService.reprocesar(null, null));
     }
+
+    @IsTest
+    static void estadoDeVariasBandejas() {
+        BandejaContableGcpMock.configurar();
+        Test.setMock(HttpCalloutMock.class, new BandejaContableGcpMock()
+            .responder('/status', 200, '{"bandejas":{"a01":{"archivos":{"PROCESADO":2,"ERROR":1},"documentos":5,"enRevision":2}}}'));
+        Assert.areEqual(0, BandejaContableGcpService.estadoBandejas(new List<Id>()).size(), 'Sin bandejas no se llama');
+        Map<String, BandejaContableGcpService.EstadoGoogle> m = BandejaContableGcpService.estadoBandejas(new List<Id>{ UserInfo.getUserId() });
+        BandejaContableGcpService.EstadoGoogle e = m.get('a01');
+        Assert.areEqual(2, e.archivos.get('PROCESADO'));
+        Assert.areEqual(1, e.archivos.get('ERROR'));
+        Assert.areEqual(5, e.documentos);
+        Assert.areEqual(2, e.enRevision);
+    }
 }

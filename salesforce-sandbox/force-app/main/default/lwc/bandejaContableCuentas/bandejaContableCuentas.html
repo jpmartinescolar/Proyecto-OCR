@@ -1,0 +1,30 @@
+<template>
+    <div class="cta-fondo" onclick={cerrar} onwheel={cerrar}></div>
+    <div class="cta-caja" style={estilo} role="dialog" aria-label="Buscar cuenta contable">
+        <div class="cta-cab">
+            <div class="cta-buscador">
+                <lightning-icon icon-name="utility:search" size="xx-small"></lightning-icon>
+                <input class="cta-buscar" placeholder="Busca por código o nombre…" value={busqueda} oninput={buscar} onkeydown={tecla}>
+            </div>
+            <div class="cta-chips">
+                <template for:each={grupos} for:item="g">
+                    <button key={g.g} class={g.clase} data-g={g.g} onclick={elegirGrupo}>{g.g}</button>
+                </template>
+            </div>
+        </div>
+        <div class="cta-lista">
+            <template for:each={filas} for:item="c">
+                <button key={c.codigo} class={c.clase} data-codigo={c.codigo} onclick={elegir}>
+                    <span class="cta-codigo">{c.codigo}</span>
+                    <span class="cta-nombre">{c.nombre}</span>
+                    <span class="cta-grupo">{c.grupo}</span>
+                </button>
+            </template>
+            <template lwc:if={vacio}><div class="cta-vacio">No hay cuentas que coincidan.</div></template>
+        </div>
+        <template lwc:if={puedeNueva}>
+            <button class="cta-nueva" onclick={usarNueva}>+ Usar «{busqueda}» como cuenta nueva</button>
+        </template>
+        <div class="cta-pie">Plan de cuentas de ejemplo · el real vendrá de Sage</div>
+    </div>
+</template>

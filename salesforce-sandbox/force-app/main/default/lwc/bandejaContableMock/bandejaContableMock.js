@@ -43,10 +43,10 @@ const PLANTILLAS = [
             sumin: 'C/ Alcalá 245, 3º B, 28028 Madrid', ctaProv: '4000001 Endesa Energía S.A.U.', numero: 'FE26-0312894',
             cp: '28042', fecha: '05/03/2026', devengo: '28/02/2026', irpf: '0,00', total: '221,08', cuenta: '628 Suministros',
             ivasDoc: [{ base: '175,16', pct: '21', cuota: '36,78' }, { base: '9,14', pct: '0', cuota: '0,00' }],
-            // La skill SK-002 del cliente reparte cada línea 70/30 entre dos cuentas
+            // La skill SK-002 del cliente reparte cada línea 70/30 entre dos cuentas; SK-006 deja el IVA al 30 %
             ivas: [
-                { base: '122,61', pct: '21', cuota: '25,75', contra: '6280000 Suministros taller', sk: 'SK-002', skPart: '70 %', docIdx: 0 },
-                { base: '52,55', pct: '21', cuota: '11,03', contra: '6280002 Suministros oficina', sk: 'SK-002', skPart: '30 %', docIdx: 0 },
+                { base: '122,61', pct: '21', cuota: '25,75', contra: '6280000 Suministros taller', sk: 'SK-002', skPart: '70 %', docIdx: 0, ded: '30', dedMot: 'SK-006 · Endesa: IVA deducible al 30 %', sk2: 'SK-006' },
+                { base: '52,55', pct: '21', cuota: '11,03', contra: '6280002 Suministros oficina', sk: 'SK-002', skPart: '30 %', docIdx: 0, ded: '30', dedMot: 'SK-006 · Endesa: IVA deducible al 30 %', sk2: 'SK-006' },
                 { base: '6,40', pct: '0', cuota: '0,00', contra: '6280000 Suministros taller', sk: 'SK-002', skPart: '70 %', docIdx: 1 },
                 { base: '2,74', pct: '0', cuota: '0,00', contra: '6280002 Suministros oficina', sk: 'SK-002', skPart: '30 %', docIdx: 1 }
             ],
@@ -343,15 +343,6 @@ const EMPRESA_INICIAL = {
         { nif: 'B84818442', prov: 'Leroy Merlin España S.L.U.', cuenta: '6220000', desc: 'Reparaciones y conservación', iva: '21 %', text: 'Cuenta 6220000 Reparaciones y conservación · IVA 21 %', why: 'Corregido 3 veces en las últimas 5 facturas' },
         { nif: '—', prov: 'Tickets de taxi', cuenta: '6290001', desc: 'Desplazamientos', iva: '10 %', text: 'Cuenta 6290001 Desplazamientos · IVA 10 %', why: 'Corregido 2 veces este trimestre' }
     ],
-    // FALTA: skills del cliente en Cloud SQL (se editan en la pantalla de empresa y la IA las lee al
-    // extraer, Fase 2). Campos: título, ámbito (General / Proveedor por NIF), instrucción, cuenta, tipo.
-    skills: [
-        { num: 'SK-001', title: 'Analítica por centro de coste', text: 'Todos los gastos se imputan a tres centros: Taller 60 %, Chapa y pintura 30 % y Administración 10 %, salvo que el concepto indique otro.', tipo: 'Todas' },
-        { num: 'SK-002', title: 'Endesa: desglose en dos cuentas', nif: 'A81948077', prov: 'Endesa Energía S.A.U.', cuenta: '6280000 / 6280002', text: 'La factura de luz se reparte 70 % en 6280000 Suministros taller y 30 % en 6280002 Suministros oficina.', tipo: 'Recibidas' },
-        { num: 'SK-003', title: 'Amazon Business: herramientas', nif: 'W0184081H', prov: 'Amazon EU S.à r.l.', cuenta: '2150000', text: 'Si una herramienta supera 300 € va a inmovilizado 2150000; el resto a 6020000 Material de taller.', tipo: 'Recibidas' },
-        { num: 'SK-004', title: 'Gasóleo de la furgoneta', nif: 'A80298839', prov: 'Repsol Comercial S.A.', text: 'Furgoneta 1234-KLM afecta al 100 %. Si el gasto mensual supera 400 €, avisar a la asesora.', tipo: 'Tickets' },
-        { num: 'SK-005', title: 'Comidas y atenciones', cuenta: '6290009', text: 'Las comidas con clientes van a 6290009 sin deducir IVA. El cliente indica el motivo en el nombre del archivo.', tipo: 'Todas' }
-    ],
     // FALTA: documentos validados con riesgo en ejercicios no prescritos (se calculará sobre las
     // confirmaciones con riesgo aceptado, Fase 4). [fecha, doc, proveedor, motivo, IS, IVA, IRPF]
     riesgos: [
@@ -382,24 +373,99 @@ export function aprenderRegla(empresaId, regla) {
     else d.reglas.unshift({ ded: 100, note: '', origen: 'Aprendida', on: true, ...regla });
 }
 
+// ===== Skills: criterios del cliente que la IA aplicará al extraer =====
+// Una skill puede afectar a varias empresas y a grupos empresariales enteros (diseño v2 Híbrido).
+// Las empresas y los grupos que se eligen son REALES (Salesforce, buscarEmpresasYGrupos); las skills en
+// sí son DE EJEMPLO, en memoria. FALTA: guardarlas en Cloud SQL y pasarlas al prompt de extracción.
+// Campos: num, title, text, html (con formato), activa, fin (aaaa-mm-dd si está inactiva), emps
+// [{id, nombre}], grps [{id, nombre, miembros[{id, nombre}]}], nif/prov (proveedor), cuenta, tipo.
+const SKILLS_EJEMPLO = [
+    { num: 'SK-001', title: 'Analítica por centro de coste', text: 'Todos los gastos se imputan a tres centros: Taller 60 %, Chapa y pintura 30 % y Administración 10 %, salvo que el concepto indique otro.', tipo: 'Todas' },
+    { num: 'SK-002', title: 'Endesa: desglose en dos cuentas', nif: 'A81948077', prov: 'Endesa Energía S.A.U.', cuenta: '6280000 / 6280002', text: 'La factura de luz se reparte 70 % en 6280000 Suministros taller y 30 % en 6280002 Suministros oficina.', tipo: 'Recibidas' },
+    { num: 'SK-003', title: 'Amazon Business: herramientas', nif: 'W0184081H', prov: 'Amazon EU S.à r.l.', cuenta: '2150000', text: 'Si una herramienta supera 300 € va a inmovilizado 2150000; el resto a 6020000 Material de taller.', tipo: 'Recibidas' },
+    { num: 'SK-004', title: 'Gasóleo de la furgoneta', nif: 'A80298839', prov: 'Repsol Comercial S.A.', text: 'Furgoneta 1234-KLM afecta al 100 %. Si el gasto mensual supera 400 €, avisar a la asesora.', tipo: 'Tickets', activa: false, fin: '2026-06-30' },
+    { num: 'SK-005', title: 'Comidas y atenciones', cuenta: '6290009', text: 'Las comidas con clientes van a 6290009 sin deducir IVA. El cliente indica el motivo en el nombre del archivo.', tipo: 'Todas' },
+    { num: 'SK-006', title: 'Endesa: IVA deducible al 30 %', short: 'IVA 30 %', nif: 'A81948077', prov: 'Endesa Energía S.A.U.', text: 'En las facturas de Endesa Energía (A81948077) solo es deducible el 30 % del IVA soportado. Aplica 30 % en el campo % deducible de cada línea de IVA; el 70 % restante es mayor gasto en la cuenta de contrapartida.', tipo: 'Recibidas' }
+];
+
+let SKILLS = null;
+function almacenSkills() {
+    if (!SKILLS) SKILLS = SKILLS_EJEMPLO.map((s) => ({ activa: true, fin: '', html: '', emps: [], grps: [], ejemplo: true, ...clonar(s) }));
+    return SKILLS;
+}
+
+/** Empresas a las que afecta una skill: las elegidas y las de sus grupos, sin repetir */
+export function empresasAfectadas(skill) {
+    const mapa = new Map();
+    (skill.emps || []).forEach((e) => mapa.set(e.id, e));
+    (skill.grps || []).forEach((g) => (g.miembros || []).forEach((m) => { if (!mapa.has(m.id)) mapa.set(m.id, { ...m, porGrupo: g.nombre }); }));
+    return [...mapa.values()];
+}
+
+/**
+ * Skills que afectan a una empresa ({id, nombre}). Las de ejemplo sin empresas se asignan a la primera
+ * empresa desde la que se abren, para que cada ficha tenga contenido.
+ */
+export function skillsDeEmpresa(empresa) {
+    const lista = almacenSkills();
+    if (empresa && empresa.id) {
+        lista.filter((s) => s.ejemplo && !s.emps.length && !s.grps.length).forEach((s) => { s.emps = [{ id: empresa.id, nombre: empresa.nombre }]; });
+    }
+    return lista.filter((s) => !empresa || empresasAfectadas(s).some((e) => e.id === empresa.id));
+}
+
+/** Una skill se aplica si está activa y, si tiene fecha de fin, todavía no ha llegado */
+export function skillActiva(skill, hoy = new Date().toISOString().slice(0, 10)) {
+    return skill.activa !== false && !(skill.fin && skill.fin < hoy);
+}
+
 /** Alta o edición de una skill (editor de skills). Devuelve la skill guardada. */
-export function guardarSkill(empresaId, skill) {
-    const lista = datosEmpresa(empresaId).skills;
+export function guardarSkill(skill) {
+    const lista = almacenSkills();
     const i = lista.findIndex((s) => s.num === skill.num);
     if (i >= 0) {
-        lista[i] = { ...lista[i], ...skill };
+        lista[i] = { ...lista[i], ...skill, ejemplo: false };
         return lista[i];
     }
     const n = lista.reduce((m, s) => Math.max(m, Number(String(s.num).replace(/\D/g, '')) || 0), 0) + 1;
-    const nueva = { ...skill, num: 'SK-' + String(n).padStart(3, '0') };
+    const nueva = { activa: true, fin: '', emps: [], grps: [], ...skill, num: 'SK-' + String(n).padStart(3, '0'), ejemplo: false };
     lista.push(nueva);
     return nueva;
 }
 
-export function eliminarSkill(empresaId, num) {
-    const d = datosEmpresa(empresaId);
-    d.skills = d.skills.filter((s) => s.num !== num);
+export function siguienteNumeroSkill() {
+    const n = almacenSkills().reduce((m, s) => Math.max(m, Number(String(s.num).replace(/\D/g, '')) || 0), 0) + 1;
+    return 'SK-' + String(n).padStart(3, '0');
 }
+
+export function eliminarSkill(num) {
+    SKILLS = almacenSkills().filter((s) => s.num !== num);
+}
+
+// ===== Plan de cuentas (buscador de cuentas contables) =====
+// FALTA: el plan de cuentas real del cliente está en Sage (clave Contrato.C_digo_ERP__c). Hasta que se
+// integre, esta lista de ejemplo es la del diseño; "Usar como cuenta nueva" permite escribir cualquiera.
+export const GRUPOS_CUENTA = ['Todas', 'Gastos', 'Ingresos', 'Proveedores', 'Clientes', 'Inmovilizado'];
+export const PLAN_CUENTAS = [
+    ['2130000', 'Maquinaria', 'Inmovilizado'], ['2150000', 'Otras instalaciones · herramientas', 'Inmovilizado'], ['2160000', 'Mobiliario', 'Inmovilizado'],
+    ['2170000', 'Equipos informáticos', 'Inmovilizado'], ['2180000', 'Elementos de transporte', 'Inmovilizado'],
+    ['4000001', 'Endesa Energía S.A.U.', 'Proveedores'], ['4000002', 'Repsol Comercial S.A.', 'Proveedores'], ['4000003', 'Amazon Business EU S.à r.l.', 'Proveedores'],
+    ['4000004', 'Recambios Hnos. García S.L.', 'Proveedores'], ['4000005', 'Telefónica de España S.A.U.', 'Proveedores'], ['4100001', 'Acreedores varios', 'Proveedores'],
+    ['4300001', 'Seguros Mapfre (cliente taller)', 'Clientes'], ['4300002', 'Transportes Ruiz S.L.', 'Clientes'], ['4300003', 'Clientes varios contado', 'Clientes'],
+    ['6000000', 'Compras de mercaderías · recambios', 'Gastos'], ['6020000', 'Material de taller', 'Gastos'], ['6210000', 'Arrendamientos local', 'Gastos'],
+    ['6220000', 'Reparaciones y conservación', 'Gastos'], ['6230000', 'Servicios profesionales', 'Gastos'], ['6250000', 'Primas de seguros', 'Gastos'],
+    ['6260000', 'Servicios bancarios', 'Gastos'], ['6270000', 'Publicidad', 'Gastos'], ['6280000', 'Suministros taller', 'Gastos'],
+    ['6280001', 'Combustible furgoneta', 'Gastos'], ['6280002', 'Suministros oficina', 'Gastos'], ['6290000', 'Otros servicios · telefonía', 'Gastos'],
+    ['6310000', 'Otros tributos', 'Gastos'], ['6400000', 'Sueldos y salarios', 'Gastos'], ['6690000', 'Otros gastos financieros', 'Gastos'],
+    ['7000000', 'Ventas de recambios', 'Ingresos'], ['7050000', 'Prestación de servicios · reparación', 'Ingresos'], ['7050001', 'Servicios de chapa y pintura', 'Ingresos'],
+    ['7590000', 'Ingresos por servicios diversos', 'Ingresos'], ['7710000', 'Beneficio procedente del inmovilizado', 'Ingresos']
+].map(([codigo, nombre, grupo]) => ({ codigo, nombre, grupo }));
+
+// ===== Validación de la extracción (capa 1 del documento) =====
+// FALTA: al confirmar se guardará en la tabla confirmaciones (lo que el asesor da por bueno); hoy en memoria.
+const EXTRACCION_VALIDADA = new Map();
+export function extraccionValidada(docId) { return !!EXTRACCION_VALIDADA.get(docId); }
+export function validarExtraccion(docId, valida) { EXTRACCION_VALIDADA.set(docId, !!valida); }
 
 // ===== Colaboración por documento: notas, tareas y chat =====
 // FALTA decidir dónde se guardan (Fase 5): Salesforce (Notes/ContentVersion, Task con asignación y

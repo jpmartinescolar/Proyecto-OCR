@@ -7,17 +7,22 @@ import listarDocumentosGoogle from '@salesforce/apex/BandejaContableController.l
 import reprocesarOcr from '@salesforce/apex/BandejaContableController.reprocesarOcr';
 import { documentosDeBandeja } from 'c/bandejaContableMock';
 import {
-    fechaHora, bytes, extension, claseEstado, eventoNavegar, mensajeError, estadoArchivoGoogle, estadoDocumentoGoogle, ESTADOS_EN_CURSO
+    fechaHora, bytes, extension, claseEstado, eventoNavegar, mensajeError, estadoArchivoGoogle, estadoDocumentoGoogle,
+    estadoProceso, estadoProcesoArchivo, recuentoDeArchivos, ESTADOS_PROCESO, ESTADOS_PROCESO_EN_CURSO
 } from 'c/bandejaContableUtils';
 
 const COLOR_TIPO = { PDF: 'var(--bc-danger)', JPG: 'var(--bc-brand-cyan)', JPEG: 'var(--bc-brand-cyan)', PNG: 'var(--bc-brand-cyan)', ZIP: 'var(--bc-warm)', XLSX: 'var(--bc-success)', XLS: 'var(--bc-success)' };
-// Mientras Google está trabajando la ficha se refresca sola (cada 5 s, como mucho 10 min)
+// Mientras se suben o procesan archivos la ficha se refresca sola (cada 5 s, como mucho 10 min)
 const REFRESCO_MS = 5000;
 const REFRESCO_MAX = 120;
+const FILAS_CARGA = [1, 2, 3]; // filas de carga (skeleton) de OCR documentos
+const EXPLICACION_SUBIDA = { Pendiente: 'Preparando la subida', Subiendo: 'Subiendo el archivo', Subido: 'Subido; registrándolo' };
 
 /**
  * Pantalla 01 · Registro de una bandeja. REAL: ficha, archivos, su procesamiento en Google (estado,
  * páginas, documentos, incidencias) y los documentos que ha separado Google con su lectura preliminar.
+ * El estado que ve el usuario es el mismo del listado (Cargando, Procesando, Procesado, Error:
+ * bandejaContableUtils.estadoProceso). La ficha y el procesamiento se piden a la vez.
  * DE EJEMPLO: el estado contable de cada documento (Pendiente/Contabilizado) hasta la Fase 2-3.
  */
 export default class BandejaContableRegistro extends NavigationMixin(LightningElement) {
@@ -28,6 +33,7 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
     docsGoogle = [];
     errorGoogle;
     cargando = true;
+    googleCargado = false; // primera respuesta del procesamiento recibida (hasta entonces, filas de carga)
     error;
     reprocesando = false;
     refrescos = 0;
@@ -43,6 +49,7 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
 
     async cargar() {
         this.cargando = true;
+        const google = this.cargarGoogle(); // no depende de la ficha: en paralelo
         try {
             this.detalle = await getBandeja({ bandejaId: this.bandejaId });
             this.error = null;
@@ -51,10 +58,11 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
         } finally {
             this.cargando = false;
         }
-        await this.cargarGoogle();
+        await google;
+        this.programarRefresco();
     }
 
-    /** Estado en Google y documentos separados; si falla, la ficha se ve igual */
+    /** Procesamiento de los archivos y documentos separados (solo datos); si falla, la ficha se ve igual */
     async cargarGoogle() {
         try {
             const [archivos, docs] = await Promise.all([
@@ -67,7 +75,7 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
         } catch (e) {
             this.errorGoogle = mensajeError(e);
         }
-        this.programarRefresco();
+        this.googleCargado = true;
     }
 
     programarRefresco() {
@@ -79,18 +87,24 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
             if (this.detalle && this.detalle.archivos.some((a) => a.estado !== 'Sincronizado' && a.estado !== 'Error')) {
                 try { this.detalle = await getBandeja({ bandejaId: this.bandejaId }); } catch { /* se reintenta en el siguiente */ }
             }
-            this.cargarGoogle();
+            await this.cargarGoogle();
+            this.programarRefresco();
         }, REFRESCO_MS);
     }
 
-    /** Hay archivos que Google todavía no ha terminado (o que Salesforce aún está subiendo) */
+    /** Algún archivo se está subiendo o procesando */
     get enCurso() {
-        if (!this.detalle) return false;
-        return this.detalle.archivos.some((a) => {
-            if (a.estado === 'Subiendo' || a.estado === 'Subido') return true;
-            const g = this.google[a.id];
-            return a.estado === 'Sincronizado' && (!g || ESTADOS_EN_CURSO.includes(g.estado));
-        });
+        return !!this.proceso && ESTADOS_PROCESO_EN_CURSO.includes(this.proceso.clave);
+    }
+
+    /** Estado de la bandeja que ve el usuario (el mismo cálculo que en el listado) */
+    get proceso() {
+        if (!this.detalle) return null;
+        if (this.errorGoogle) return { clave: 'desconocido', ...ESTADOS_PROCESO.desconocido, detalle: this.errorGoogle };
+        if (!this.googleCargado && this.detalle.archivos.some((a) => a.estado === 'Sincronizado')) {
+            return { clave: 'consultando', ...ESTADOS_PROCESO.consultando, detalle: '' };
+        }
+        return estadoProceso(recuentoDeArchivos(this.detalle.archivos, this.google));
     }
 
     get r() { return this.detalle ? this.detalle.resumen : {}; }
@@ -104,36 +118,16 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
         ];
     }
 
-    /** Resumen del procesamiento de toda la bandeja en Google */
+    /** Cabecera: estado del procesamiento de la bandeja */
     get procesamiento() {
-        if (!this.detalle) return null;
-        const subidos = this.detalle.archivos.filter((a) => a.estado === 'Sincronizado');
-        const g = subidos.map((a) => this.google[a.id]).filter(Boolean);
-        const total = this.detalle.archivos.length;
-        const enCurso = subidos.filter((a) => !this.google[a.id] || ESTADOS_EN_CURSO.includes(this.google[a.id].estado)).length;
-        const errores = g.filter((x) => x.estado === 'ERROR').length;
-        const docs = this.docsGoogle.length;
-        const listos = this.docsGoogle.filter((d) => d.estado === 'LISTO').length;
-        const revisar = this.docsGoogle.filter((d) => d.estado === 'REQUIERE_REVISION').length;
-        if (this.errorGoogle) return { texto: 'Sin conexión con Google', clase: 'bc-pill bc-pill-error', detalle: this.errorGoogle };
-        if (subidos.length < total) {
-            return { texto: 'Subiendo archivos', clase: 'bc-pill bc-pill-info', detalle: `${subidos.length} de ${total} archivos en Google`, girando: true };
-        }
-        if (enCurso) {
-            return { texto: 'Procesando en Google', clase: 'bc-pill bc-pill-info', detalle: `${total - enCurso} de ${total} archivos terminados · se actualiza solo`, girando: true };
-        }
-        const detalle = [`${docs} ${docs === 1 ? 'documento' : 'documentos'}`, listos ? `${listos} ${listos === 1 ? 'listo' : 'listos'}` : '',
-            revisar ? `${revisar} para revisar` : '', errores ? `${errores} ${errores === 1 ? 'archivo' : 'archivos'} con error` : ''].filter(Boolean).join(' · ');
-        if (errores) return { texto: 'Terminado con errores', clase: 'bc-pill bc-pill-error', detalle };
-        if (revisar) return { texto: 'Terminado · revisar', clase: 'bc-pill bc-pill-pendiente', detalle };
-        return { texto: 'Terminado', clase: 'bc-pill bc-pill-ok', detalle };
+        const p = this.proceso;
+        return p ? { ...p, girando: this.enCurso } : null;
     }
 
     get grupos() {
         if (!this.detalle) return [];
         const d = this.detalle;
         const F = (label, valor, extra = {}) => ({ label, valor: valor || '—', clase: 'bc-campo', claseValor: 'bc-campo-valor', ...extra });
-        const subida = `${d.resumen.estadoSubida} · ${d.archivosSincronizados} de ${d.resumen.archivos} archivos en Google`;
         return [
             {
                 titulo: 'Información',
@@ -156,12 +150,7 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
             },
             {
                 titulo: 'Integración',
-                campos: [
-                    F('ID externo (Cloud SQL)', d.googleId),
-                    F('Subida a Google', subida, {
-                        claseValor: 'bc-campo-valor ' + (d.resumen.estadoSubida === 'Completada' ? 'bc-campo-ok' : '')
-                    })
-                ]
+                campos: [F('ID externo', d.googleId)]
             }
         ].map((g) => ({ ...g, campos: g.campos.map((c, i) => ({ ...c, key: g.titulo + i })) }));
     }
@@ -171,19 +160,20 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
         return this.detalle.archivos.map((a) => {
             const ext = extension(a.nombre) || '?';
             const g = this.google[a.id];
-            // Antes de llegar a Google manda el estado de la subida (Salesforce); después, el de Google
-            const enGoogle = a.estado === 'Sincronizado';
+            // El estado es el mismo que el de la bandeja; el detalle técnico queda en el tooltip
+            const enGoogle = a.estado === 'Sincronizado' && !!g;
             const eg = enGoogle ? estadoArchivoGoogle(g) : null;
+            const estado = ESTADOS_PROCESO[estadoProcesoArchivo(a.estado, g)];
             return {
                 ...a,
                 ext,
                 estiloTipo: `background:${COLOR_TIPO[ext] || 'var(--bc-ink-3)'}`,
                 meta: `${bytes(a.tamano)} · ${fechaHora(a.fecha)}`,
                 url: g && (g.descargaUrl || g.viewUrl),
-                estadoTxt: enGoogle ? eg.texto : a.estado,
-                claseEstado: enGoogle ? eg.clase : claseEstado(a.estado),
-                explicacion: enGoogle ? eg.explicacion : '',
-                resumenGoogle: eg ? eg.resumen : '',
+                estadoTxt: estado.texto,
+                claseEstado: estado.clase,
+                explicacion: eg ? eg.explicacion : EXPLICACION_SUBIDA[a.estado] || '',
+                resumen: eg ? eg.resumen : '',
                 incidencias: eg ? eg.incidencias : [],
                 hayIncidencias: !!(eg && eg.incidencias.length)
             };
@@ -214,15 +204,29 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
                 claseEstado: e.clase,
                 motivosTxt: e.motivosTxt,
                 contableTxt: c.motivo ? `${c.estado} · ${c.motivo}` : c.estado,
-                claseContable: claseEstado(c.estado),
-                viewUrl: g.viewUrl
+                claseContable: claseEstado(c.estado)
             };
         });
     }
     get tituloDocumentos() { return `OCR documentos (${this.documentos.length})`; }
+
+    // Qué se ve en OCR documentos: filas de carga hasta la primera respuesta; después, los documentos que
+    // haya y, mientras se procesa, un aviso de que aparecerán más.
+    get cargandoDocumentos() { return !this.googleCargado && !this.errorGoogle; }
+    get filasCarga() { return FILAS_CARGA; }
+    get avisoProceso() {
+        if (this.cargandoDocumentos || !this.enCurso) return null;
+        const p = this.proceso;
+        return p.clave === 'cargando'
+            ? `Estamos recibiendo los archivos (${p.detalle}). Después se separarán y leerán los documentos.`
+            : `Estamos procesando los documentos (${p.detalle}). Aparecerán aquí automáticamente.`;
+    }
+    get sinDocumentos() { return !this.cargandoDocumentos && !this.hayDocumentosGoogle && !this.avisoProceso && !this.errorGoogle; }
     get sinDocumentosTxt() {
-        return this.enCurso ? 'Google está separando los archivos; los documentos aparecerán aquí en cuanto termine.'
-            : 'Todavía no hay documentos: aparecerán cuando los archivos estén registrados en Google.';
+        const p = this.proceso;
+        if (!p || p.clave === 'vacio') return 'Esta bandeja no tiene archivos.';
+        if (p.clave === 'error') return 'No se han podido procesar los archivos. Revisa el motivo en cada archivo y, si se puede corregir, pulsa Reprocesar OCR.';
+        return 'No se han encontrado documentos en los archivos de esta bandeja.';
     }
 
     // ===== Acciones =====
@@ -233,7 +237,7 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
         this.reprocesando = true;
         try {
             const n = await reprocesarOcr({ bandejaId: this.bandejaId });
-            this.toast('Reproceso solicitado', n === 1 ? 'Google volverá a separar y leer 1 archivo.' : `Google volverá a separar y leer ${n} archivos.`, 'success');
+            this.toast('Reproceso solicitado', n === 1 ? 'Se volverá a separar y leer 1 archivo.' : `Se volverán a separar y leer ${n} archivos.`, 'success');
             this.refrescos = 0;
             // El estado pasa a "En cola" en unos segundos: se empieza a refrescar ya
             this.google = Object.fromEntries(Object.entries(this.google).map(([k, g]) => [k, { ...g, estado: 'EN_COLA' }]));

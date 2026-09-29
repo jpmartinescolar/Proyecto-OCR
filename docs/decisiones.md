@@ -2,6 +2,16 @@
 
 Registro de decisiones del proyecto. Formato: fecha · decisión · motivo · alternativas descartadas. Las más recientes arriba.
 
+## 2026-09-29
+- **Un único estado de procesamiento para el usuario: Cargando · Procesando · Procesado · Error**, calculado con la misma regla en el listado, la ficha de la bandeja y cada archivo (`bandejaContableUtils.estadoProceso`). Por dentro se mantienen los estados técnicos (archivo en Salesforce, archivo y documentos en Google). En una bandeja manda el archivo menos avanzado; los documentos por revisar y los archivos con error se indican aparte. Motivo: "Subida: Completada" aparecía en cuanto el archivo estaba registrado, antes de procesarse, y en la ficha no había documentos. "Procesado" en lugar de "Listo" o "Completada" (el usuario no quiere "Listo"; "Completado" ya es el estado de revisión del asesor). El estado de un documento sin incidencias pasa de "Listo" a "Correcto".
+- **La interfaz no nombra a Google** (ni a ningún proveedor): es un detalle técnico. Los detalles técnicos quedan en tooltips.
+- **Se puede entrar en una bandeja mientras se procesa**: la ficha muestra filas de carga hasta tener datos, un aviso "Estamos procesando los documentos (n de m archivos terminados)" y los documentos a medida que salen; Reprocesar queda desactivado. Descartado: bloquear la entrada hasta que termine.
+- **Estado del listado con una consulta agrupada** (`/status`, solo lectura de Cloud SQL) después de pintar el listado, y refresco automático mientras algo esté en curso. El aviso de Google a Salesforce al terminar queda para una fase posterior (necesita un usuario de integración con credenciales en Google).
+- **Los listados no firman URL ni traen la extracción**: `/documents` solo devuelve datos; la URL firmada y los datos extraídos se piden con `/document` al abrir cada documento. Motivo: cada URL firmada es una llamada a IAM; con 17 documentos `/documents` tardaba ~3 s siempre, aunque todo estuviera procesado. La API reutiliza además sus credenciales entre firmas.
+- **Una instancia mínima de la API** (`--min-instances=1`): sin ella, la primera consulta tras un rato sin uso tardaba ~6 s por el arranque en frío.
+- **Sin caché del token de Google en Salesforce** por ahora: el sandbox no tiene capacidad de Platform Cache (solo una partición de Sage sin capacidad) y guardarlo en un registro sería guardar una credencial en la base de datos. Cada llamada sigue pidiendo su token.
+- **Visor del documento con el lector de PDF del navegador sin su barra** (`#toolbar=0`) y controles propios (zoom, girar, páginas, descargar). "Ajustado" es un zoom calculado con el ancho real de la página (`view=FitH` dejaba márgenes). Descartado: pdf.js (en Lightning trabaja sin Web Worker y la carga era lenta).
+
 ## 2026-09-28
 - **Extracción en el mismo procesamiento que la separación** (arranca la Fase 2): cada documento se extrae con todas sus páginas justo después de separarse; resultado inmutable en `extracciones`. Motivo: el modelo ya ve cada página, y el asesor recibe las facturas separadas y leídas sin pasos manuales. Ver [fases/fase-2-extraccion.md](fases/fase-2-extraccion.md).
 - **PDF electrónicos como texto** (más una imagen de apoyo) y escaneos como imagen. Motivo: el texto da las cifras exactas y cuesta menos.

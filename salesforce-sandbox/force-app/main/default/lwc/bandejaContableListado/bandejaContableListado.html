@@ -42,7 +42,7 @@
                                 <th>Tipo de facturas</th>
                                 <th class="bc-centro">Nº archivos</th>
                                 <th>Origen</th>
-                                <th>Subida</th>
+                                <th>Procesamiento</th>
                                 <th>Estado</th>
                                 <th class="bc-ultima">Creado por</th>
                             </tr>
@@ -56,7 +56,7 @@
                                     <td>{b.tipo}</td>
                                     <td class="bc-centro bc-num bc-fuerte">{b.archivos}</td>
                                     <td class="bc-nowrap">{b.origen}</td>
-                                    <td><span class={b.claseSubida}>{b.estadoSubida}</span></td>
+                                    <td><span class={b.proceso.clase} title={b.proceso.detalle}>{b.proceso.texto}</span></td>
                                     <td><span class={b.claseEstado}>{b.estado}</span></td>
                                     <td class="bc-ultima">{b.creadoPor}</td>
                                 </tr>

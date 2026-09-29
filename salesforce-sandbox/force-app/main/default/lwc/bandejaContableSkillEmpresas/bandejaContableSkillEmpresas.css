@@ -1,0 +1,32 @@
+@import 'c/bandejaContableEstilos';
+
+.ske-caja { display: flex; flex-direction: column; gap: 6px; }
+.ske-fila { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ske-etiqueta { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--bc-ink-2); }
+.ske-total { min-width: 18px; height: 18px; padding: 0 6px; border-radius: 999px; background: var(--bc-brand-deep); color: #fff; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.ske-total-cero { background: var(--bc-ink-4); }
+.ske-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 4px 2px 8px; border-radius: 999px; background: var(--bc-info-soft); color: var(--bc-brand-deep); font-weight: 600; }
+.ske-chip-actual { font-weight: 800; }
+.ske-chip-grupo { background: var(--bc-brand-deep); color: #fff; }
+.ske-quitar { border: none; background: transparent; color: var(--bc-brand-deep); cursor: pointer; font-size: 13px; line-height: 1; padding: 0 2px; }
+.ske-quitar-grupo { color: #fff; }
+.ske-anadir { font: 600 11px var(--bc-font-body); padding: 3px 9px; border-radius: 999px; border: 1px dashed var(--bc-brand-primary); background: var(--bc-paper); color: var(--bc-brand-primary); cursor: pointer; }
+.ske-selector { border: 1px solid var(--bc-line-strong); border-radius: 8px; overflow: hidden; }
+.ske-pestanas { display: flex; border-bottom: 1px solid var(--bc-line); }
+.ske-pestana { flex: 1; font: 600 12px var(--bc-font-body); padding: 7px 10px; border: none; background: var(--bc-paper); color: var(--bc-ink-2); cursor: pointer; }
+.ske-pestana-on { background: var(--bc-brand-deep); color: #fff; }
+.ske-buscador { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--bc-line); }
+.ske-buscar { flex: 1; min-width: 0; font: 12px var(--bc-font-body); padding: 5px 8px; border: 1px solid var(--bc-line-strong); border-radius: 4px; outline: none; }
+.ske-buscar:focus { border-color: var(--bc-brand-primary); }
+.ske-todas { font: 600 11px var(--bc-font-body); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--bc-line-strong); background: var(--bc-paper); color: var(--bc-ink-2); cursor: pointer; }
+.ske-lista { max-height: 180px; overflow: auto; }
+.ske-opcion { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: none; border-bottom: 1px solid var(--bc-line); background: var(--bc-paper); cursor: pointer; text-align: left; font: 12px var(--bc-font-body); color: var(--bc-ink-1); }
+.ske-opcion:hover { background: var(--bc-paper-3); }
+.ske-opcion-on { background: var(--bc-info-soft); }
+.ske-check { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--bc-line-strong); background: var(--bc-paper); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ske-check-on { border-color: var(--bc-brand-primary); background: var(--bc-brand-primary); }
+.ske-nombre { flex: 1; min-width: 0; }
+.ske-columna { display: flex; flex-direction: column; }
+.ske-sub { font-size: 11px; color: var(--bc-ink-3); font-variant-numeric: tabular-nums; }
+.ske-aviso { padding: 8px 10px; font-size: 12px; color: var(--bc-ink-3); }
+.ske-aviso-error { color: var(--bc-danger); }

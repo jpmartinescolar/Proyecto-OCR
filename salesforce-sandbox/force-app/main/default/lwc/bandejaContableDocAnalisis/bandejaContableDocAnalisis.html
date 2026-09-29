@@ -6,24 +6,22 @@
                     <div key={k.l} class="ana-kpi"><span class="ana-kpi-label">{k.l}</span><span class={k.clase}>{k.v}</span></div>
                 </template>
             </div>
-            <template for:each={bloques} for:item="b">
-                <div key={b.k} class="ana-bloque">
-                    <div class={b.claseCab}><span class="ana-flex">{b.titulo}</span><span class="ana-bloque-resumen">{b.resumen}</span></div>
-                    <template lwc:if={b.hay}>
-                        <template for:each={b.items} for:item="x">
-                            <div key={x.key} class="ana-item">
-                                <div class="ana-flex ana-item-cuerpo">
-                                    <div class="ana-item-titulo"><span class="bc-fuerte">{x.titulo}</span><span class="ana-ref">{x.ref}</span></div>
-                                    <span class="ana-texto">{x.texto}</span>
-                                </div>
-                                <span class={x.claseImporte}>{x.importe}</span>
+            <div class="ana-bloque">
+                <div class={claseCabNoDeducibles}><span class="ana-flex">Gastos no deducibles</span><span class="ana-bloque-resumen">{resumenNoDeducibles}</span></div>
+                <template lwc:if={hayNoDeducibles}>
+                    <template for:each={noDeducibles} for:item="x">
+                        <div key={x.key} class="ana-item">
+                            <div class="ana-flex ana-item-cuerpo">
+                                <div class="ana-item-titulo"><span class="bc-fuerte">{x.titulo}</span><span class="ana-ref">{x.ref}</span><span class="ana-cat">{x.cat}</span></div>
+                                <span class="ana-texto">{x.texto}</span>
                             </div>
-                        </template>
+                            <span class="ana-importe">{x.importe}</span>
+                        </div>
                     </template>
-                    <template lwc:else><div class="ana-vacio">{b.vacio}</div></template>
-                </div>
-            </template>
-            <span class="ana-nota">Los ajustes se trasladan al modelo 200 del ejercicio (casillas de aumentos y disminuciones del resultado contable). Cálculo sobre los datos de ejemplo.</span>
+                </template>
+                <template lwc:else><div class="ana-vacio">Todos los gastos de la factura son fiscalmente deducibles.</div></template>
+            </div>
+            <span class="ana-nota">Las diferencias permanentes se trasladan al modelo 200 como ajuste fiscal positivo (aumento del resultado contable) y no revierten en ejercicios futuros. Cálculo sobre los datos de la factura.</span>
         </template>
 
         <template lwc:if={esProductos}>

@@ -8,7 +8,9 @@ Backlog del proyecto. Marcar `[x]` al terminar y mover a "Hecho" con la fecha.
 - [ ] Lectura sin IA de facturas estructuradas (Facturae / UBL / CII, y XML dentro de PDF).
 - [ ] Tabla `confirmaciones` y confirmación del asesor en Salesforce.
 - [ ] Listado OCR (pantalla 03) con los documentos reales de Google (hoy de ejemplo): endpoint de documentos para varias bandejas.
-- [ ] Aviso de Google a Salesforce al terminar (`Documentos_total__c` y estado) para listados sin llamar a Google.
+- [ ] Aviso de Google a Salesforce al terminar (`Documentos_total__c` y estado) para listados sin llamar a Google. Hoy el listado usa la consulta agrupada `/status`; el aviso necesita un usuario de integración en Salesforce con credenciales en Secret Manager.
+- [ ] Caché del token de Google en Salesforce (Platform Cache): pedir capacidad o decidir otra opción. Hoy cada llamada pide su token.
+- [ ] Borrar del sandbox el recurso estático `Bandeja_Contable_PdfJs` (visor con pdf.js descartado; ya no está en el repo).
 - [ ] Fase 1 · ingestión y separación de documentos: ver pasos en [fases/fase-1-ingestion.md](fases/fase-1-ingestion.md).
 - [ ] Revisar con el usuario las pantallas v2 (desplegadas en el sandbox el 28/09).
 - [ ] Datos de ejemplo que hay que sustituir: tabla completa en [diseno.md](diseno.md#de-dónde-sale-cada-dato). Por decidir con el usuario:

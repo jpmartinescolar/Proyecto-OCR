@@ -1,0 +1,53 @@
+<template>
+    <div class="ske-caja">
+        <div class="ske-fila">
+            <span class="ske-etiqueta"><lightning-icon icon-name="utility:company" size="xx-small"></lightning-icon>Empresas afectadas</span>
+            <span class={claseTotal} title={resumen}>{total}</span>
+            <template for:each={chipsEmpresas} for:item="e">
+                <span key={e.id} class={e.clase}>{e.nombre}<button class="ske-quitar" data-id={e.id} aria-label="Quitar" onclick={quitarEmpresa}>×</button></span>
+            </template>
+            <template for:each={chipsGrupos} for:item="g">
+                <span key={g.id} class="ske-chip ske-chip-grupo" title="Grupo empresarial">{g.nombre} · {g.n}<button class="ske-quitar ske-quitar-grupo" data-id={g.id} aria-label="Quitar" onclick={quitarGrupo}>×</button></span>
+            </template>
+            <button class="ske-anadir" onclick={alternar}>{textoBoton}</button>
+        </div>
+        <template lwc:if={abierto}>
+            <div class="ske-selector">
+                <div class="ske-pestanas">
+                    <template for:each={pestanas} for:item="t">
+                        <button key={t.k} class={t.clase} data-k={t.k} onclick={elegirModo}>{t.label}</button>
+                    </template>
+                </div>
+                <div class="ske-buscador">
+                    <input class="ske-buscar" type="search" placeholder="Buscar empresa, CIF o grupo…" value={busqueda} oninput={buscar}>
+                    <template lwc:if={esEmpresas}><button class="ske-todas" onclick={todas}>{textoTodas}</button></template>
+                </div>
+                <template lwc:if={cargando}><div class="ske-aviso">Buscando…</div></template>
+                <template lwc:if={error}><div class="ske-aviso ske-aviso-error">{error}</div></template>
+                <template lwc:if={esEmpresas}>
+                    <div class="ske-lista">
+                        <template for:each={opcionesEmpresas} for:item="o">
+                            <button key={o.id} class={o.claseFila} data-id={o.id} onclick={alternarEmpresa}>
+                                <span class={o.claseCheck}>{o.check}</span>
+                                <span class="ske-nombre">{o.nombre}</span>
+                                <span class="ske-sub">{o.sub}</span>
+                            </button>
+                        </template>
+                        <template lwc:if={sinEmpresas}><div class="ske-aviso">No hay empresas que coincidan.</div></template>
+                    </div>
+                </template>
+                <template lwc:if={esGrupos}>
+                    <div class="ske-lista">
+                        <template for:each={opcionesGrupos} for:item="o">
+                            <button key={o.id} class={o.claseFila} data-id={o.id} onclick={alternarGrupo}>
+                                <span class={o.claseCheck}>{o.check}</span>
+                                <span class="ske-nombre ske-columna"><b>{o.nombre}</b><span class="ske-sub">{o.sub}</span></span>
+                            </button>
+                        </template>
+                        <template lwc:if={sinGrupos}><div class="ske-aviso">No hay grupos empresariales que coincidan.</div></template>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>
