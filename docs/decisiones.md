@@ -36,7 +36,7 @@ Registro de decisiones del proyecto. Formato: fecha · decisión · motivo · al
 - **Modelo 1:N en Salesforce**: `Bandeja_Contable__c` (envío) + `Bandeja_Contable_Archivo__c` (archivo). Motivo: seguimiento por archivo sin llamar a Google, reintentos, y base para el portal. Descartado: un registro por archivo (prototipo) y seguimiento solo en Cloud SQL.
 - **Archivos solo en Cloud Storage; IDs cruzados en los dos sentidos** (Salesforce guarda los de Google; Cloud SQL los de Salesforce).
 - **Autenticación con certificado generado en Salesforce, sin claves JSON.** Motivo: la clave privada no sale de Salesforce; Google desaconseja las claves JSON. Descartado: clave JSON convertida e importada.
-- **Rama nueva `feature/bandeja-contable` desde `main`** con código portado y nombres definitivos. El prototipo queda en `test/buzon-contable` (tag `archivo/prototipo-buzon-contable`) sin fusionar.
+- **Rama nueva `feature/bandeja-contable` desde `main`** con código portado y nombres definitivos. El prototipo queda en `test/buzon-contable` (tag `archivo/prototipo-buzon-contable`) sin fusionar. El 29/09 la rama se renombró a `legacy/prototipo-buzon-contable` (mismo contenido) y se publicaron la rama y el tag en GitHub.
 - **Recursos de Google nuevos con nombres definitivos**, sufijo `-dev` en desarrollo; los `buzon-*` se retirarán.
 - **UI en LWC dentro de Salesforce, fiel al diseño de Claude Design** (tokens CIDP), para asesores internos. El portal del cliente (solo subida y confirmación) vendrá después reutilizando `bandejaContableNuevo`.
 - **Tipos de documentación: Emitida / Recibida / Ticket** (los del prototipo).

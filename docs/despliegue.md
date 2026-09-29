@@ -4,7 +4,7 @@ Flujo manual mientras no exista CI/CD. Sustituye al antiguo `DEPLOYMENT.md`.
 
 ## Ramas
 - `main` refleja el estado del sandbox en lo que versionamos (Apex, Visualforce, Aura, LWC, recursos estáticos, triggers).
-- La Bandeja Contable se desarrolla en `feature/bandeja-contable`; el prototipo antiguo queda en `test/buzon-contable` (sin fusionar).
+- La Bandeja Contable se desarrolla en `feature/bandeja-contable`; el prototipo antiguo queda en `legacy/prototipo-buzon-contable` (antes `test/buzon-contable`; sin fusionar, solo referencia).
 - **Otras personas cambian el sandbox directamente sin git** (p. ej. `areaContableFiscal`). Antes de fusionar a `main`, comprobar que `main` sigue igual al sandbox:
   ```
   cd salesforce-sandbox
@@ -58,7 +58,7 @@ sf project deploy quick --job-id <id de la validación> -o sandbox
 
 ## Retirada del prototipo del sandbox
 
-El prototipo de la rama `test/buzon-contable` (desplegado el 24/09/2026) sigue en el sandbox y convive con la Bandeja Contable. Su pestaña es **Bandeja Contable Panel** (`/lightning/n/Bandeja_Contable_Panel`); la buena es **Bandeja Contable** (`/lightning/n/Bandeja_Contable`). Manifiesto: `salesforce-sandbox/manifest/retirada-prototipo/`. Validado el 28/09 (31/31 tests) salvo los dos puntos que necesitan un paso previo.
+El prototipo de la rama `legacy/prototipo-buzon-contable`, antes `test/buzon-contable` (desplegado el 24/09/2026) sigue en el sandbox y convive con la Bandeja Contable. Su pestaña es **Bandeja Contable Panel** (`/lightning/n/Bandeja_Contable_Panel`); la buena es **Bandeja Contable** (`/lightning/n/Bandeja_Contable`). Manifiesto: `salesforce-sandbox/manifest/retirada-prototipo/`. Validado el 28/09 (31/31 tests) salvo los dos puntos que necesitan un paso previo.
 
 1. Quitar la asignación del permiso `Bandeja_Contable_Access` (hoy: Ivan Mendoza).
 2. Borrar los registros del formato antiguo (una bandeja por archivo): BC-00003 y BC-00004.
