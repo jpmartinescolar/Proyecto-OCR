@@ -14,7 +14,7 @@
                 <c-bandeja-contable-registro bandeja-id={bandejaId} onnavegar={handleNavegar}></c-bandeja-contable-registro>
             </template>
             <template lwc:if={esDocumento}>
-                <c-bandeja-contable-documento bandeja-id={bandejaId} documento-id={docId} origen={tab}
+                <c-bandeja-contable-documento bandeja-id={bandejaId} documento-id={docId} origen={tab} inicio-pagina={inicioPagina}
                                               onnavegar={handleNavegar}></c-bandeja-contable-documento>
             </template>
             <template lwc:if={esOcr}>

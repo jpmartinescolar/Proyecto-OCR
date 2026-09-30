@@ -23,16 +23,16 @@
 .vis-mesa-lupa { cursor: zoom-in; }
 /* Lupa: aparece al pasar por el documento (también sobre el lector de PDF) */
 .vis-mesa { position: relative; }
-.vis-lupa { position: absolute; top: 12px; right: 12px; z-index: 2; width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--bc-line-strong); background: var(--bc-paper); box-shadow: var(--bc-shadow-md); cursor: zoom-in; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 150ms; }
+.vis-lupa { z-index: 2; flex-shrink: 0; width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--bc-line-strong); background: var(--bc-paper); box-shadow: var(--bc-shadow-md); cursor: zoom-in; display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: opacity 150ms; }
 .vis-mesa:hover .vis-lupa, .vis-lupa:focus-visible { opacity: 1; }
+/* PDF: sobre el lector, que tiene su propio scroll; imagen y vista de ejemplo: flota al final de lo visible */
+.vis-lupa-pdf { position: absolute; right: 16px; bottom: 16px; }
+.vis-lupa-flotante { position: sticky; bottom: 0; align-self: flex-end; margin-top: auto; }
 .vis-lupa:hover { border-color: var(--bc-brand-primary); }
 .vis-lupa lightning-icon { --slds-c-icon-color-foreground-default: var(--bc-brand-deep); }
-@media (hover: none) { .vis-lupa { opacity: 1; } }
 
 /* Mientras el lector de PDF carga: spinner estándar y lector oculto */
 .vis-cargando { position: absolute; inset: 0; z-index: 1; }
 .vis-marco-oculto { visibility: hidden; }
-/* Dentro del visor ampliado: el alto lo da el documento (en un PDF, estiloMesa: una página al ancho;
-   con "Página completa", el alto de la ventana para que quepa entera) */
-.vis-mesa-ampliada { height: auto; min-height: 320px; overflow: visible; }
-.vis-mesa-ampliada.vis-mesa-pdf { height: calc(100vh - 12rem); }
+/* Dentro del visor ampliado: la mesa ocupa todo el alto que deja el panel */
+.vis-mesa-ampliada { flex: 1; height: auto; min-height: 0; }

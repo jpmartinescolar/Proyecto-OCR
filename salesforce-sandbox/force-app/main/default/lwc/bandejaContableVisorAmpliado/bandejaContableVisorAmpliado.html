@@ -7,7 +7,7 @@
             <lightning-button-icon icon-name="utility:close" variant="bare" size="large" alternative-text="Cerrar" title="Cerrar (Esc)"
                                    onclick={cerrar}></lightning-button-icon>
         </header>
-        <c-bandeja-contable-visor modo="ampliado" url={url} mime={mime} nombre={nombre} descarga-url={descargaUrl}
+        <c-bandeja-contable-visor class="amp-visor" modo="ampliado" url={url} mime={mime} nombre={nombre} descarga-url={descargaUrl}
                                   paginas={paginas} pagina-inicial={pagina} previo={previo}>
             <template lwc:if={papel}>
                 <c-bandeja-contable-doc-papel papel={papel}></c-bandeja-contable-doc-papel>

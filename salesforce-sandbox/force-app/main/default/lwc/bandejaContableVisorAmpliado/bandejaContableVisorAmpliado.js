@@ -1,9 +1,9 @@
 import { LightningElement, api } from 'lwc';
 
 /**
- * Visor ampliado del documento: panel que el documento coloca sobre la mitad izquierda de la pantalla,
- * anclado a la página (se mueve con su scroll, así que nunca queda tapado para siempre por la cabecera de
- * Salesforce). Mide lo que el PDF: el ancho del panel y el alto de una página a ese ancho.
+ * Visor ampliado del documento: panel que el documento fija a la ventana sobre la mitad izquierda, desde
+ * debajo del menú hasta el borde inferior; el visor de dentro usa todo ese alto y el PDF se recorre con su
+ * scroll.
  * Se cierra con la × (estándar de Salesforce), con Esc o con un clic fuera (el fondo lo pone el documento).
  * Descartado lightning-modal: solo tiene tamaños fijos, siempre centrado y sin cierre con clic fuera.
  * El visor de dentro se crea ya con el tamaño final y reutiliza el PDF que había descargado el de la página;
@@ -33,6 +33,7 @@ export default class BandejaContableVisorAmpliado extends LightningElement {
         if (!this.enfocado) {
             this.enfocado = true;
             const x = this.template.querySelector('lightning-button-icon');
+            // El panel está fijo y a la vista: enfocarlo no desplaza la página
             if (x) x.focus();
         }
     }

@@ -177,7 +177,7 @@ describe('c-bandeja-contable-documento', () => {
         const panel = () => r.querySelector('c-bandeja-contable-visor-ampliado');
         await ampliar();
         expect(panel()).not.toBeNull();
-        expect(panel().getAttribute('style')).toMatch(/top:\d+px;left:\d+px;width:\d+px/);
+        expect(panel().getAttribute('style')).toMatch(/top:\d+px;left:\d+px;width:\d+px;height:\d+px/);
         // Sin archivo real: el panel muestra la vista de ejemplo en su visor
         expect(panel().shadowRoot.querySelector('c-bandeja-contable-doc-papel')).not.toBeNull();
         await pulsar(el, '.doc-amp-fondo'); // clic fuera del documento
@@ -190,6 +190,31 @@ describe('c-bandeja-contable-documento', () => {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
         await esperar();
         expect(panel()).toBeNull();
+    });
+
+    it('ampliar con la página bajada: panel fijo debajo del menú, todo el alto y sin mover la página', async () => {
+        const el = await montar();
+        el.inicioPagina = { app: 90, contenido: 150 }; // lo mide bandejaContableApp
+        const r = el.shadowRoot;
+        const alto = window.innerHeight;
+        const scrollTo = jest.spyOn(window, 'scrollTo').mockImplementation(() => {});
+        // Arriba del todo: debajo de la barra "Gestión Contable"
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+        r.querySelector('c-bandeja-contable-visor').dispatchEvent(new CustomEvent('ampliar', { detail: { pagina: 1 } }));
+        await esperar();
+        expect(r.querySelector('c-bandeja-contable-visor-ampliado').getAttribute('style')).toContain(`top:150px`);
+        await pulsar(el, '.doc-amp-fondo');
+        // Página bajada hasta el final del documento: justo debajo de la cabecera de Salesforce, hasta abajo
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: 2000 });
+        r.querySelector('c-bandeja-contable-visor').dispatchEvent(new CustomEvent('ampliar', { detail: { pagina: 1 } }));
+        await esperar();
+        const estilo = r.querySelector('c-bandeja-contable-visor-ampliado').getAttribute('style');
+        expect(estilo).toContain('top:90px');
+        expect(estilo).toContain(`height:${Math.max(320, alto - 90 - 16)}px`);
+        expect(scrollTo).not.toHaveBeenCalled();
+        expect(window.scrollY).toBe(2000);
+        scrollTo.mockRestore();
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
     });
 
     it('la contrapartida y la cuenta del asiento se eligen en el buscador de cuentas', async () => {

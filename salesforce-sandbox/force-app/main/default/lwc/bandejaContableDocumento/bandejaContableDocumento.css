@@ -263,7 +263,6 @@ select.doc-iva-input { cursor: pointer; }
     .doc-capas { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Visor ampliado: panel anclado a la página (se mueve con su scroll); el fondo lo cierra al pulsar fuera */
-.bc-main { position: relative; }
-.doc-amp-fondo { position: absolute; inset: 0; z-index: 50; background: rgba(15, 27, 45, 0.25); cursor: zoom-out; }
-.doc-amp { position: absolute; z-index: 51; }
+/* Visor ampliado: panel fijo a la ventana (posición y tamaño en posicionAmpliado); el fondo lo cierra al pulsar fuera */
+.doc-amp-fondo { position: fixed; inset: 0; z-index: 9000; background: rgba(15, 27, 45, 0.25); cursor: zoom-out; }
+.doc-amp { position: fixed; z-index: 9001; display: flex; flex-direction: column; }

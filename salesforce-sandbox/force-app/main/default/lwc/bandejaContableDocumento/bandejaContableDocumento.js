@@ -79,6 +79,7 @@ function hoy() {
 export default class BandejaContableDocumento extends LightningElement {
     @api bandejaId;
     @api origen; // 'ocr' si se llegó desde el listado OCR (para las migas de pan)
+    @api inicioPagina; // { app, contenido }: dónde empiezan la app y su contenido en la página (bandejaContableApp)
 
     _documentoId;
     @api
@@ -903,25 +904,42 @@ export default class BandejaContableDocumento extends LightningElement {
 
     // ===== Visor =====
     /**
-     * "Ampliar" o la lupa del visor: el panel del visor ampliado sobre la mitad izquierda de la pantalla,
-     * desde donde está el visor y anclado a la página (se mueve con su scroll). En pantallas estrechas, donde
-     * la mitad no sería más grande que el visor, ocupa casi todo el ancho.
+     * "Ampliar" o la lupa del visor: panel fijo a la ventana (no depende del scroll de la página, así que se abre
+     * igual desde cualquier posición y sin mover la página) sobre la mitad izquierda, desde justo debajo del menú
+     * hasta el borde inferior. Arriba: debajo de la barra "Gestión Contable" si se ve; si la página ya ha bajado,
+     * debajo de la cabecera de Salesforce (posiciones medidas por la app, no supuestas). En pantallas estrechas,
+     * donde la mitad no sería más grande que el visor, ocupa casi todo el ancho.
      */
     ampliarDocumento(e) {
         const d = e.detail || {};
-        const main = this.template.querySelector('main');
-        const visor = this.template.querySelector('.doc-visor');
-        if (!main || !visor) return;
-        const m = main.getBoundingClientRect(), r = visor.getBoundingClientRect();
+        this.ampliado = { pagina: d.pagina, previo: d.previo, estilo: this.posicionAmpliado() };
+        if (!this.alRedimensionar) {
+            this.alRedimensionar = () => { if (this.ampliado) this.ampliado = { ...this.ampliado, estilo: this.posicionAmpliado() }; };
+            window.addEventListener('resize', this.alRedimensionar);
+        }
+    }
+
+    posicionAmpliado() {
         const margen = 16;
-        let ancho = Math.round(window.innerWidth / 2 - r.left - margen);
-        if (ancho < r.width * 1.3) ancho = Math.round(Math.min(m.width, window.innerWidth - 2 * margen));
-        const left = Math.max(0, Math.min(r.left - m.left, m.width - ancho));
-        this.ampliado = { pagina: d.pagina, previo: d.previo, estilo: `top:${Math.round(r.top - m.top)}px;left:${Math.round(left)}px;width:${ancho}px` };
+        const W = window.innerWidth, H = window.innerHeight, s = window.scrollY || 0;
+        const inicio = this.inicioPagina || {};
+        const app = inicio.app || 0, contenido = inicio.contenido || app;
+        const top = Math.round(Math.max(contenido - s, app, 0));
+        const visor = this.template.querySelector('.doc-visor');
+        const r = visor ? visor.getBoundingClientRect() : { left: margen, width: W / 3 };
+        let ancho = Math.round(W / 2 - r.left - margen);
+        if (ancho < r.width * 1.3) ancho = W - 2 * margen;
+        const left = Math.round(Math.max(margen, Math.min(r.left, W - ancho - margen)));
+        return `top:${top}px;left:${left}px;width:${ancho}px;height:${Math.max(320, H - top - margen)}px`;
     }
 
     cerrarAmpliado() {
         this.ampliado = null;
+    }
+
+    disconnectedCallback() {
+        if (this.alRedimensionar) window.removeEventListener('resize', this.alRedimensionar);
+        this.alRedimensionar = null;
     }
 
     // ===== Acciones de cabecera =====

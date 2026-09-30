@@ -13,6 +13,9 @@ const VISTA_INICIAL = 'ocr';
  */
 export default class BandejaContableApp extends NavigationMixin(LightningElement) {
     vista = VISTA_INICIAL;
+    // Dónde empiezan la app (justo debajo de la cabecera de Salesforce) y su contenido (debajo de la barra
+    // "Gestión Contable"), en coordenadas de la página. Lo usa el visor ampliado para colocarse debajo del menú.
+    inicioPagina = null;
     bandejaId;
     docId;
     empresaId;
@@ -26,6 +29,16 @@ export default class BandejaContableApp extends NavigationMixin(LightningElement
         this.docId = s.c__doc;
         this.empresaId = s.c__empresa;
         this.tab = s.c__tab;
+    }
+
+    renderedCallback() {
+        if (this.inicioPagina) return;
+        const app = this.template.querySelector('.bc-app');
+        const contenido = this.template.querySelector('.bc-contenido');
+        if (!app || !contenido) return;
+        const s = window.scrollY || 0;
+        const a = app.getBoundingClientRect().top + s, c = contenido.getBoundingClientRect().top + s;
+        if (a > 0) this.inicioPagina = { app: Math.round(a), contenido: Math.round(c) };
     }
 
     get esLista() { return this.vista === 'lista'; }
