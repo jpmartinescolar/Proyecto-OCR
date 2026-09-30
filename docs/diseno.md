@@ -149,7 +149,7 @@ Los **cálculos** (desglose de IVA, IVA no deducible, asiento y cuadre, riesgos,
 
 Diferencias con el prototipo de Claude Design:
 - El grupo de campos del emisor se sigue llamando "Emisor" (el prototipo pone "Destinatario" a la razón social y el NIF del proveedor).
-- "Ampliar": en el prototipo activa un modo en el que pulsar la factura la amplía. Aquí el botón abre directamente el visor ampliado (50 % del ancho, todo el alto; se cierra con Esc, × o pulsando fuera), porque en un PDF el lector del navegador se queda con los clics. En imágenes y en la vista de ejemplo también se abre pulsando el documento.
+- "Ampliar": en el prototipo, una lupa que clona la página al 50 % de la pantalla. Aquí abre el modal estándar de Salesforce a pantalla completa, con el documento a un ancho de lectura, el spinner hasta que carga y "Página completa / Ajustar al ancho". Se cierra con Esc, con la × o con un clic fuera del documento.
 - El consumo de IA del documento pasa al tooltip de "Extracción automática".
 - La pantalla 04 (recuento por empresa) sigue existiendo, aunque ya no tiene pestaña (se llega por URL, `c__vista=ocrEmpresas`).
 - El "Para" del email al cliente sale vacío: el prototipo lo rellena, pero el email del cliente no está en los datos de Salesforce que se leen hoy.

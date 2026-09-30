@@ -6,6 +6,9 @@ import listarArchivosGoogle from '@salesforce/apex/BandejaContableController.lis
 import listarDocumentosGoogle from '@salesforce/apex/BandejaContableController.listarDocumentosGoogle';
 import obtenerDocumentoGoogle from '@salesforce/apex/BandejaContableController.obtenerDocumentoGoogle';
 
+import BandejaContableVisorAmpliado from 'c/bandejaContableVisorAmpliado';
+
+jest.mock('c/bandejaContableVisorAmpliado', () => ({ __esModule: true, default: { open: jest.fn(() => Promise.resolve()) } }));
 jest.mock('@salesforce/apex/BandejaContableController.getBandeja', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/BandejaContableController.getDatosCliente', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/BandejaContableController.listarArchivosGoogle', () => ({ default: jest.fn() }), { virtual: true });
@@ -165,6 +168,16 @@ describe('c-bandeja-contable-documento', () => {
         await esperar();
         expect(col().querySelectorAll('.col-correo')).toHaveLength(antes + 1);
         expect(el.shadowRoot.querySelector('.doc-pestana[data-k="mail"] .doc-pestana-n').textContent).toBe(String(antes + 1));
+    });
+
+    it('Ampliar abre el visor ampliado a pantalla completa (modal de Salesforce)', async () => {
+        const el = await montar();
+        const visor = el.shadowRoot.querySelector('c-bandeja-contable-visor');
+        visor.dispatchEvent(new CustomEvent('ampliar', { detail: { pagina: 1, previo: null } }));
+        await esperar();
+        expect(BandejaContableVisorAmpliado.open).toHaveBeenCalledWith(expect.objectContaining({ size: 'full', pagina: 1 }));
+        // Sin archivo real: el modal muestra la vista de ejemplo
+        expect(BandejaContableVisorAmpliado.open.mock.calls[0][0].papel.x.emisor).toBeTruthy();
     });
 
     it('la contrapartida y la cuenta del asiento se eligen en el buscador de cuentas', async () => {

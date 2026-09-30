@@ -106,57 +106,9 @@
                 <!-- ===== Visor ===== -->
                 <section class="bc-card doc-visor">
                     <c-bandeja-contable-visor url={v.visor.url} mime={v.visor.mime} nombre={v.visor.nombre}
-                                              descarga-url={v.visor.descargaUrl} paginas={v.visor.paginas}>
+                                              descarga-url={v.visor.descargaUrl} paginas={v.visor.paginas} onampliar={ampliarDocumento}>
                         <!-- Sin archivo que mostrar: vista de ejemplo del documento (resalta los campos al pasar por ellos) -->
-                        <div class="doc-papel">
-                            <span class="bc-ejemplo doc-papel-ejemplo">Datos de ejemplo</span>
-                            <div class="doc-fila-sep">
-                                <div class="doc-bloque">
-                                    <span class="doc-marca doc-emisor" style={v.hl.emisor}>{v.x.emisor}</span>
-                                    <div>NIF <span class="doc-marca" style={v.hl.nif}>{v.x.nif}</span></div>
-                                    <span class="doc-marca" style={v.fijo.azul}>{v.x.dir}</span>
-                                </div>
-                                <div class="doc-bloque doc-bloque-der">
-                                    <div class="doc-kind">{v.x.kind}</div>
-                                    <div>Nº <span class="doc-marca" style={v.hl.numero}>{v.x.numero}</span></div>
-                                </div>
-                            </div>
-                            <div class="doc-fila-sep">
-                                <div class="doc-bloque">
-                                    <template lwc:if={v.conCliente}>
-                                        <div class="doc-gris">Cliente</div>
-                                        <span class="doc-marca doc-fuerte" style={v.fijo.verde}>{v.clienteNombre}</span>
-                                        <div>NIF <span class="doc-marca" style={v.fijo.verde}>{v.clienteCif}</span></div>
-                                    </template>
-                                    <template lwc:if={v.x.sumin}>
-                                        <div class="doc-gris">Dirección de suministro</div>
-                                        <span class="doc-marca" style={v.fijo.verde}>{v.x.sumin}</span>
-                                    </template>
-                                </div>
-                                <div class="doc-bloque doc-bloque-der">
-                                    <div class="doc-gris">Fecha</div>
-                                    <span class="doc-marca doc-fuerte" style={v.hl.fecha}>{v.x.fecha}</span>
-                                </div>
-                            </div>
-                            <div class="doc-lineas">
-                                <div class="doc-linea doc-gris"><span class="doc-flex">Concepto</span><span>Importe</span></div>
-                                <template for:each={v.x.lineas} for:item="l">
-                                    <div key={l.key} class="doc-linea">
-                                        <span class="doc-flex"><span class="doc-marca" style={l.estilo}>{l.c}</span></span>
-                                        <span class="doc-marca" style={l.estilo}>{l.i}</span>
-                                    </div>
-                                </template>
-                            </div>
-                            <div class="doc-totales">
-                                <template for:each={v.ivaPreview} for:item="p">
-                                    <div key={p.key} class="doc-totales-bloque">
-                                        <div class="doc-linea"><span class="doc-flex">Base imponible <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.base} €</span></div>
-                                        <div class="doc-linea"><span class="doc-flex">IVA <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.cuota} €</span></div>
-                                    </div>
-                                </template>
-                                <div class="doc-linea doc-total"><span class="doc-flex">TOTAL</span><span class="doc-marca" style={v.hl.total}>{v.x.total} €</span></div>
-                            </div>
-                        </div>
+                        <c-bandeja-contable-doc-papel papel={v.papel}></c-bandeja-contable-doc-papel>
                     </c-bandeja-contable-visor>
                 </section>
 

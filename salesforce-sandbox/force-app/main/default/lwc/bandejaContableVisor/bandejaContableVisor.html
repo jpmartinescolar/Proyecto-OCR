@@ -5,9 +5,14 @@
             <button class="vis-zoom" title="Ajustar al ancho" onclick={ajustar}>{zoomTxt}</button>
             <button class="vis-herramienta" title="Aumentar el zoom" aria-label="Aumentar el zoom" disabled={sinMas} onclick={masZoom}>+</button>
         </div>
-        <button class={claseAmpliar} title={tituloAmpliar} aria-pressed={ampliadoTxt} onclick={toggleAmpliar}>
-            <lightning-icon icon-name="utility:zoomin" size="xx-small"></lightning-icon>Ampliar
-        </button>
+        <template lwc:if={conAjustePagina}>
+            <button class="vis-herramienta" title="Cambiar entre ver la página entera y ajustarla al ancho" onclick={toggleAjustePagina}>{textoAjustePagina}</button>
+        </template>
+        <template lwc:if={conAmpliar}>
+            <button class="vis-herramienta vis-ampliar" title="Ver el documento ampliado" onclick={ampliar}>
+                <lightning-icon icon-name="utility:zoomin" size="xx-small"></lightning-icon>Ampliar
+            </button>
+        </template>
         <button class="vis-herramienta" title="Girar 90°" onclick={girar}>
             <lightning-icon icon-name="utility:rotate" size="xx-small"></lightning-icon>Girar
         </button>
@@ -24,26 +29,17 @@
             <lightning-icon icon-name="utility:download" size="xx-small"></lightning-icon>Descargar
         </button>
     </div>
-    <template lwc:if={ampliado}>
-        <div class="vis-fondo" onclick={cerrarAmpliado}></div>
-        <div class="vis-ampliado-barra" style={estiloBarraAmpliado}>
-            <lightning-icon icon-name="utility:zoomin" size="xx-small"></lightning-icon>
-            <span class="vis-ampliado-titulo">Vista ampliada</span>
-            <span class="vis-ampliado-ayuda">Esc o clic fuera para volver</span>
-            <button class="vis-restaurar" title="Volver al tamaño normal (Esc)" onclick={cerrarAmpliado}>
-                <lightning-icon icon-name="utility:contract" size="xx-small"></lightning-icon>Restaurar
-            </button>
-        </div>
-    </template>
-    <div class={claseMesa} style={estiloMesa} lwc:ref="mesa" onclick={pulsarMesa}>
+    <div class={claseMesa} lwc:ref="mesa" onclick={pulsarMesa}>
         <template lwc:if={conLupa}>
-            <button class="vis-lupa" title="Ampliar el documento" aria-label="Ampliar el documento" onclick={ampliarDesdeLupa}>
+            <button class="vis-lupa" title="Ampliar el documento" aria-label="Ampliar el documento" onclick={ampliar}>
                 <lightning-icon icon-name="utility:zoomin" size="x-small"></lightning-icon>
             </button>
         </template>
-        <template lwc:if={cargandoPdf}><div class="vis-aviso">Cargando documento…</div></template>
+        <template lwc:if={cargandoPdf}>
+            <div class="vis-cargando"><lightning-spinner alternative-text="Cargando documento" size="medium" variant="brand"></lightning-spinner></div>
+        </template>
         <template for:each={marcos} for:item="m">
-            <iframe key={m.key} class="vis-marco" src={m.src} style={estiloMarco} title="Documento original"></iframe>
+            <iframe key={m.key} class={claseMarco} src={m.src} style={estiloMarco} title="Documento original" onload={alCargarMarco}></iframe>
         </template>
         <template lwc:if={esImagen}>
             <img class="vis-imagen" src={url} alt={nombre} style={estiloImagen}>

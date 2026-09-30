@@ -1,0 +1,51 @@
+<template>
+    <div class="doc-papel">
+        <span class="bc-ejemplo doc-papel-ejemplo">Datos de ejemplo</span>
+        <div class="doc-fila-sep">
+            <div class="doc-bloque">
+                <span class="doc-marca doc-emisor" style={papel.hl.emisor}>{papel.x.emisor}</span>
+                <div>NIF <span class="doc-marca" style={papel.hl.nif}>{papel.x.nif}</span></div>
+                <span class="doc-marca" style={papel.fijo.azul}>{papel.x.dir}</span>
+            </div>
+            <div class="doc-bloque doc-bloque-der">
+                <div class="doc-kind">{papel.x.kind}</div>
+                <div>Nº <span class="doc-marca" style={papel.hl.numero}>{papel.x.numero}</span></div>
+            </div>
+        </div>
+        <div class="doc-fila-sep">
+            <div class="doc-bloque">
+                <template lwc:if={papel.conCliente}>
+                    <div class="doc-gris">Cliente</div>
+                    <span class="doc-marca doc-fuerte" style={papel.fijo.verde}>{papel.clienteNombre}</span>
+                    <div>NIF <span class="doc-marca" style={papel.fijo.verde}>{papel.clienteCif}</span></div>
+                </template>
+                <template lwc:if={papel.x.sumin}>
+                    <div class="doc-gris">Dirección de suministro</div>
+                    <span class="doc-marca" style={papel.fijo.verde}>{papel.x.sumin}</span>
+                </template>
+            </div>
+            <div class="doc-bloque doc-bloque-der">
+                <div class="doc-gris">Fecha</div>
+                <span class="doc-marca doc-fuerte" style={papel.hl.fecha}>{papel.x.fecha}</span>
+            </div>
+        </div>
+        <div class="doc-lineas">
+            <div class="doc-linea doc-gris"><span class="doc-flex">Concepto</span><span>Importe</span></div>
+            <template for:each={papel.x.lineas} for:item="l">
+                <div key={l.key} class="doc-linea">
+                    <span class="doc-flex"><span class="doc-marca" style={l.estilo}>{l.c}</span></span>
+                    <span class="doc-marca" style={l.estilo}>{l.i}</span>
+                </div>
+            </template>
+        </div>
+        <div class="doc-totales">
+            <template for:each={papel.ivaPreview} for:item="p">
+                <div key={p.key} class="doc-totales-bloque">
+                    <div class="doc-linea"><span class="doc-flex">Base imponible <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.base} €</span></div>
+                    <div class="doc-linea"><span class="doc-flex">IVA <span class="doc-marca" style={p.estilo}>{p.pct} %</span></span><span class="doc-marca" style={p.estilo}>{p.cuota} €</span></div>
+                </div>
+            </template>
+            <div class="doc-linea doc-total"><span class="doc-flex">TOTAL</span><span class="doc-marca" style={papel.hl.total}>{papel.x.total} €</span></div>
+        </div>
+    </div>
+</template>

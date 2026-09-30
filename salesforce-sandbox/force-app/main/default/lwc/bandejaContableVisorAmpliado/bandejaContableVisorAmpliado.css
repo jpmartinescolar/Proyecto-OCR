@@ -1,0 +1,5 @@
+@import 'c/bandejaContableEstilos';
+
+/* El documento con un ancho de lectura máximo; el espacio de los lados cierra el modal */
+.amp-fondo { display: flex; justify-content: center; min-height: 100%; cursor: zoom-out; }
+.amp-documento { width: 100%; max-width: 1040px; cursor: auto; background: var(--bc-paper); border: 1px solid var(--bc-line); border-radius: 4px; overflow: hidden; }

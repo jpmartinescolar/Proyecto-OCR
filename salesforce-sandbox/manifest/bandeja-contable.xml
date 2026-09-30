@@ -109,6 +109,8 @@
         <members>bandejaContableSkills</members>
         <members>bandejaContableUtils</members>
         <members>bandejaContableVisor</members>
+        <members>bandejaContableVisorAmpliado</members>
+        <members>bandejaContableDocPapel</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>

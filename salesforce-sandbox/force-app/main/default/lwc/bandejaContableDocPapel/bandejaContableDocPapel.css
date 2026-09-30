@@ -1,0 +1,19 @@
+@import 'c/bandejaContableEstilos';
+
+:host { display: block; }
+.doc-flex { flex: 1; min-width: 0; }
+.doc-fuerte { font-weight: 600; color: var(--bc-ink-1); }
+.doc-gris { color: #888; }
+.doc-papel { background: #fff; width: 100%; aspect-ratio: 1 / 1.3; box-shadow: var(--bc-shadow-md); padding: 36px 34px; display: flex; flex-direction: column; gap: 22px; font-size: 12px; color: #333; }
+.doc-papel-ejemplo { align-self: flex-start; margin: -20px 0 -8px; }
+.doc-fila-sep { display: flex; justify-content: space-between; gap: 16px; }
+.doc-bloque { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.doc-bloque-der { text-align: right; align-items: flex-end; }
+.doc-marca { padding: 1px 4px; border-radius: 3px; }
+.doc-emisor { font-size: 16px; font-weight: 700; color: #222; }
+.doc-kind { font-size: 15px; font-weight: 700; letter-spacing: 0.06em; }
+.doc-lineas { border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 10px 0; display: flex; flex-direction: column; gap: 6px; }
+.doc-linea { display: flex; align-items: center; gap: 12px; }
+.doc-totales { margin-left: auto; width: 60%; display: flex; flex-direction: column; gap: 5px; }
+.doc-totales-bloque { display: flex; flex-direction: column; gap: 5px; }
+.doc-total { padding-top: 6px; font-size: 14px; font-weight: 700; border-top: 1px solid #ccc; }

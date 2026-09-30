@@ -20,10 +20,6 @@
 .vis-marco { position: absolute; left: 50%; top: 50%; border: none; background: #fff; transition: transform 150ms; }
 .vis-imagen { box-shadow: var(--bc-shadow-md); transition: transform 150ms; transform-origin: center; }
 .vis-papel { width: 100%; max-width: 560px; transition: transform 150ms; }
-.vis-aviso { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-size: 13px; color: var(--bc-ink-3); }
-.vis-herramienta-on { background: var(--bc-brand-deep); border-color: var(--bc-brand-deep); color: #fff; }
-.vis-herramienta-on:hover:not([disabled]) { color: #fff; }
-.vis-herramienta-on lightning-icon { --slds-c-icon-color-foreground-default: #fff; }
 .vis-mesa-lupa { cursor: zoom-in; }
 /* Lupa: aparece al pasar por el documento (también sobre el lector de PDF) */
 .vis-mesa { position: relative; }
@@ -33,15 +29,8 @@
 .vis-lupa lightning-icon { --slds-c-icon-color-foreground-default: var(--bc-brand-deep); }
 @media (hover: none) { .vis-lupa { opacity: 1; } }
 
-/* Vista ampliada: el mismo visor en un panel fijo, por debajo de la cabecera de Salesforce. La posición y el
-   tamaño los calcula el componente (calcularPanel); el contenido hace scroll dentro del panel. */
-.vis-fondo { position: fixed; inset: 0; z-index: 9000; background: rgba(15, 27, 45, 0.25); }
-.vis-ampliado-barra { position: fixed; z-index: 9001; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px; background: var(--bc-brand-deep); color: #fff; border-radius: 12px 12px 0 0; font-size: 13px; box-sizing: border-box; }
-.vis-ampliado-barra lightning-icon { --slds-c-icon-color-foreground-default: #fff; }
-.vis-ampliado-titulo { font-weight: 700; }
-.vis-ampliado-ayuda { flex: 1; min-width: 0; font-size: 12px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vis-restaurar { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 4px; background: transparent; color: #fff; font: 600 13px var(--bc-font-body); cursor: pointer; }
-.vis-restaurar:hover { background: #fff; color: var(--bc-brand-deep); }
-.vis-restaurar:hover lightning-icon { --slds-c-icon-color-foreground-default: var(--bc-brand-deep); }
-.vis-mesa-ampliada { position: fixed; min-height: 0; z-index: 9001; border: 1px solid var(--bc-line); border-top: none; border-radius: 0 0 12px 12px; box-shadow: 0 12px 28px rgba(15, 27, 45, 0.25); }
-.vis-mesa-ampliada.vis-mesa-lupa { cursor: zoom-out; }
+/* Mientras el lector de PDF carga: spinner estándar y lector oculto */
+.vis-cargando { position: absolute; inset: 0; z-index: 1; }
+.vis-marco-oculto { visibility: hidden; }
+/* Dentro del visor ampliado (modal): ocupa el alto disponible del modal */
+.vis-mesa-ampliada { height: calc(100vh - 13rem); min-height: 320px; }

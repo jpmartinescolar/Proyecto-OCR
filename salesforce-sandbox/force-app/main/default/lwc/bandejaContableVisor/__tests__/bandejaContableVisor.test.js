@@ -131,25 +131,35 @@ describe('c-bandeja-contable-visor', () => {
         expect(el.shadowRoot.querySelector('.vis-descargar').disabled).toBe(true);
         expect(global.fetch).not.toHaveBeenCalled();
     });
-    it('Ampliar abre el documento por debajo de la cabecera de Salesforce y se restaura con Esc, Restaurar o fuera', async () => {
-        const el = await montar({ url: undefined, mime: '' });
+    it('Ampliar y la lupa piden el visor ampliado con la página y el PDF ya leído', async () => {
+        global.fetch = jest.fn(() => respuestaPdf());
+        const el = await montar({ url: 'https://firmada/doc.pdf#page=2' });
+        const pedidos = [];
+        el.addEventListener('ampliar', (e) => pedidos.push(e.detail));
+        await pulsar(el, '.vis-ampliar');
+        await pulsar(el, '.vis-lupa');
+        expect(pedidos).toHaveLength(2);
+        expect(pedidos[0].pagina).toBe(2);
+        expect(pedidos[0].previo.pagina1.ancho).toBeCloseTo(595.28);
+    });
+
+    it('en el visor ampliado reutiliza el PDF, no tiene Ampliar y muestra el spinner hasta que carga', async () => {
+        global.fetch = jest.fn(() => respuestaPdf());
+        const el = await montar({ url: 'https://firmada/doc.pdf', modo: 'ampliado', paginaInicial: 3, previo: { blob: {}, pagina1: { ancho: 595.28, alto: 841.89 } } });
         const r = el.shadowRoot;
-        const ampliada = () => r.querySelector('.vis-mesa-ampliada');
-        await pulsar(el, '.vis-mesa'); // en la vista de ejemplo basta con pulsar el documento
-        expect(ampliada()).not.toBeNull();
-        // Nunca pegado arriba: la cabecera fija de Salesforce taparía el encabezado del documento
-        expect(r.querySelector('.vis-ampliado-barra').getAttribute('style')).toContain('top:106px');
-        expect(ampliada().getAttribute('style')).toContain('top:146px');
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(r.querySelector('.vis-ampliar')).toBeNull();
         expect(r.querySelector('.vis-lupa')).toBeNull();
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        expect(src(el)).toContain('page=3');
+        expect(r.querySelector('.vis-cargando lightning-spinner')).not.toBeNull();
+        expect(r.querySelector('iframe').classList).toContain('vis-marco-oculto');
+        r.querySelector('iframe').dispatchEvent(new CustomEvent('load'));
         await esperarVarios();
-        expect(ampliada()).toBeNull();
-        await pulsar(el, '.vis-lupa'); // la lupa que aparece al pasar por el documento
-        expect(r.querySelector('[aria-pressed]').getAttribute('aria-pressed')).toBe('true');
-        await pulsar(el, '.vis-restaurar');
-        expect(ampliada()).toBeNull();
-        await pulsar(el, '[aria-pressed]');
-        await pulsar(el, '.vis-fondo'); // clic fuera
-        expect(ampliada()).toBeNull();
+        expect(r.querySelector('.vis-cargando')).toBeNull();
+        expect(r.querySelector('iframe').classList).not.toContain('vis-marco-oculto');
+        // Página completa: el zoom baja para que quepa el alto (600 px) en lugar del ancho (818 px)
+        const antes = src(el);
+        await pulsar(el, '.vis-barra button.vis-herramienta:not([aria-label])');
+        expect(src(el)).not.toBe(antes);
     });
 });

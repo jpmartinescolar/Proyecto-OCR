@@ -1,5 +1,6 @@
 import { LightningElement, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import BandejaContableVisorAmpliado from 'c/bandejaContableVisorAmpliado';
 import getBandeja from '@salesforce/apex/BandejaContableController.getBandeja';
 import getDatosCliente from '@salesforce/apex/BandejaContableController.getDatosCliente';
 import listarArchivosGoogle from '@salesforce/apex/BandejaContableController.listarArchivosGoogle';
@@ -404,13 +405,11 @@ export default class BandejaContableDocumento extends LightningElement {
             turismos: emp.turismos,
             contexto: { emisor: val('emisor'), nif: nifActual, total: val('total'), numero: val('numero'), empresa: cliente.nombre || this.detalle.resumen.empresa },
             tipo,
-            // Visor
-            hl,
-            fijo: FIJO,
-            ivaPreview,
-            conCliente: !/SIMPL/i.test(x0.kind),
-            clienteNombre: cliente.nombre || this.detalle.resumen.empresa,
-            clienteCif: cliente.cif || this.detalle.resumen.cif,
+            // Vista de ejemplo del documento (bandejaContableDocPapel), en el visor y en el visor ampliado
+            papel: {
+                x: { ...x, lineas: lineasDoc }, hl, fijo: FIJO, ivaPreview, conCliente: !/SIMPL/i.test(x0.kind),
+                clienteNombre: cliente.nombre || this.detalle.resumen.empresa, clienteCif: cliente.cif || this.detalle.resumen.cif
+            },
             // Visor (bandejaContableVisor): el archivo real si lo hay; si no, la vista de ejemplo
             visor: {
                 url: urlsArchivo.ver,
@@ -903,6 +902,18 @@ export default class BandejaContableDocumento extends LightningElement {
     }
 
     // ===== Visor =====
+    /** "Ampliar" o la lupa del visor: el documento en el modal a pantalla completa */
+    ampliarDocumento(e) {
+        const d = e.detail || {};
+        const visor = this.v.visor;
+        BandejaContableVisorAmpliado.open({
+            size: 'full',
+            label: visor.nombre || 'Documento',
+            url: visor.url, mime: visor.mime, nombre: visor.nombre, descargaUrl: visor.descargaUrl, paginas: visor.paginas,
+            pagina: d.pagina, previo: d.previo,
+            papel: visor.url ? null : this.v.papel
+        });
+    }
 
     // ===== Acciones de cabecera =====
     irA(n) {
