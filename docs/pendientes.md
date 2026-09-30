@@ -2,6 +2,16 @@
 
 Backlog del proyecto. Marcar `[x]` al terminar y mover a "Hecho" con la fecha.
 
+## Siguiente sesión (retomar aquí)
+- [ ] El usuario revisa el PDF del análisis de arquitectura (`docs/analisis/arquitectura-inteligencia.pdf`; fuente: [analisis/arquitectura-inteligencia.md](analisis/arquitectura-inteligencia.md)) y decide lo que queda abierto. Respondidas el 30/09: D1, D2, D8, D17 (ver [decisiones.md](decisiones.md)); D16 pospuesta.
+- [ ] Decisiones abiertas del análisis que bloquean el arranque:
+  - **D3**: vocabulario capacidad / criterio del cliente / herramienta;
+  - **D4**: dónde se aplican los criterios del cliente (recomendado: en la inteligencia, no en la extracción).
+  - El resto (D5–D15) está en la sección 15 del análisis.
+- [ ] Con eso aprobado: ajustar [hoja-de-ruta.md](hoja-de-ruta.md) al roadmap propuesto (sección 17 del análisis: F0 decisiones → F1 modelo canónico y normalización → F2 validación humana → F3 motor de capacidades…) y escribir el diseño de F1 en `docs/fases/`.
+- [ ] Antes de crear `confirmaciones`: el reproceso marca `SUSTITUIDO` todos los documentos del archivo aunque estén confirmados (`reclamar()` en `app/procesador.py`); el diseño de la Fase 1 dice que no debe hacerlo.
+- [ ] Inconsistencias menores de documentación: la sección 7 de [fases/fase-1-ingestion.md](fases/fase-1-ingestion.md) cita librerías de Node; `esquema.sql` menciona `ids.js` en vez de `ids.py`.
+
 ## Fase actual
 - [ ] **Cuota de Claude Haiku 4.5 en Vertex (multirregión `eu`)**: hoy es 0 y la llamada devuelve 429. Pedir el aumento en la consola (Cuotas → `eu_multi_region_online_prediction_requests_per_base_model`, modelo `anthropic-claude-haiku-4-5`) para comparar con Gemini.
 - [ ] Comparar Gemini 2.5 Flash (activo) y Claude Haiku 4.5 con todas las muestras (cortes, tipos, campos, % en revisión, coste, latencia).

@@ -2,6 +2,8 @@
 
 Ajustada el 28/09/2026 con el diseño v2 ([diseno.md](diseno.md)). Cada fase se diseña en `docs/fases/` antes de implementarla.
 
+> **30/09/2026:** el [análisis de arquitectura](analisis/arquitectura-inteligencia.md) propone reordenar las fases 2–5 por dependencias (sección 17: modelo canónico → validación humana → motor de capacidades → criterios del cliente → Inteligencia Contable → Fiscal → Rosetta IA). **Pendiente de aprobar**: hasta entonces esta tabla sigue vigente. Alcance actual: solo asesores internos.
+
 | Fase | Contenido | Depende de | Estado |
 |---|---|---|---|
 | **0 · Base** | Modelo Salesforce, subida a Google, 6 pantallas v1 con datos de ejemplo, entorno dev, autenticación | — | Hecho (25/09) |

@@ -1,0 +1,104 @@
+<!--
+  Plantilla para generar docs/analisis/arquitectura-inteligencia.pdf desde el .md (pandoc + Mermaid + Chrome).
+  Desde una carpeta temporal (fuera del repo):
+    npm install mermaid@11 && cp node_modules/mermaid/dist/mermaid.min.js .
+    pandoc -f gfm -t html5 --template <repo>/docs/analisis/plantilla-pdf.html --metadata title=Arquitectura \
+      <repo>/docs/analisis/arquitectura-inteligencia.md -o documento.html
+    google-chrome --headless=new --no-sandbox --allow-file-access-from-files --virtual-time-budget=30000 \
+      --run-all-compositor-stages-before-draw --no-pdf-header-footer --print-to-pdf=documento.pdf file://<ruta absoluta>/documento.html
+  Después copiar documento.pdf sobre docs/analisis/arquitectura-inteligencia.pdf.
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Arquitectura de la Inteligencia · Bandeja Contable</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm 18mm 14mm; }
+  :root { --tinta: #1d2733; --suave: #5b6675; --linea: #d9dee5; --fondo: #f5f7fa; --marca: #0b5cab; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; color: var(--tinta); font-size: 10.2pt; line-height: 1.45; margin: 0; background: #fff; }
+  .portada { height: 250mm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; border-left: 6px solid var(--marca); padding-left: 14mm; }
+  .portada .antetitulo { color: var(--marca); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 10pt; }
+  .portada h1 { font-size: 27pt; line-height: 1.15; margin: 6mm 0 4mm; border: 0; }
+  .portada .sub { font-size: 13pt; color: var(--suave); margin-bottom: 14mm; }
+  .portada .meta { font-size: 10pt; color: var(--suave); line-height: 1.7; }
+  .portada .aviso { margin-top: 12mm; padding: 4mm 5mm; background: var(--fondo); border-radius: 3px; font-size: 9.5pt; max-width: 150mm; }
+  nav.indice { page-break-after: always; }
+  nav.indice h2 { margin-top: 0; }
+  nav.indice ol { columns: 2; column-gap: 10mm; padding-left: 5mm; }
+  nav.indice li { margin: 1.2mm 0; break-inside: avoid; }
+  nav.indice a { color: var(--tinta); text-decoration: none; }
+  h1 { font-size: 18pt; }
+  h2 { font-size: 15pt; color: var(--marca); border-bottom: 1.5px solid var(--linea); padding-bottom: 1.5mm; margin-top: 9mm; page-break-after: avoid; }
+  h2.nueva-pagina { page-break-before: always; margin-top: 0; }
+  h3 { font-size: 12pt; margin-top: 6mm; page-break-after: avoid; }
+  h4 { font-size: 10.5pt; page-break-after: avoid; }
+  p, li { orphans: 3; widows: 3; }
+  a { color: var(--marca); }
+  table { border-collapse: collapse; width: 100%; margin: 3mm 0 4mm; font-size: 8.4pt; line-height: 1.32; page-break-inside: auto; }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; }
+  th { background: var(--fondo); text-align: left; font-weight: 600; }
+  th, td { border: 1px solid var(--linea); padding: 1.3mm 1.8mm; vertical-align: top; }
+  code { font-family: "Cascadia Code", Consolas, "DejaVu Sans Mono", monospace; font-size: 8.4pt; background: var(--fondo); padding: 0 .6mm; border-radius: 2px; }
+  pre { background: var(--fondo); border: 1px solid var(--linea); border-radius: 3px; padding: 2.5mm 3mm; font-size: 8pt; line-height: 1.35; white-space: pre-wrap; page-break-inside: avoid; }
+  pre code { background: none; padding: 0; }
+  hr { border: 0; border-top: 1px solid var(--linea); margin: 6mm 0; }
+  .diagrama { margin: 3mm 0 5mm; text-align: center; page-break-inside: avoid; }
+  .diagrama svg { width: 100% !important; max-width: 100% !important; height: auto; max-height: 225mm; }
+  strong { font-weight: 600; }
+</style>
+</head>
+<body>
+<section class="portada">
+  <div class="antetitulo">Bandeja Contable · Análisis y diseño</div>
+  <h1>Arquitectura de la Inteligencia Contable, Fiscal e Inteligencia</h1>
+  <div class="sub">Estado actual verificado en el código, arquitectura objetivo, alternativas y roadmap</div>
+  <div class="meta">
+    30/09/2026<br>
+    Rama <code>feature/bandeja-contable</code> · commit <code>2974ead</code><br>
+    Incluye las respuestas del 30/09 a D1, D2, D4, D8 y D17 · Alcance: solo asesores internos
+  </div>
+  <div class="aviso">Documento de análisis: no implica cambios de código. No modifica el proyecto: las propuestas quedan abiertas hasta que se decidan.</div>
+</section>
+<nav class="indice"><h2>Contenido</h2><ol id="indice"></ol></nav>
+$body$
+<script src="mermaid.min.js"></script>
+<script>
+  // Índice con los h2 numerados del documento
+  const ol = document.getElementById('indice');
+  document.querySelectorAll('main h2, body > h2').forEach((h) => {
+    if (!/^\d+\./.test(h.textContent) && !/^Anexo/.test(h.textContent)) return;
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#' + h.id; a.textContent = h.textContent;
+    li.appendChild(a); ol.appendChild(li);
+    h.classList.add('nueva-pagina');
+  });
+  // El título y la línea de fecha del Markdown van en la portada; la leyenda de marcas, bajo el índice
+  const h1 = document.querySelector('body > h1');
+  if (h1) {
+    const nav = document.querySelector('nav.indice');
+    let n = h1.nextElementSibling;
+    h1.remove();
+    if (n && n.tagName === 'P') { const s = n.nextElementSibling; n.remove(); n = s; }
+    while (n && n.tagName !== 'H2') { const s = n.nextElementSibling; if (n.tagName === 'HR') n.remove(); else nav.appendChild(n); n = s; }
+  }
+  // Bloques mermaid de pandoc: <pre class="mermaid"><code>…</code></pre>
+  document.querySelectorAll('pre.mermaid').forEach((pre) => {
+    const div = document.createElement('div');
+    div.className = 'mermaid diagrama';
+    div.textContent = pre.textContent;
+    pre.replaceWith(div);
+  });
+  mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose',
+    flowchart: { htmlLabels: true, useMaxWidth: true, curve: 'basis' },
+    sequence: { useMaxWidth: true }, er: { useMaxWidth: true },
+    themeVariables: { fontFamily: 'Segoe UI, Helvetica Neue, Arial, sans-serif', fontSize: '13px' } });
+  mermaid.run({ querySelector: '.mermaid' })
+    .then(() => { document.body.setAttribute('data-listo', 'si'); })
+    .catch((e) => { document.body.setAttribute('data-listo', 'error'); document.body.setAttribute('data-error', String(e)); });
+</script>
+</body>
+</html>

@@ -11,9 +11,12 @@ Bandeja Contable: los asesores suben documentación contable de una empresa desd
 - `docs/decisiones.md`: decisiones tomadas y su motivo. **Consultar antes de proponer algo ya decidido.**
 - `docs/pendientes.md`: backlog y deuda técnica.
 - `docs/fases/`: diseño de cada fase (la actual es `fase-1-ingestion.md`).
+- `docs/analisis/arquitectura-inteligencia.md`: análisis de arquitectura (30/09) de la inteligencia (skills, MCP, datos extraídos frente a validados, resultados de IA, roadmap). Propuesta **pendiente de revisar**; lo decidido está en `decisiones.md`. El `.pdf` de al lado es para imprimir: se regenera desde el `.md`.
+- **Para retomar el trabajo**: empezar por "Siguiente sesión" en `docs/pendientes.md`.
 - `docs/despliegue.md`: cómo desplegar Salesforce y Google, y cómo deshacer.
 
 ## Reglas
+- **Alcance actual: la Bandeja Contable solo la usan nuestros asesores internos.** Otros accesos (portal de empresas cliente) se tienen en cuenta en la arquitectura, pero no se desarrollan ahora.
 - **Producción intacta**: no tocar el Buzón contable actual (`areaContableFiscal`, `Buzon_contable__c`). La Bandeja vive en la pestaña oculta `Bandeja_Contable`, visible solo con el permiso `Bandeja_Contable_Asesor`.
 - **Nomenclatura de producción** desde el primer día: nada de `test`, `Buzon`, `opción A`. Prefijos `Bandeja_Contable_` (metadatos), `BandejaContable*` (Apex), `bandejaContable*` (LWC). En Google, sufijo `-dev` / `_dev` para el entorno de desarrollo.
 - **Desplegar en Salesforce solo con `salesforce-sandbox/manifest/bandeja-contable.xml`**, nunca con `package.xml`: otras personas cambian el sandbox directamente sin git y no hay que pisarlas.
