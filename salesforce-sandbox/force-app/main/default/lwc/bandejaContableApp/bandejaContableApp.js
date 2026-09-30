@@ -3,13 +3,16 @@ import { CurrentPageReference, NavigationMixin } from 'lightning/navigation';
 
 const PAGINA = 'Bandeja_Contable';
 
+// Pantalla con la que se abre la página (diseño v2 Híbrido: el listado OCR, primera pestaña)
+const VISTA_INICIAL = 'ocr';
+
 /**
  * Página de la Bandeja Contable. Hace de "router": la pantalla actual va en el estado de la URL
  * (c__vista, c__bandeja, c__doc, c__empresa, c__tab) para que funcionen el botón atrás del navegador,
  * recargar y compartir enlaces. Las pantallas piden navegar con el evento "navegar".
  */
 export default class BandejaContableApp extends NavigationMixin(LightningElement) {
-    vista = 'lista';
+    vista = VISTA_INICIAL;
     bandejaId;
     docId;
     empresaId;
@@ -18,7 +21,7 @@ export default class BandejaContableApp extends NavigationMixin(LightningElement
     @wire(CurrentPageReference)
     leerUrl(ref) {
         const s = (ref && ref.state) || {};
-        this.vista = s.c__vista || 'lista';
+        this.vista = s.c__vista || VISTA_INICIAL;
         this.bandejaId = s.c__bandeja;
         this.docId = s.c__doc;
         this.empresaId = s.c__empresa;

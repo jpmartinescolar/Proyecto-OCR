@@ -48,6 +48,12 @@ describe('c-bandeja-contable-registro', () => {
         const r = el.shadowRoot;
         expect(r.querySelector('.reg-carga')).not.toBeNull();
         expect(r.querySelector('.reg-procesamiento').textContent).toContain('Consultando');
+        // Spinner de Salesforce en la cabecera de OCR documentos solo si la carga tarda más de 300 ms
+        expect(r.querySelector('.reg-cargando')).toBeNull();
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        await new Promise((ok) => setTimeout(ok, 350));
+        expect(r.querySelector('.reg-cargando lightning-spinner')).not.toBeNull();
+        expect(r.querySelector('.reg-cargando').textContent).toContain('Cargando documentos');
         expect(r.textContent).not.toContain('No se han encontrado documentos');
     });
 

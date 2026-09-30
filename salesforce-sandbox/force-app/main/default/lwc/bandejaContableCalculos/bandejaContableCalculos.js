@@ -206,28 +206,29 @@ export function riesgosFiscales(c) {
     return items;
 }
 
-/** Riesgo operativo: facturas anteriores del proveedor (histórico de ejemplo) */
-export function riesgosOperativos(historico, total) {
-    if (!historico) return [{ clave: 'nuevo', sev: 'warn', tag: 'Proveedor nuevo', titulo: 'Sin facturas previas', texto: 'No hay facturas anteriores de este proveedor para comparar.' }];
-    const dev = Math.round(((num(total) - historico.media) / historico.media) * 100);
-    if (Math.abs(dev) < 25) return [];
-    return [{
-        clave: 'hist', sev: 'warn', tag: 'Facturas anteriores', titulo: `${dev > 0 ? '+' : ''}${dev} % sobre la media`,
-        texto: `Media de los últimos 6 meses: ${euros(historico.media)} €. Esta factura: ${euros(num(total))} €. Revisa si hay conceptos nuevos o un error de lectura.`
-    }];
-}
-
-// Grupos de la pestaña Comprobaciones (riesgo fiscal)
+// Grupos de la pestaña Check (riesgo fiscal)
 export const SUBGRUPOS = [
     ['prov', 'Proveedor', ['Censo AEAT o VIES', 'Morosos y paraísos fiscales', 'Operación vinculada', 'Duplicados']],
     ['req', 'Requisitos de la factura', ['Mención de exención', 'Factura rectificativa', 'Tipo de IVA y concepto']],
-    ['ded', 'Deducibilidad', ['Conceptos y actividades', 'Inmueble del suministro', 'Vehículo turismo', 'Gasto personal', 'Prorrata']],
+    ['ded', 'Deducibilidad', ['Conceptos y actividades', 'Inmueble del suministro', 'Vehículo turismo', 'Gasto personal', 'Factura simplificada', 'Prorrata']],
     ['reg', 'Registro y regularización', ['Bien de inversión', 'Venta de inmovilizado', 'Periodificación']]
 ];
 
+/** Comprobación con incidencia sin resolver (las que ha resuelto una skill del cliente no cuentan) */
+export function conIncidencia(c) {
+    return c.estado !== 'ok' && !c.skill;
+}
+
+/** Comprobación que hay que mirar: con incidencia o resuelta por una skill del cliente */
+export function aRevisar(c) {
+    return c.estado !== 'ok' || !!c.skill;
+}
+
 /**
- * Comprobaciones automáticas. Devuelve [{ k: 'f'|'o', titulo, estado: 'ok'|'ko'|'warn', status, texto, ejemplo, barras }]
- * c = { x, ivas, tipo, regla, textoLineas, cliente, direccionesAfectas, duplicado, historico, mes }
+ * Comprobaciones automáticas. Devuelve [{ k: 'f'|'o', titulo, estado: 'ok'|'ko'|'warn', status, texto, ejemplo, barras, skill }]
+ * `skill` es la skill (o regla) del cliente que ha resuelto la comprobación: se muestra como "Pre-validada".
+ * c = { x, ivas, tipo, regla, textoLineas, cliente, direccionesAfectas, duplicado, historico, mes, skills }
+ * (skills: números de las skills activas; si no se pasa, vale cualquiera)
  */
 export function comprobaciones(c) {
     const it = [];
@@ -296,8 +297,19 @@ export function comprobaciones(c) {
         else add('ko', { titulo: 'Inmueble del suministro', status: 'No afecto', texto: `La dirección de suministro (${c.x.sumin}) no coincide con el domicilio fiscal ni con los ${(cliente.locales || []).length} locales afectos del cliente en Salesforce. El gasto y su IVA no son deducibles salvo que se acredite la afectación.` });
     } else add('ok', { titulo: 'Inmueble del suministro', status: 'No aplica', texto: 'La factura no es de un suministro vinculado a un inmueble.' });
 
+    // Ticket (factura simplificada) sin NIF del destinatario: el IVA no es deducible
+    if (/SIMPL/i.test(c.x.kind || '')) {
+        const conCuota = ivas.filter((r) => num(r.cuota) > 0);
+        const deducida = conCuota.filter((r) => porcentajeDeducible(r) > 0);
+        const skillActiva = (n) => !c.skills || c.skills.includes(n);
+        const porSkill = conCuota.find((r) => r.sk2 && skillActiva(r.sk2) && porcentajeDeducible(r) === 0);
+        if (deducida.length) add('ko', { titulo: 'Factura simplificada', status: 'IVA deducido sin NIF', texto: 'Ticket sin NIF ni domicilio del destinatario: el IVA no es deducible. Pon 0 % deducible y lleva la cuota a mayor gasto.' });
+        else if (porSkill) add('ok', { titulo: 'Factura simplificada', status: 'IVA no deducible', texto: 'Ticket sin NIF del destinatario: la cuota se ha llevado a mayor gasto aplicando la skill del cliente.', skill: porSkill.sk2 });
+        else add('ok', { titulo: 'Factura simplificada', status: 'IVA no deducido', texto: 'Ticket sin NIF del destinatario: la cuota no se deduce.' });
+    }
+
     const vehiculo = /gasóleo|gasolina|combustible|parking|peaje|taller/.test(texto) && !c.x.sumin;
-    if (vehiculo && c.regla && c.regla.veh100) add('ok', { titulo: 'Vehículo turismo', status: 'Afecto al 100 %', texto: 'Regla del cliente: vehículo de uso exclusivo en la actividad. IVA deducible al 100 %.', ejemplo: true });
+    if (vehiculo && c.regla && c.regla.veh100) add('ok', { titulo: 'Vehículo turismo', status: 'Afecto al 100 %', texto: 'Regla del cliente: vehículo de uso exclusivo en la actividad. IVA deducible al 100 %.', ejemplo: true, skill: 'Regla vehículo' });
     else if (vehiculo) add('warn', { titulo: 'Vehículo turismo', status: 'Presunción 50 %', texto: 'Gasto de vehículo: se presume afectación del 50 % (art. 95.Tres LIVA) salvo prueba de uso exclusivo.' });
     else add('ok', { titulo: 'Vehículo turismo', status: 'No aplica', texto: 'La factura no corresponde a gastos de vehículo.' });
 
@@ -341,6 +353,17 @@ export function comprobaciones(c) {
     } else it.push({ k: 'o', ejemplo: true, estado: 'warn', titulo: 'Facturas anteriores', status: 'Proveedor nuevo', texto: 'No hay facturas previas de este proveedor para comparar.' });
 
     return it;
+}
+
+/**
+ * Incidencias contables de la factura (capa 1 · Inteligencia contable): descuadre de bases, cuotas y total,
+ * asiento descuadrado, cuotas de IVA que no corresponden a base × tipo y deducciones parciales sin motivo.
+ */
+export function incidenciasContables({ ivas, cuadra, asientoCuadra }) {
+    const lista = ivas || [];
+    const cuotasMal = lista.filter((r) => Math.abs((num(r.base) * num(r.pct)) / 100 - num(r.cuota)) >= 0.02).length;
+    const sinMotivo = lista.filter((r) => porcentajeDeducible(r) < 100 && !String(r.dedMot || '').trim()).length;
+    return (cuadra ? 0 : 1) + (asientoCuadra ? 0 : 1) + cuotasMal + sinMotivo;
 }
 
 /** Pestaña IS: gastos no deducibles (diferencias permanentes que se ajustan en el modelo 200) */

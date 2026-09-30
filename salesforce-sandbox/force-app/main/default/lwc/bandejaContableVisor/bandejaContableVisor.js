@@ -6,6 +6,13 @@ const ANCHO_A4 = 595.28; // puntos PDF; si no se puede leer el tamaño de la pá
 const PX_POR_PUNTO = 96 / 72; // al 100 % el lector pinta 1 punto PDF como 1,33 px
 const HUECO_LECTOR = 24; // barra de desplazamiento y margen propio del lector del navegador
 const ESPERA_REDIMENSION = 300;
+const ANCHO_PAPEL = 560; // ancho máximo de la vista de ejemplo (se escala al ampliar)
+const MARGEN_AMPLIADO = 16;
+// Alto de la cabecera fija de Lightning (cabecera global 50 px + barra de navegación 40 px) y margen.
+// El panel ampliado nunca empieza por encima: quedaría tapado por ella.
+const CABECERA_SALESFORCE = 90 + MARGEN_AMPLIADO;
+const ALTO_BARRA_AMPLIADO = 40;
+const ANCHO_PANTALLA_ESTRECHA = 1100; // por debajo, el panel ocupa casi todo el ancho
 
 /** Página inicial si la URL trae #page=N (documento que empieza a mitad de un PDF mayor) */
 function paginaDeUrl(url) {
@@ -32,6 +39,13 @@ function tamanoPagina(texto) {
  *   para el botón Descargar).
  * - Imagen: <img> con zoom y giro.
  * - Sin archivo: muestra el contenido del slot (la vista de ejemplo del documento).
+ * - "Ampliar" (diseño v2 Híbrido): el mismo visor pasa a un panel fijo más grande (50 % del ancho; casi
+ *   todo en pantallas estrechas), con una barra "Vista ampliada" y "Restaurar". Se cierra con Restaurar, Esc
+ *   o pulsando fuera. Se abre con el botón de la barra, con la lupa que aparece al pasar por el documento y,
+ *   en imagen y en la vista de ejemplo, pulsando el documento. En un PDF no hay clic ni doble clic: el lector
+ *   del navegador (otro dominio) se queda con los eventos, y taparlo impediría hacer scroll y seleccionar.
+ *   El panel empieza por debajo de la cabecera de Salesforce: es fija y queda por encima de la página, así
+ *   que un panel pegado arriba perdía su parte superior (y con ella el encabezado del PDF).
  */
 export default class BandejaContableVisor extends LightningElement {
     @api nombre; // nombre con el que se descarga
@@ -56,6 +70,9 @@ export default class BandejaContableVisor extends LightningElement {
 
     zoom = null;
     giro = 0;
+    ampliado = false;
+    panel = null; // posición del panel ampliado: { top, left, ancho, alto } en px de la ventana
+    corregido = false; // ya se comprobó que el panel está donde se pidió
     pagina = 1;
     mesa = { ancho: 0, alto: 0 };
     pagina1 = null; // { ancho, alto } en puntos
@@ -86,10 +103,12 @@ export default class BandejaContableVisor extends LightningElement {
             this.observando = true;
         }
         if (mesa && !this.mesa.ancho) this.medir();
+        if (this.ampliado && !this.corregido) this.corregirPanel();
     }
 
     disconnectedCallback() {
         this.conectado = false;
+        this.cerrarAmpliado();
         clearTimeout(this.temporizador);
         if (this.observador) this.observador.disconnect();
         this.observando = false;
@@ -174,9 +193,27 @@ export default class BandejaContableVisor extends LightningElement {
         return `${ancho};transform:rotate(${this.giro}deg)`;
     }
     get estiloPapel() {
-        return `transform:scale(${(this.zoom || 100) / 100}) rotate(${this.giro}deg);transform-origin:top center`;
+        // Ampliado y sin zoom elegido: la vista de ejemplo ocupa el ancho del panel
+        const auto = this.ampliado && this.zoom === null && this.mesa.ancho ? Math.max(1, (this.mesa.ancho - 2 * MARGEN_AMPLIADO) / ANCHO_PAPEL) : null;
+        const escala = auto || (this.zoom || 100) / 100;
+        return `transform:scale(${escala}) rotate(${this.giro}deg);transform-origin:top center`;
     }
-    get claseMesa() { return 'vis-mesa' + (this.esPdf ? ' vis-mesa-pdf' : ''); }
+    get claseMesa() {
+        return 'vis-mesa' + (this.esPdf ? ' vis-mesa-pdf' : ' vis-mesa-lupa') + (this.ampliado ? ' vis-mesa-ampliada' : '');
+    }
+    get estiloMesa() {
+        const p = this.panel;
+        return this.ampliado && p ? `top:${p.top + ALTO_BARRA_AMPLIADO}px;left:${p.left}px;width:${p.ancho}px;height:${p.alto - ALTO_BARRA_AMPLIADO}px` : '';
+    }
+    get estiloBarraAmpliado() {
+        const p = this.panel;
+        return p ? `top:${p.top}px;left:${p.left}px;width:${p.ancho}px;height:${ALTO_BARRA_AMPLIADO}px` : '';
+    }
+    // La lupa sale al pasar por el documento, cuando hay algo que ampliar
+    get conLupa() { return !this.ampliado && (this.esImagen || this.sinArchivo || this.listoPdf); }
+    get ampliadoTxt() { return this.ampliado ? 'true' : 'false'; }
+    get claseAmpliar() { return 'vis-herramienta' + (this.ampliado ? ' vis-herramienta-on' : ''); }
+    get tituloAmpliar() { return this.ampliado ? 'Cerrar la vista ampliada (Esc)' : 'Ver el documento ampliado al 50 % de la pantalla'; }
 
     // ===== Controles =====
     // En un PDF se parte del zoom real del ajuste; en imagen o vista de ejemplo, del 100 %
@@ -188,6 +225,75 @@ export default class BandejaContableVisor extends LightningElement {
         this.zoom = NIVELES_ZOOM.find((z) => z > this.zoomBase) ?? NIVELES_ZOOM[NIVELES_ZOOM.length - 1];
     }
     ajustar() { this.zoom = null; }
+
+    // ===== Ampliar =====
+    toggleAmpliar() {
+        if (this.ampliado) this.cerrarAmpliado();
+        else this.abrirAmpliado();
+    }
+
+    abrirAmpliado() {
+        this.panel = this.calcularPanel();
+        this.corregido = false;
+        this.ampliado = true;
+        this.alTeclear = (e) => { if (e.key === 'Escape') this.cerrarAmpliado(); };
+        this.alRedimensionar = () => { this.panel = this.calcularPanel(); this.corregido = false; };
+        window.addEventListener('keydown', this.alTeclear);
+        window.addEventListener('resize', this.alRedimensionar);
+    }
+
+    /**
+     * Dónde va el panel: a la altura del visor si se ve arriba en la pantalla y, si no, justo debajo de la
+     * cabecera de Salesforce; alto hasta el borde inferior; ancho del 50 % (casi todo en pantallas estrechas)
+     * y, como mínimo, algo más que el visor, para que ampliar siempre amplíe.
+     */
+    calcularPanel() {
+        const W = window.innerWidth, H = window.innerHeight;
+        const r = this.template.host.getBoundingClientRect();
+        const maximo = W - 2 * MARGEN_AMPLIADO;
+        const ancho = W <= ANCHO_PANTALLA_ESTRECHA ? maximo : Math.min(maximo, Math.max(Math.round(W * 0.5), Math.round(r.width * 1.25)));
+        const left = Math.max(MARGEN_AMPLIADO, Math.min(r.left, W - ancho - MARGEN_AMPLIADO));
+        const top = r.top >= CABECERA_SALESFORCE && r.top <= H * 0.4 ? Math.round(r.top) : CABECERA_SALESFORCE;
+        return { top, left, ancho, alto: Math.max(240, H - top - MARGEN_AMPLIADO) };
+    }
+
+    /**
+     * Si algún contenedor de la página tiene transformaciones, "fixed" se coloca respecto a él y no respecto a
+     * la ventana: se mide dónde ha quedado la barra y se compensa la diferencia una vez.
+     */
+    corregirPanel() {
+        const barra = this.template.querySelector('.vis-ampliado-barra');
+        if (!barra || !this.panel) return;
+        this.corregido = true;
+        const r = barra.getBoundingClientRect();
+        const dy = r.top - this.panel.top, dx = r.left - this.panel.left;
+        // Sin tamaño todavía (no se ha pintado) la medida no vale
+        if (r.width > 0 && (Math.abs(dy) > 2 || Math.abs(dx) > 2)) this.panel = { ...this.panel, top: this.panel.top - dy, left: this.panel.left - dx };
+        // Foco en Restaurar: así Esc funciona aunque el foco estuviera en el lector de PDF
+        const restaurar = this.template.querySelector('.vis-restaurar');
+        if (restaurar) restaurar.focus();
+    }
+
+    cerrarAmpliado() {
+        if (this.alTeclear) window.removeEventListener('keydown', this.alTeclear);
+        if (this.alRedimensionar) window.removeEventListener('resize', this.alRedimensionar);
+        this.alTeclear = null;
+        this.alRedimensionar = null;
+        this.ampliado = false;
+        this.panel = null;
+    }
+
+    /** Lupa que aparece al pasar por el documento (también sobre un PDF) */
+    ampliarDesdeLupa(e) {
+        e.stopPropagation(); // está dentro del documento: que el clic no llegue a pulsarMesa
+        this.abrirAmpliado();
+    }
+
+    /** Pulsar la imagen o la vista de ejemplo la amplía; ya ampliada, la cierra */
+    pulsarMesa() {
+        if (this.esPdf) return;
+        this.toggleAmpliar();
+    }
     girar() { this.giro = (this.giro + 90) % 360; }
     anterior() { if (!this.sinAnterior) this.pagina--; }
     siguiente() { if (!this.sinSiguiente) this.pagina++; }

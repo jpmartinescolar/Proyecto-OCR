@@ -1,6 +1,5 @@
 @import 'c/bandejaContableEstilos';
 
-.ocr-subpestanas { padding: 0 24px; border-bottom: 1px solid var(--bc-line); }
 .ocr-tipos { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--bc-line); overflow-x: auto; }
 .ocr-tipo { font: 500 14px var(--bc-font-body); padding: 12px 14px; border: none; background: transparent; color: var(--bc-ink-2); border-bottom: 3px solid transparent; margin-bottom: -1px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
 .ocr-tipo-on { font-weight: 700; color: var(--bc-brand-deep); border-bottom-color: var(--bc-brand-primary); }

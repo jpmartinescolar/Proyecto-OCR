@@ -40,6 +40,9 @@
                         </div>
                     </div>
                     <div class="doc-acciones-cab">
+                        <button class={v.claseRosetta} title="Chat sobre esta factura" onclick={toggleRosetta}>
+                            <lightning-icon icon-name="utility:chat" size="xx-small"></lightning-icon>Rosetta IA
+                        </button>
                         <button class="bc-boton-sec bc-boton-peq doc-boton-borrador" onclick={guardarBorrador}>Guardar borrador</button>
                         <template lwc:if={v.puedeReabrir}>
                             <button class="bc-boton-sec bc-boton-peq" onclick={reabrir}>Reabrir</button>
@@ -87,8 +90,7 @@
                     <div class="doc-meta-item"><span class="doc-meta-label">Empresa</span><a class="bc-enlace doc-meta-valor" href="#" onclick={verEmpresa}>{v.meta.empresa}</a></div>
                     <div class="doc-meta-item"><span class="doc-meta-label">Archivo</span><span class="doc-meta-valor">{v.doc.nombre}</span></div>
                     <div class="doc-meta-item"><span class="doc-meta-label">Recibido</span><span class="doc-meta-valor">{v.meta.recibido}</span></div>
-                    <div class="doc-meta-item" title="FALTA: fecha real del procesamiento (tabla procesamientos)"><span class="doc-meta-label">Extracción automática</span><span class="doc-meta-valor">{v.meta.extraccion}</span></div>
-                    <div class="doc-meta-item" title={v.meta.tokensTip}><span class="doc-meta-label">Consumo IA <span class="doc-ejemplo-mini">ejemplo</span></span><span class="doc-meta-valor bc-num"><b>{v.meta.tokens}</b> tokens · <b>{v.meta.coste}</b></span></div>
+                    <div class="doc-meta-item" title={v.meta.extraccionTip}><span class="doc-meta-label">Extracción automática</span><span class="doc-meta-valor">{v.meta.extraccion}</span></div>
                     <div class="doc-meta-item"><span class="doc-meta-label">Software contabilidad destino
                         <template lwc:if={v.meta.softwareEjemplo}><span class="doc-ejemplo-mini">ejemplo</span></template></span>
                         <span class="doc-meta-valor doc-software">{v.meta.software}</span></div>
@@ -159,60 +161,46 @@
                 </section>
 
                 <div class="doc-derecha">
-                    <!-- ===== Capas del documento ===== -->
-                    <section class="bc-card doc-capas-card">
-                        <div class="doc-capas">
-                            <template for:each={v.capasLista} for:item="c">
-                                <button key={c.k} class={c.clase} data-k={c.k} onclick={elegirCapa}>
-                                    <span class="doc-capa-n">{c.n}</span>
-                                    <span class="doc-capa-textos">
-                                        <span class="doc-capa-titulo">{c.titulo}</span>
+                    <template lwc:if={v.rosetta}>
+                        <!-- ===== Rosetta IA: el chat ocupa el sitio de las capas y las pestañas ===== -->
+                        <section class="bc-card doc-rosetta">
+                            <button class="bc-boton-sec bc-boton-peq" onclick={volverDeRosetta}>‹ Volver</button>
+                            <span class="doc-rosetta-icono"><lightning-icon icon-name="utility:chat" size="x-small" variant="inverse"></lightning-icon></span>
+                            <span class="doc-rosetta-textos"><span class="doc-rosetta-titulo">Rosetta IA</span><span class="doc-gris-peq">Chat sobre esta factura · histórico de conversaciones</span></span>
+                        </section>
+                    </template>
+                    <template lwc:else>
+                        <!-- ===== Capas del documento ===== -->
+                        <section class="bc-card doc-capas-card">
+                            <div class="doc-capas">
+                                <template for:each={v.capasLista} for:item="c">
+                                    <button key={c.k} class={c.clase} data-k={c.k} title={c.tip} onclick={elegirCapa}>
+                                        <span class="doc-capa-fila">
+                                            <span class="doc-capa-n"><template lwc:if={c.on}>✓</template></span>
+                                            <span class="doc-capa-titulo">{c.titulo}</span>
+                                            <span class={c.claseBadge}>{c.badge}</span>
+                                        </span>
                                         <span class="doc-capa-sub">{c.sub}</span>
-                                    </span>
-                                    <span class={c.claseBadge}>{c.badge}</span>
-                                </button>
-                            </template>
-                        </div>
-                        <div class="doc-pasos-fila">
-                            <div class="doc-pasos">
-                                <template for:each={v.pasos} for:item="p">
-                                    <div key={p.label} class={p.clase}>
-                                        <template lwc:if={p.conLinea}><span class={p.claseLinea}></span></template>
-                                        <span class="doc-paso-marca">{p.marca}</span>
-                                        <span class="doc-paso-textos"><span class="doc-paso-label">{p.label}</span><span class="doc-paso-quien">{p.quien}</span></span>
-                                    </div>
+                                    </button>
                                 </template>
                             </div>
-                            <template lwc:if={v.puedeConfirmarDatos}>
-                                <button class="bc-boton bc-boton-peq doc-confirmar-datos" onclick={confirmarDatos}>✓ Confirmar datos y ver análisis fiscal</button>
-                            </template>
-                            <template lwc:if={v.puedeReabrirDatos}>
-                                <button class="bc-boton-sec bc-boton-mini" onclick={reabrirDatos}>Reabrir datos</button>
-                            </template>
-                        </div>
-                        <template lwc:if={v.provisional}>
-                            <div class="doc-provisional">
-                                <lightning-icon icon-name="utility:info" size="xx-small"></lightning-icon>
-                                <span class="doc-flex"><b>Análisis provisional.</b> Se calcula sobre los datos que ha leído el OCR, todavía sin validar. Si corriges algo en la capa 1, se recalcula.</span>
-                                <button class="bc-boton-sec bc-boton-mini" onclick={irAValidar}>Validar datos</button>
-                            </div>
-                        </template>
-                    </section>
+                        </section>
 
-                    <!-- ===== Pestañas ===== -->
-                    <section class="bc-card doc-pestanas-card">
-                        <div class="doc-pestanas">
-                            <template for:each={v.pestanas} for:item="t">
-                                <button key={t.k} class={t.clase} data-k={t.k} onclick={elegirPestana}>{t.label}
-                                    <template lwc:if={t.conAviso}><span class="doc-pestana-aviso" title="Comprobaciones con incidencias">⚠ {t.n}</span></template>
-                                    <template lwc:if={t.conN}><span class={t.claseN}>{t.n}</span></template>
-                                </button>
-                            </template>
-                        </div>
-                    </section>
+                        <!-- ===== Pestañas ===== -->
+                        <section class="bc-card doc-pestanas-card">
+                            <div class="doc-pestanas">
+                                <template for:each={v.pestanas} for:item="t">
+                                    <button key={t.k} class={t.clase} data-k={t.k} onclick={elegirPestana}>{t.label}
+                                        <template lwc:if={t.conAviso}><span class="doc-pestana-aviso" title="Comprobaciones con incidencias">⚠ {t.n}</span></template>
+                                        <template lwc:if={t.conN}><span class={t.claseN}>{t.n}</span></template>
+                                    </button>
+                                </template>
+                            </div>
+                        </section>
+                    </template>
 
                     <!-- ===== Lectura preliminar (real, del procesamiento en Google) ===== -->
-                    <template lwc:if={v.google}>
+                    <template lwc:if={v.googleVisible}>
                         <section class="bc-card doc-google">
                             <div class="doc-google-cab">
                                 <span class="doc-google-titulo">Lectura preliminar</span>
@@ -427,7 +415,12 @@
                                             <a class="bc-enlace" href="#" onclick={verEmpresa}>Ver regla</a>
                                         </div>
                                     </template>
+                                    <div class="doc-espacio"></div>
+                                </section>
+                            </fieldset>
 
+                            <fieldset class="doc-fieldset" disabled={v.bloqueado}>
+                                <section class="bc-card doc-seccion-card doc-seccion-asiento">
                                     <div class="doc-seccion">
                                         <div class="doc-seccion-cab"><span class="doc-seccion-titulo doc-flex">Propuesta de asiento contable</span><span class={v.asiento.claseBadge}>{v.asiento.badge}</span></div>
                                         <div class="doc-tabla doc-tabla-peq">
@@ -460,64 +453,23 @@
                                 </section>
                             </fieldset>
 
-                            <section class="bc-card doc-seccion-card doc-riesgos">
-                                <div class={v.fiscal.clase}>
-                                    <div class="doc-riesgo-cab"><lightning-icon icon-name="utility:warning" size="xx-small" class="doc-riesgo-icono"></lightning-icon><span class="doc-flex">Riesgo fiscal · {v.fiscal.titulo}</span></div>
-                                    <template for:each={v.fiscal.items} for:item="w">
-                                        <div key={w.clave} class="doc-riesgo-item">
-                                            <span class={w.claseTag}>{w.tag}</span>
-                                            <span class="doc-fuerte">{w.titulo}</span>
-                                            <span class="doc-riesgo-texto">{w.texto}</span>
-                                            <div class="doc-riesgo-acciones">
-                                                <template lwc:if={w.riesgoTxt}>
-                                                    <button class="doc-riesgo-boton" data-clave={w.clave} onclick={abrirRiesgo}>Riesgo económico <span class={w.claseRiesgo}>{w.riesgoTxt}</span></button>
-                                                </template>
-                                                <button class="doc-riesgo-boton doc-riesgo-ia" data-clave={w.clave} onclick={preguntarIa}>
-                                                    <lightning-icon icon-name="utility:chat" size="xx-small"></lightning-icon>Pregunta a la IA
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                                <div class={v.operativo.clase}>
-                                    <div class="doc-riesgo-cab"><lightning-icon icon-name="utility:warning" size="xx-small" class="doc-riesgo-icono"></lightning-icon><span class="doc-flex">Riesgo operativo · {v.operativo.titulo}</span></div>
-                                    <template for:each={v.operativo.items} for:item="w">
-                                        <div key={w.clave} class="doc-riesgo-item">
-                                            <span class={w.claseTag}>{w.tag}</span>
-                                            <span class="doc-fuerte">{w.titulo}</span>
-                                            <span class="doc-riesgo-texto">{w.texto}</span>
-                                            <div class="doc-riesgo-acciones">
-                                                <button class="doc-riesgo-boton doc-riesgo-ia" data-clave={w.clave} onclick={preguntarIa}>
-                                                    <lightning-icon icon-name="utility:chat" size="xx-small"></lightning-icon>Pregunta a la IA
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                                <div class={v.skillsAplicadas.clase}>
-                                    <lightning-icon icon-name="utility:layers" size="xx-small"></lightning-icon>
-                                    <span class="doc-flex doc-fuerte">Skills aplicadas <span class="doc-skills-n">{v.skillsAplicadas.n}</span><span class="doc-gris-peq doc-skills-nombres">{v.skillsAplicadas.nombres}</span></span>
-                                    <a class="bc-enlace doc-gris-peq" href="#" onclick={verSkills}>Ver todas las skills</a>
-                                </div>
-                                <a class="bc-enlace doc-gris-peq doc-ver-chk" href="#" onclick={verComprobaciones}>Ver todas las comprobaciones</a>
-                            </section>
                         </div>
                     </template>
 
                     <!-- ===== Otras pestañas ===== -->
                     <template lwc:if={v.enChk}>
-                        <c-bandeja-contable-doc-comprobaciones items={v.checks}></c-bandeja-contable-doc-comprobaciones>
+                        <c-bandeja-contable-doc-comprobaciones items={v.checks} filtro-inicial={v.filtroChk}></c-bandeja-contable-doc-comprobaciones>
                     </template>
                     <template lwc:if={v.enCliente}>
                         <c-bandeja-contable-doc-cliente vista={pestana} cliente={cliente} error={errorCliente}
                                                         perfil-sin-datos={v.perfilSinDatos} turismos={v.turismos}></c-bandeja-contable-doc-cliente>
                     </template>
                     <template lwc:if={v.enAnalisis}>
-                        <c-bandeja-contable-doc-analisis vista={pestana} analisis={v.is} productos={v.productos} resaltado={productoResaltado}
-                                                         onresaltar={resaltarProducto}></c-bandeja-contable-doc-analisis>
+                        <c-bandeja-contable-doc-analisis vista={pestana} analisis={v.is} productos={v.productos} financiero={v.financiero}
+                                                         resaltado={productoResaltado} onresaltar={resaltarProducto}></c-bandeja-contable-doc-analisis>
                     </template>
                     <template lwc:if={v.enColaboracion}>
-                        <c-bandeja-contable-doc-colaboracion vista={pestana} doc-id={v.doc.id} contexto={v.contexto} consulta={consulta}
+                        <c-bandeja-contable-doc-colaboracion vista={pestana} doc-id={v.doc.id} contexto={v.contexto}
                                                              oncambio={alCambiarColaboracion}></c-bandeja-contable-doc-colaboracion>
                     </template>
                     <template lwc:if={v.enSkills}>
@@ -543,43 +495,56 @@
                             <span class="doc-modal-icono">!</span>
                             <div class="doc-modal-titulos">
                                 <span class="doc-modal-titulo-rojo">Vas a validar con riesgo fiscal</span>
-                                <span class="doc-gris-13">Esta factura tiene riesgos fiscales. Si la validas, aceptas el riesgo y quedará registrado en Notas.</span>
+                                <span class="doc-gris-13">Esta factura tiene {v.avisoValidar.n} riesgo(s) fiscal(es). Elige cómo se resuelve antes de validar. Quedará registrado en Notas y archivos.</span>
                             </div>
                         </div>
-                        <div class="doc-modal-lista">
-                            <template for:each={v.fiscal.items} for:item="w">
-                                <div key={w.clave} class="doc-modal-linea"><span class="bc-pill bc-pill-peq bc-pill-error">{w.tag}</span><span class="doc-fuerte">{w.titulo}</span></div>
-                            </template>
+                        <div class="doc-modal-cuerpo">
+                            <div class="doc-modal-lista">
+                                <template for:each={v.avisoValidar.riesgos} for:item="w">
+                                    <div key={w.clave} class="doc-modal-linea"><span class="bc-pill bc-pill-peq bc-pill-error">{w.tag}</span><span class="doc-fuerte">{w.titulo}</span></div>
+                                </template>
+                            </div>
+                            <div class="doc-resoluciones">
+                                <span class="doc-eyebrow">¿Cómo se resuelve?</span>
+                                <template for:each={v.avisoValidar.opciones} for:item="o">
+                                    <button key={o.k} class={o.clase} data-opt={o.k} onclick={elegirResolucion}>
+                                        <span class="doc-resolucion-radio"></span>
+                                        <span class="doc-resolucion-textos"><span class="doc-fuerte">{o.label}</span><span class="doc-gris-peq">{o.sub}</span></span>
+                                    </button>
+                                </template>
+                                <template lwc:if={v.avisoValidar.esSkill}>
+                                    <div class="doc-resolucion-form">
+                                        <label class="doc-resolucion-campo">Título de la skill
+                                            <input class="doc-input" value={v.avisoValidar.skTitle} data-k="skTitle" oninput={handleResolucion}></label>
+                                        <label class="doc-resolucion-campo">Instrucción para la IA
+                                            <textarea class="doc-textarea" rows="3" value={v.avisoValidar.skText} data-k="skText" oninput={handleResolucion}></textarea></label>
+                                        <span class="doc-gris-peq">Se aplicará a las próximas facturas de {v.avisoValidar.emisor} de este cliente. Datos de ejemplo: la skill se guarda solo en esta sesión.</span>
+                                    </div>
+                                </template>
+                                <template lwc:if={v.avisoValidar.esCliente}>
+                                    <div class="doc-resolucion-form doc-resolucion-cliente">
+                                        <span class="doc-resolucion-aviso">
+                                            <lightning-icon icon-name="utility:email" size="xx-small"></lightning-icon>
+                                            Al validar se enviará este email al cliente para que acepte el riesgo. Revísalo antes.
+                                            <span class="bc-ejemplo" title="El envío de correos todavía no existe: el correo queda anotado en la pestaña Correos">Datos de ejemplo</span>
+                                        </span>
+                                        <label class="doc-resolucion-campo">Para
+                                            <input class="doc-input" type="email" placeholder="Email del cliente" value={v.avisoValidar.to} data-k="to" oninput={handleResolucion}></label>
+                                        <label class="doc-resolucion-campo">Asunto
+                                            <input class="doc-input" value={v.avisoValidar.subject} data-k="subject" oninput={handleResolucion}></label>
+                                        <label class="doc-resolucion-campo">Mensaje
+                                            <textarea class="doc-textarea" rows="5" value={v.avisoValidar.body} data-k="body" oninput={handleResolucion}></textarea></label>
+                                    </div>
+                                </template>
+                                <template lwc:if={v.avisoValidar.esOtros}>
+                                    <label class="doc-resolucion-campo"><span>Motivo <b class="bc-rojo">*</b></span>
+                                        <textarea class="doc-textarea" rows="3" placeholder="Explica por qué se valida pese al riesgo…" value={v.avisoValidar.motivo} data-k="motivo" oninput={handleResolucion}></textarea></label>
+                                </template>
+                            </div>
                         </div>
                         <div class="doc-modal-pie">
                             <button class="bc-boton-sec bc-boton-peq" onclick={cancelarValidar}>Revisar</button>
-                            <button class="doc-boton-peligro" onclick={aceptarRiesgo}>Aceptar riesgo y validar</button>
-                        </div>
-                    </div>
-                </div>
-            </template>
-
-            <!-- ===== Riesgo económico ===== -->
-            <template lwc:if={v.riesgoModal}>
-                <div class="doc-fondo doc-fondo-centro" onclick={cerrarRiesgo}>
-                    <div class="doc-modal" role="dialog" aria-modal="true" aria-label="Riesgo económico" onclick={parar}>
-                        <div class="doc-modal-cab">
-                            <div class="doc-modal-titulos">
-                                <span class="doc-eyebrow">Riesgo económico · {v.riesgoModal.tag}</span>
-                                <span class="doc-modal-titulo">{v.riesgoModal.titulo}</span>
-                                <span class="doc-gris-peq">{v.riesgoModal.ctx}</span>
-                            </div>
-                            <button class="doc-x doc-x-grande" aria-label="Cerrar" onclick={cerrarRiesgo}>×</button>
-                        </div>
-                        <template for:each={v.riesgoModal.filas} for:item="r">
-                            <div key={r.label} class="doc-modal-fila">
-                                <div class="doc-flex doc-modal-titulos"><span class="doc-fuerte">{r.label}</span><span class="doc-gris-peq">{r.nota}</span></div>
-                                <span class={r.clase}>{r.importe}</span>
-                            </div>
-                        </template>
-                        <div class="doc-modal-total">
-                            <span class="doc-flex">Riesgo total estimado <span class="doc-ejemplo-mini">estimación orientativa</span></span>
-                            <span class="doc-modal-total-importe">{v.riesgoModal.total}</span>
+                            <button class={v.avisoValidar.claseBoton} disabled={v.avisoValidar.noListo} onclick={aceptarRiesgo}>{v.avisoValidar.boton}</button>
                         </div>
                     </div>
                 </div>

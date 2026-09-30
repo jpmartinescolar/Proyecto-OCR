@@ -2,6 +2,12 @@
 
 Registro de decisiones del proyecto. Formato: fecha · decisión · motivo · alternativas descartadas. Las más recientes arriba.
 
+## 2026-09-30
+- **Documento con el diseño v2 Híbrido del 30/09**: tres capas (contable, fiscal y financiera) con su estado "Pre-validado" o "N incidencias", Rosetta IA en lugar de la pestaña Chat IA, pestañas Correos, Tesorería y Análisis de gasto, y validar con riesgo eligiendo cómo se resuelve (skill, aceptación del cliente u otros). Detalle en [diseno.md](diseno.md#qué-cambia-en-la-v2-híbrido-del-3009).
+- **Se quita lo que el diseño quita**: el resumen de riesgos de la pestaña Datos (con "Riesgo económico" y "Pregunta a la IA"), la línea de pasos y "Confirmar datos" de la capa 1. Motivo: el estado de cada capa y la ventana de validar sustituyen a esas piezas. El cálculo del riesgo económico se conserva en `bandejaContableCalculos.riesgosFiscales` para la pantalla de riesgo no prescrito.
+- **"Ampliar" abre el visor ampliado con el botón**, con la lupa que aparece al pasar por el documento y, en imágenes y en la vista de ejemplo, pulsando el documento. El panel empieza por debajo de la cabecera fija de Lightning (antes se pegaba arriba y la cabecera tapaba el encabezado del PDF), tiene una barra "Vista ampliada" con Restaurar y se cierra también con Esc o pulsando fuera. Descartado: la lupa del prototipo (clona la página y no sirve con el lector de PDF) y el doble clic sobre el PDF (el lector del navegador, en otro dominio, se queda con los eventos; taparlo con una capa impediría hacer scroll y seleccionar texto).
+- **La página se abre en el listado OCR**, primera pestaña, como en el diseño.
+
 ## 2026-09-29
 - **Un único estado de procesamiento para el usuario: Cargando · Procesando · Procesado · Error**, calculado con la misma regla en el listado, la ficha de la bandeja y cada archivo (`bandejaContableUtils.estadoProceso`). Por dentro se mantienen los estados técnicos (archivo en Salesforce, archivo y documentos en Google). En una bandeja manda el archivo menos avanzado; los documentos por revisar y los archivos con error se indican aparte. Motivo: "Subida: Completada" aparecía en cuanto el archivo estaba registrado, antes de procesarse, y en la ficha no había documentos. "Procesado" en lugar de "Listo" o "Completada" (el usuario no quiere "Listo"; "Completado" ya es el estado de revisión del asesor). El estado de un documento sin incidencias pasa de "Listo" a "Correcto".
 - **La interfaz no nombra a Google** (ni a ningún proveedor): es un detalle técnico. Los detalles técnicos quedan en tooltips.

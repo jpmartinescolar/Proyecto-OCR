@@ -51,9 +51,9 @@ describe('skills y colaboración', () => {
     it('crea, edita y elimina skills numerándolas', () => {
         const emp = { id: '001S', nombre: 'Empresa S' };
         const antes = skillsDeEmpresa(emp).length; // las de ejemplo se asignan a la primera empresa que las abre
-        expect(antes).toBe(6);
+        expect(antes).toBe(7);
         const s = guardarSkill({ title: 'Nueva', text: 'Texto', tipo: 'Todas', emps: [emp] });
-        expect(s.num).toBe('SK-007');
+        expect(s.num).toBe('SK-008');
         guardarSkill({ num: s.num, title: 'Editada' });
         expect(skillsDeEmpresa(emp).find((x) => x.num === s.num).title).toBe('Editada');
         eliminarSkill(s.num);

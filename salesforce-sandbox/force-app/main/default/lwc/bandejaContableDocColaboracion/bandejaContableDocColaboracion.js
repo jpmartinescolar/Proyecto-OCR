@@ -1,5 +1,6 @@
 import { LightningElement, api } from 'lwc';
-import { notasDe, anadirNota, tareasDe, chatsDe, respuestaAsistente, RESPONSABLES_TAREA } from 'c/bandejaContableMock';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { notasDe, anadirNota, tareasDe, chatsDe, correosDe, anadirCorreo, respuestaAsistente, RESPONSABLES_TAREA } from 'c/bandejaContableMock';
 import { bytes, fechaHora, fecha } from 'c/bandejaContableUtils';
 
 const ETIQUETAS_NOTA = {
@@ -9,19 +10,18 @@ const ETIQUETAS_NOTA = {
 };
 const SUGERENCIAS_NUEVO = ['¿Es deducible el IVA de esta factura?', '¿A qué cuenta la contabilizo?', '¿Qué riesgo fiscal tiene?', '¿Qué documentación pido al cliente?'];
 const SUGERENCIAS_CHAT = ['¿Qué sanción me puede caer?', '¿Qué documentación pido al cliente?', '¿Cómo lo contabilizo?'];
-const PREGUNTA_RIESGO = 'Explícame con detalle los riesgos fiscales de esta advertencia y qué debo comprobar antes de contabilizar.';
 
 let secuencia = 0;
 
 /**
- * Pestañas "Notas", "Tareas" y "Chat IA" del documento. DATOS DE EJEMPLO en memoria
- * (bandejaContableMock): FALTA decidir dónde se guardan (Salesforce o Cloud SQL), dónde van los
- * adjuntos de las notas (Google Storage) y conectar el asistente con Vertex AI (Fase 5).
- * Avisa al documento con el evento "cambio" para que actualice los contadores de las pestañas.
+ * Pestañas "Notas y Archivos", "Tareas", "Correos" y el chat "Rosetta IA" del documento. DATOS DE EJEMPLO
+ * en memoria (bandejaContableMock): FALTA decidir dónde se guardan (Salesforce o Cloud SQL), dónde van los
+ * adjuntos de las notas (Google Storage), cómo se envían los correos y conectar el asistente con Vertex AI
+ * (Fase 5). Avisa al documento con el evento "cambio" para que actualice los contadores de las pestañas.
  */
 export default class BandejaContableDocColaboracion extends LightningElement {
-    @api vista; // 'notas' | 'tareas' | 'chat'
-    @api contexto = {}; // { emisor, nif, total, empresa }
+    @api vista; // 'notas' | 'tareas' | 'mail' | 'chat'
+    @api contexto = {}; // { emisor, nif, total, empresa, numero }
 
     _docId;
     @api
@@ -31,25 +31,17 @@ export default class BandejaContableDocColaboracion extends LightningElement {
         this._docId = v;
     }
 
-    // Consulta abierta desde un riesgo ("Pregunta a la IA"): { id, tag, titulo, texto }
-    _consulta;
-    @api
-    get consulta() { return this._consulta; }
-    set consulta(v) {
-        const nueva = v && (!this._consulta || v.id !== this._consulta.id);
-        this._consulta = v;
-        if (nueva) this.abrirConsulta(v);
-    }
-
     version = 0;
     borradorNota = '';
     adjuntos = [];
     borradorTarea = { text: '', who: 'Tú', due: '' };
     actual = null; // chat abierto
     pregunta = '';
+    borradorCorreo = null; // { to, subject, body } mientras se escribe
 
     get esNotas() { return this.vista === 'notas'; }
     get esTareas() { return this.vista === 'tareas'; }
+    get esCorreos() { return this.vista === 'mail'; }
     get esChat() { return this.vista === 'chat'; }
 
     refrescar() {
@@ -145,7 +137,41 @@ export default class BandejaContableDocColaboracion extends LightningElement {
         this.refrescar();
     }
 
-    // ===== Chat IA =====
+    // ===== Correos =====
+    get correos() {
+        return this.version >= 0 ? correosDe(this._docId).map((c) => ({
+            ...c,
+            fechaTxt: fechaHora(c.fecha),
+            dirTxt: c.dir === 'in' ? 'Recibido' : 'Enviado',
+            claseDir: 'col-dir ' + (c.dir === 'in' ? 'col-dir-in' : 'col-dir-out'),
+            adjuntos: (c.files || []).map((n, i) => ({ n, key: c.id + '-' + i })),
+            hayAdjuntos: (c.files || []).length > 0
+        })) : [];
+    }
+    get sinCorreos() { return this.correos.length === 0; }
+    get escribiendoCorreo() { return !!this.borradorCorreo; }
+
+    nuevoCorreo() {
+        const numero = (this.contexto && this.contexto.numero) || '';
+        // FALTA: el email del cliente (no viene en los datos de Salesforce que se leen hoy)
+        this.borradorCorreo = { to: '', subject: `Consulta sobre ${numero ? 'la factura ' + numero : 'la factura'}`, body: '' };
+    }
+    escribirCorreo(e) { this.borradorCorreo = { ...this.borradorCorreo, [e.target.dataset.k]: e.target.value }; }
+    cancelarCorreo() { this.borradorCorreo = null; }
+    enviarCorreo() {
+        const b = this.borradorCorreo;
+        if (!b || !b.to.trim() || !b.body.trim()) {
+            this.dispatchEvent(new ShowToastEvent({ title: 'Indica destinatario y mensaje', variant: 'warning' }));
+            return;
+        }
+        // FALTA: enviarlo de verdad; de momento solo queda anotado en el documento
+        anadirCorreo(this._docId, { to: b.to.trim(), subject: b.subject.trim() || '(sin asunto)', body: b.body.trim() });
+        this.borradorCorreo = null;
+        this.refrescar();
+        this.dispatchEvent(new ShowToastEvent({ title: 'Correo anotado', message: 'Datos de ejemplo: el correo todavía no se envía.', variant: 'info' }));
+    }
+
+    // ===== Chat (Rosetta IA) =====
     get historico() {
         return this.version >= 0 ? chatsDe(this._docId).map((c) => {
             const ultimo = c.msgs[c.msgs.length - 1];
@@ -176,15 +202,10 @@ export default class BandejaContableDocColaboracion extends LightningElement {
         this.actual = { cid: Date.now() + secuencia++, tag, titulo, texto, ctx: this.contextoTxt, msgs: [] };
     }
 
-    abrirConsulta(w) {
-        this.nuevoChat(w.tag, w.titulo, w.texto);
-        this.preguntar(PREGUNTA_RIESGO, true);
-    }
-
-    preguntar(q, oculta = false) {
+    preguntar(q) {
         const texto = String(q || '').trim();
         if (!texto || !this.actual) return;
-        const msgs = oculta ? [...this.actual.msgs] : [...this.actual.msgs, { role: 'user', text: texto }];
+        const msgs = [...this.actual.msgs, { role: 'user', text: texto }];
         msgs.push({ role: 'ai', text: respuestaAsistente(texto, this.contexto || {}) });
         this.actual = { ...this.actual, msgs };
         this.pregunta = '';

@@ -53,51 +53,118 @@ describe('c-bandeja-contable-documento', () => {
         jest.clearAllMocks();
     });
 
-    it('muestra la cabecera, el desglose de IVA y los riesgos', async () => {
+    it('muestra la cabecera, las tres capas y el desglose de IVA', async () => {
         const el = await montar();
         const r = el.shadowRoot;
         expect(r.querySelector('.doc-titulo').textContent).toMatch(/^Factura /);
-        // Capa 1 · Extracción de datos: solo sus pestañas
-        expect(pestanasVisibles(el)).toEqual(['general', 'sk', 'prod', 'notas', 'tareas']);
+        expect([...r.querySelectorAll('.doc-capa')].map((c) => c.dataset.k)).toEqual(['ext', 'intel', 'fin']);
+        expect(r.querySelector('.doc-capa-on').dataset.k).toBe('ext');
+        // Capa 1 · Inteligencia contable: solo sus pestañas
+        expect(pestanasVisibles(el)).toEqual(['general', 'sk', 'prod', 'notas', 'tareas', 'mail']);
         expect(r.querySelectorAll('.doc-iva-fila').length).toBeGreaterThan(2);
-        expect(r.querySelector('.doc-riesgos')).not.toBeNull();
+        // El diseño ya no tiene el resumen de riesgos en Datos (se ve en la capa 2 y al validar)
+        expect(r.querySelector('.doc-riesgos')).toBeNull();
+        expect(r.querySelector('.doc-seccion-asiento')).not.toBeNull();
         expect(getDatosCliente).toHaveBeenCalledWith({ empresaId: '001E' });
     });
 
-    it('abre cada pestaña de las dos capas sin errores', async () => {
+    it('abre cada pestaña de las tres capas sin errores', async () => {
         const el = await montar();
-        for (const k of ['sk', 'prod', 'notas', 'tareas', 'general']) {
+        for (const k of ['sk', 'prod', 'notas', 'tareas', 'mail', 'general']) {
             // eslint-disable-next-line no-await-in-loop
             await pulsarPestana(el, k);
         }
+        expect(el.shadowRoot.querySelector('c-bandeja-contable-doc-colaboracion')).toBeNull();
         await pulsar(el, '.doc-capa[data-k="intel"]');
-        expect(pestanasVisibles(el)).toEqual(['pf', 'chk', 'is', 'chat', 'iae', 'loc', 'tur']);
-        for (const k of ['pf', 'chk', 'is', 'chat', 'loc', 'tur', 'iae']) {
+        expect(pestanasVisibles(el)).toEqual(['chk', 'pf', 'is', 'iae', 'loc', 'tur']);
+        for (const k of ['pf', 'chk', 'is', 'loc', 'tur', 'iae']) {
             // eslint-disable-next-line no-await-in-loop
             await pulsarPestana(el, k);
         }
         const cliente = el.shadowRoot.querySelector('c-bandeja-contable-doc-cliente');
         expect(cliente.shadowRoot.textContent).toContain('691.2');
+        await pulsar(el, '.doc-capa[data-k="fin"]');
+        expect(pestanasVisibles(el)).toEqual(['tes', 'gas']);
+        const analisis = el.shadowRoot.querySelector('c-bandeja-contable-doc-analisis');
+        expect(analisis.shadowRoot.textContent).toContain('Pago previsto');
+        await pulsarPestana(el, 'gas');
+        expect(el.shadowRoot.querySelector('c-bandeja-contable-doc-analisis').shadowRoot.textContent).toContain('Evolución del gasto');
     });
 
-    it('capas: análisis provisional hasta confirmar los datos y cada capa recuerda su pestaña', async () => {
+    it('capas: la 2 se abre en Check y la 1 y la 3 recuerdan su pestaña', async () => {
         const el = await montar();
         const r = el.shadowRoot;
         await pulsarPestana(el, 'notas');
         await pulsar(el, '.doc-capa[data-k="intel"]');
         expect(r.querySelector('.doc-pestana-on').dataset.k).toBe('chk');
-        expect(r.querySelector('.doc-provisional')).not.toBeNull();
         await pulsarPestana(el, 'is');
-        await pulsar(el, '.doc-provisional button'); // "Validar datos" vuelve a la capa 1
+        await pulsar(el, '.doc-capa[data-k="fin"]');
+        await pulsarPestana(el, 'gas');
+        await pulsar(el, '.doc-capa[data-k="ext"]');
         expect(r.querySelector('.doc-pestana-on').dataset.k).toBe('notas');
-        await pulsar(el, '.doc-confirmar-datos');
-        expect(r.querySelector('.doc-pestana-on').dataset.k).toBe('is');
-        expect(r.querySelector('.doc-provisional')).toBeNull();
-        expect(r.querySelector('.doc-capa-ext .doc-capa-badge').textContent).toBe('Validado');
-        expect(r.querySelectorAll('.doc-paso-hecho')).toHaveLength(4);
-        await pulsar(el, '.doc-pasos-fila .bc-boton-sec'); // Reabrir datos
-        expect(r.querySelector('.doc-capa-ext .doc-capa-badge').textContent).toBe('Pendiente');
-        expect(pestanasVisibles(el)).toContain('general');
+        await pulsar(el, '.doc-capa[data-k="fin"]');
+        expect(r.querySelector('.doc-pestana-on').dataset.k).toBe('gas');
+        await pulsar(el, '.doc-capa[data-k="intel"]');
+        expect(r.querySelector('.doc-pestana-on').dataset.k).toBe('chk');
+        // Cada tarjeta dice si está pre-validada o cuántas incidencias tiene
+        [...r.querySelectorAll('.doc-capa-badge')].forEach((b) => expect(b.textContent).toMatch(/^(✓ Pre-validado|⚠ \d+ incidencias?)$/));
+    });
+
+    it('Rosetta IA abre el chat en lugar de las capas y "Volver" regresa a la pestaña', async () => {
+        const el = await montar();
+        const r = el.shadowRoot;
+        await pulsarPestana(el, 'prod');
+        await pulsar(el, '.doc-boton-rosetta');
+        expect(r.querySelector('.doc-capas-card')).toBeNull();
+        expect(r.querySelector('.doc-rosetta')).not.toBeNull();
+        expect(r.querySelector('c-bandeja-contable-doc-colaboracion').vista).toBe('chat');
+        await pulsar(el, '.doc-rosetta button');
+        expect(r.querySelector('.doc-rosetta')).toBeNull();
+        expect(r.querySelector('.doc-pestana-on').dataset.k).toBe('prod');
+    });
+
+    it('validar con riesgo: hay que elegir cómo se resuelve y queda anotado', async () => {
+        const el = await montar();
+        const r = el.shadowRoot;
+        await pulsar(el, '.doc-acciones-cab .bc-boton');
+        const aceptar = () => r.querySelector('.doc-modal-pie .doc-boton-peligro');
+        expect(r.querySelector('.doc-modal-aviso')).not.toBeNull();
+        expect(r.querySelectorAll('.doc-resolucion')).toHaveLength(3);
+        expect(aceptar().disabled).toBe(true);
+        await pulsar(el, '.doc-resolucion[data-opt="otros"]');
+        expect(aceptar().disabled).toBe(true); // falta el motivo
+        const motivo = r.querySelector('textarea[data-k="motivo"]');
+        motivo.value = 'Criterio acordado con el cliente';
+        motivo.dispatchEvent(new CustomEvent('input'));
+        await esperar();
+        expect(aceptar().disabled).toBe(false);
+        expect(aceptar().textContent).toBe('Aceptar riesgo y validar');
+        aceptar().click();
+        await esperar();
+        expect(r.querySelector('.doc-modal-aviso')).toBeNull();
+        expect(r.querySelector('.doc-estado').textContent).toContain('Contabilizado');
+    });
+
+    it('Correos: lista los del documento y anota uno nuevo', async () => {
+        const el = await montar();
+        await pulsarPestana(el, 'mail');
+        const col = () => el.shadowRoot.querySelector('c-bandeja-contable-doc-colaboracion').shadowRoot;
+        const antes = col().querySelectorAll('.col-correo').length;
+        expect(antes).toBeGreaterThan(0);
+        col().querySelector('.col-correos-cab .bc-boton').click();
+        await esperar();
+        const escribir = (k, v) => {
+            const campo = col().querySelector(`[data-k="${k}"]`);
+            campo.value = v;
+            campo.dispatchEvent(new CustomEvent('input'));
+        };
+        escribir('to', 'cliente@ejemplo.es');
+        escribir('body', 'Necesitamos el contrato.');
+        await esperar();
+        col().querySelector('.col-correo-acciones .bc-boton').click();
+        await esperar();
+        expect(col().querySelectorAll('.col-correo')).toHaveLength(antes + 1);
+        expect(el.shadowRoot.querySelector('.doc-pestana[data-k="mail"] .doc-pestana-n').textContent).toBe(String(antes + 1));
     });
 
     it('la contrapartida y la cuenta del asiento se eligen en el buscador de cuentas', async () => {

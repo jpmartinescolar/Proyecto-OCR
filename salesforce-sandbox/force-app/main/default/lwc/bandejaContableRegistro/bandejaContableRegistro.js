@@ -16,6 +16,8 @@ const COLOR_TIPO = { PDF: 'var(--bc-danger)', JPG: 'var(--bc-brand-cyan)', JPEG:
 const REFRESCO_MS = 5000;
 const REFRESCO_MAX = 120;
 const FILAS_CARGA = [1, 2, 3]; // filas de carga (skeleton) de OCR documentos
+// El spinner de OCR documentos solo aparece si la carga tarda: en cargas rápidas no parpadea
+const ESPERA_SPINNER_MS = 300;
 const EXPLICACION_SUBIDA = { Pendiente: 'Preparando la subida', Subiendo: 'Subiendo el archivo', Subido: 'Subido; registrándolo' };
 
 /**
@@ -39,12 +41,18 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
     refrescos = 0;
     temporizador;
 
+    spinnerVisible = false;
+    temporizadorSpinner;
+
     connectedCallback() {
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this.temporizadorSpinner = setTimeout(() => { this.spinnerVisible = true; }, ESPERA_SPINNER_MS);
         this.cargar();
     }
 
     disconnectedCallback() {
         clearTimeout(this.temporizador);
+        clearTimeout(this.temporizadorSpinner);
     }
 
     async cargar() {
@@ -214,6 +222,7 @@ export default class BandejaContableRegistro extends NavigationMixin(LightningEl
     // haya y, mientras se procesa, un aviso de que aparecerán más.
     get cargandoDocumentos() { return !this.googleCargado && !this.errorGoogle; }
     get filasCarga() { return FILAS_CARGA; }
+    get conSpinner() { return this.cargandoDocumentos && this.spinnerVisible; }
     get avisoProceso() {
         if (this.cargandoDocumentos || !this.enCurso) return null;
         const p = this.proceso;

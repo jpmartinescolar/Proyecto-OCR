@@ -13,11 +13,14 @@ Backlog del proyecto. Marcar `[x]` al terminar y mover a "Hecho" con la fecha.
 - [ ] Borrar del sandbox el recurso estático `Bandeja_Contable_PdfJs` (visor con pdf.js descartado; ya no está en el repo).
 - [ ] Fase 1 · ingestión y separación de documentos: ver pasos en [fases/fase-1-ingestion.md](fases/fase-1-ingestion.md).
 - [ ] Revisar con el usuario las pantallas v2 (desplegadas en el sandbox el 28/09).
+- [ ] Revisar con el usuario el diseño v2 Híbrido del 30/09 (desplegado en el sandbox el 30/09).
 - [ ] Datos de ejemplo que hay que sustituir: tabla completa en [diseno.md](diseno.md#de-dónde-sale-cada-dato). Por decidir con el usuario:
   - dónde se registran régimen de IVA, prorrata, ROI y turismos del cliente (no existen en Salesforce);
   - acceso al censo de la AEAT (certificado) y a VIES; listado de deudores de la AEAT; lista completa de paraísos fiscales;
   - almacenamiento de notas (y adjuntos), tareas y chats; quién puede ser responsable de una tarea (cliente, IA);
   - cómo se avisa al cliente del motivo de no contabilizar;
+  - envío de correos al cliente desde el documento (pestaña Correos y aceptación de un riesgo): desde Salesforce (EmailMessage ligado al registro) o desde el buzón del despacho, cómo se asocian las respuestas y de dónde sale el email del cliente;
+  - de dónde salen los datos de la capa financiera (tesorería: banco y Sage; análisis de gasto: confirmaciones y cuenta de resultados);
   - plan de cuentas del cliente (está en Sage; clave `C_digo_ERP__c` del contrato).
 
 ## Limpieza del prototipo

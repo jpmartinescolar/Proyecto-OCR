@@ -62,11 +62,6 @@ export default class BandejaContableOcr extends LightningElement {
     }
     get iconoTitulo() { return this.agrupar ? 'utility:company' : 'utility:file'; }
     get claseAgrupar() { return 'bc-boton-sec' + (this.agrupado ? ' bc-boton-activo' : ''); }
-    get subpestanas() {
-        return [['Listado documentos', 'ocr', !this.agrupar], ['Listado empresa', 'ocrEmpresas', this.agrupar]].map(([label, vista, on]) => ({
-            label, vista, clase: 'bc-tab' + (on ? ' bc-tab-on' : '')
-        }));
-    }
 
     get deEmpresa() { return this.documentos.filter((d) => !this.empresaId || d.empresaId === this.empresaId); }
 
@@ -199,9 +194,6 @@ export default class BandejaContableOcr extends LightningElement {
     toggleGrupo(e) {
         const k = e.currentTarget.dataset.id;
         this.cerrados = { ...this.cerrados, [k]: !this.cerrados[k] };
-    }
-    irSubpestana(e) {
-        this.dispatchEvent(eventoNavegar({ vista: e.currentTarget.dataset.vista }));
     }
 
     quitarEmpresa() {

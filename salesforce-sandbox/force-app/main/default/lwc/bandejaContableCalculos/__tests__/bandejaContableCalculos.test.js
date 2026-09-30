@@ -1,5 +1,6 @@
 import {
-    coincideDireccion, contrapartidaPorDefecto, sumasIva, propuestaAsiento, riesgosFiscales, riesgosOperativos, comprobaciones, analisisIs, productos
+    coincideDireccion, contrapartidaPorDefecto, sumasIva, propuestaAsiento, riesgosFiscales, comprobaciones, analisisIs, productos,
+    conIncidencia, aRevisar, incidenciasContables
 } from 'c/bandejaContableCalculos';
 
 const endesa = {
@@ -78,12 +79,38 @@ describe('riesgos y comprobaciones', () => {
         expect(it.find((c) => c.titulo === 'Conceptos y actividades').status).toBe('Sin actividades');
     });
 
-    it('histórico: desviación grande genera riesgo operativo y barras', () => {
+    it('histórico: desviación grande genera incidencia operativa y barras', () => {
         const h = { media: 100, meses: [['Ene', 100], ['Feb', 100]] };
-        expect(riesgosOperativos(h, '200')).toHaveLength(1);
-        expect(riesgosOperativos(h, '105')).toHaveLength(0);
         const it = comprobaciones({ x: { ...endesa, total: '200' }, ivas: ivasEndesa, tipo: 'Recibida', textoLineas: '', cliente, direccionesAfectas: dirs, historico: h, mes: 'Mar' });
-        expect(it.find((c) => c.titulo === 'Facturas anteriores').barras).toHaveLength(3);
+        const hist = it.find((c) => c.titulo === 'Facturas anteriores');
+        expect(hist.barras).toHaveLength(3);
+        expect(hist.estado).toBe('warn');
+        const normal = comprobaciones({ x: { ...endesa, total: '105' }, ivas: ivasEndesa, tipo: 'Recibida', textoLineas: '', cliente, direccionesAfectas: dirs, historico: h, mes: 'Mar' });
+        expect(normal.find((c) => c.titulo === 'Facturas anteriores').estado).toBe('ok');
+    });
+
+    it('ticket sin NIF: el IVA deducido es incidencia; con la skill del cliente queda pre-validado', () => {
+        const ticket = { ...endesa, kind: 'FACTURA SIMPL.', sumin: null };
+        const base = { x: ticket, tipo: 'Ticket', textoLineas: 'Café', cliente, direccionesAfectas: dirs };
+        const deducido = comprobaciones({ ...base, ivas: [{ base: '10,00', pct: '21', cuota: '2,10' }] }).find((c) => c.titulo === 'Factura simplificada');
+        expect(deducido.estado).toBe('ko');
+        expect(conIncidencia(deducido)).toBe(true);
+        const conSkill = comprobaciones({ ...base, ivas: [{ base: '10,00', pct: '21', cuota: '2,10', ded: '0', sk2: 'SK-007' }], skills: ['SK-007'] })
+            .find((c) => c.titulo === 'Factura simplificada');
+        expect(conSkill.skill).toBe('SK-007');
+        expect(conIncidencia(conSkill)).toBe(false);
+        expect(aRevisar(conSkill)).toBe(true);
+        // La skill inactiva no pre-valida
+        const inactiva = comprobaciones({ ...base, ivas: [{ base: '10,00', pct: '21', cuota: '2,10', ded: '0', sk2: 'SK-007' }], skills: [] })
+            .find((c) => c.titulo === 'Factura simplificada');
+        expect(inactiva.skill).toBeUndefined();
+    });
+
+    it('incidencias contables: descuadres, cuotas mal calculadas y deducciones sin motivo', () => {
+        const bien = [{ base: '100,00', pct: '21', cuota: '21,00' }];
+        expect(incidenciasContables({ ivas: bien, cuadra: true, asientoCuadra: true })).toBe(0);
+        const mal = [{ base: '100,00', pct: '21', cuota: '20,00' }, { base: '10,00', pct: '21', cuota: '2,10', ded: '50' }];
+        expect(incidenciasContables({ ivas: mal, cuadra: false, asientoCuadra: true })).toBe(3);
     });
 });
 

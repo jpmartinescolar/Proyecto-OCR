@@ -73,7 +73,52 @@
         </section>
     </template>
 
-    <!-- Chat IA -->
+    <!-- Correos -->
+    <template lwc:if={esCorreos}>
+        <section class="bc-card col-card col-card-pad">
+            <div class="col-correos-cab">
+                <span class="col-flex col-eyebrow">Correos asociados al documento</span>
+                <span class="bc-ejemplo" title="Los correos todavía no se envían ni se reciben: se anotan en esta sesión">Datos de ejemplo</span>
+                <button class="bc-boton bc-boton-peq" onclick={nuevoCorreo}>+ Nuevo correo</button>
+            </div>
+            <template lwc:if={escribiendoCorreo}>
+                <div class="col-correo-nuevo">
+                    <label class="col-correo-campo"><span class="col-correo-etiqueta">Para</span>
+                        <input class="col-input col-flex" type="email" placeholder="Email del cliente" value={borradorCorreo.to} data-k="to" oninput={escribirCorreo}></label>
+                    <label class="col-correo-campo"><span class="col-correo-etiqueta">Asunto</span>
+                        <input class="col-input col-flex" value={borradorCorreo.subject} data-k="subject" oninput={escribirCorreo}></label>
+                    <textarea class="col-textarea" rows="5" placeholder="Escribe el mensaje…" value={borradorCorreo.body} data-k="body" oninput={escribirCorreo}></textarea>
+                    <div class="col-correo-acciones">
+                        <button class="bc-boton-sec bc-boton-peq" onclick={cancelarCorreo}>Cancelar</button>
+                        <button class="bc-boton bc-boton-peq" onclick={enviarCorreo}>Enviar</button>
+                    </div>
+                </div>
+            </template>
+            <template lwc:if={sinCorreos}><div class="col-vacio">No hay correos asociados a este documento.</div></template>
+            <template lwc:else>
+                <div class="col-caja">
+                    <template for:each={correos} for:item="c">
+                        <div key={c.id} class="col-correo">
+                            <div class="col-correo-fila">
+                                <span class={c.claseDir}>{c.dirTxt}</span>
+                                <span class="col-flex col-correo-asunto">{c.subject}</span>
+                                <span class="col-gris col-peq bc-num">{c.fechaTxt}</span>
+                            </div>
+                            <span class="col-gris col-peq">De {c.from} · Para {c.to}</span>
+                            <span class="col-correo-texto">{c.body}</span>
+                            <template lwc:if={c.hayAdjuntos}>
+                                <div class="col-adjuntos">
+                                    <template for:each={c.adjuntos} for:item="f"><span key={f.key} class="col-adjunto-correo">{f.n}</span></template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </section>
+    </template>
+
+    <!-- Chat (Rosetta IA) -->
     <template lwc:if={esChat}>
         <section class="bc-card col-chat">
             <div class="col-chat-lista">

@@ -40,3 +40,4 @@
 .chk-barra-actual { background: var(--bc-brand-primary); }
 .chk-barra-aviso { background: var(--bc-warm); }
 .chk-mes { font-size: 10px; color: var(--bc-ink-3); }
+.chk-skill { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--bc-info-soft); color: var(--bc-brand-deep); border: 1px solid var(--bc-brand-sky); }

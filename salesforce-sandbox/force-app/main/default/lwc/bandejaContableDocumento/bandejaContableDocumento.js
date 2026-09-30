@@ -7,12 +7,13 @@ import listarDocumentosGoogle from '@salesforce/apex/BandejaContableController.l
 import obtenerDocumentoGoogle from '@salesforce/apex/BandejaContableController.obtenerDocumentoGoogle';
 import {
     documentosDeBandeja, datosExtraidos, datosEmpresa, aprenderRegla, cambiarEstadoDocumento, duplicadoDe, historicoProveedor,
-    anadirNota, notasDe, tareasDe, chatsDe, skillsDeEmpresa, skillActiva, extraccionValidada, validarExtraccion,
+    anadirNota, notasDe, tareasDe, correosDe, anadirCorreo, skillsDeEmpresa, skillActiva, guardarSkill, datosFinancieros,
     SOFTWARE_CLIENTE, MOTIVOS_NO_CONTABILIZAR
 } from 'c/bandejaContableMock';
 import {
-    TIPOS_IVA, TIPOS_RETENCION, CODIGOS_TRANSACCION, CONCEPTOS_RIESGO, nif as normalizarNif, porcentajeDeducible, contrapartidaPorDefecto,
-    esExtranjero, sugerenciaDeducible, sumasIva, propuestaAsiento, riesgosFiscales, riesgosOperativos, comprobaciones, analisisIs, productos, consumoIa
+    TIPOS_IVA, TIPOS_RETENCION, CODIGOS_TRANSACCION, nif as normalizarNif, porcentajeDeducible, contrapartidaPorDefecto,
+    esExtranjero, sugerenciaDeducible, sumasIva, propuestaAsiento, riesgosFiscales, comprobaciones, conIncidencia, incidenciasContables,
+    analisisIs, productos, consumoIa
 } from 'c/bandejaContableCalculos';
 import { num, euros, fecha, fechaHora, eventoNavegar, mensajeError, estadoDocumentoGoogle } from 'c/bandejaContableUtils';
 
@@ -32,14 +33,27 @@ const GRUPOS = [
     { titulo: 'Totales', clase: 'doc-campos doc-campos-4', campos: [['_base', 'Base imponible (€)'], ['_cuota', 'Total IVA (€)'], ['irpf', 'Retención IRPF (€)'], ['total', 'Total factura (€)']] }
 ];
 const PESTANAS = [
-    ['general', 'Datos'], ['sk', 'Skills'], ['pf', 'Perfil fiscal'], ['chk', 'Check'], ['is', 'IS'], ['prod', 'Productos'], ['notas', 'Notas y Archivos'],
-    ['tareas', 'Tareas'], ['chat', 'Chat IA'], ['iae', 'Actividades'], ['loc', 'Locales'], ['tur', 'Turismos']
+    ['general', 'Datos'], ['chk', 'Check'], ['sk', 'Skills'], ['pf', 'Perfil fiscal'], ['is', 'Impuesto de Sociedades'], ['prod', 'Productos'],
+    ['notas', 'Notas y Archivos'], ['tareas', 'Tareas'], ['mail', 'Correos'], ['iae', 'Actividades'], ['loc', 'Locales'], ['tur', 'Turismos'],
+    ['tes', 'Tesorería'], ['gas', 'Análisis de gasto']
 ];
-// Capas del documento (diseño v2 Híbrido): 1 · Extracción de datos, 2 · Inteligencia fiscal.
-// La barra solo muestra las pestañas de la capa activa; cada capa recuerda su última pestaña.
-const INTEL = ['chk', 'pf', 'is', 'iae', 'loc', 'tur', 'chat'];
-const capaDe = (pestana) => (INTEL.includes(pestana) ? 'intel' : 'ext');
-const PASOS = [['Extraído', 'Lectura OCR'], ['Validado', 'Revisado por ti'], ['Interpretado', 'Reglas y skills del cliente'], ['Insight fiscal', 'Alertas y riesgo']];
+// Capas del documento (diseño v2 Híbrido): 1 · Inteligencia contable, 2 · Inteligencia fiscal y
+// 3 · Inteligencia financiera. La barra solo muestra las pestañas de la capa activa; la 1 y la 3 recuerdan
+// su última pestaña y la 2 se abre siempre en Check. El chat (Rosetta IA) no es una pestaña: se abre con
+// su botón de la cabecera y ocupa el sitio de las capas y las pestañas.
+const INTEL = ['chk', 'pf', 'is', 'iae', 'loc', 'tur'];
+const FIN = ['tes', 'gas'];
+const CHAT = 'chat';
+const capaDe = (pestana) => (INTEL.includes(pestana) ? 'intel' : FIN.includes(pestana) ? 'fin' : 'ext');
+// Cómo se resuelve una validación con riesgo fiscal
+const RESOLUCIONES = [
+    ['skill', 'Crear Skill para este cliente', 'Guarda el criterio como skill: las próximas facturas similares se validarán sin incidencia.'],
+    ['cliente', 'Aceptación puntual con aceptación del cliente', 'Solo para esta factura. Se envía un email al cliente para que acepte el riesgo.'],
+    ['otros', 'Otros', 'Indica el motivo por el que se valida pese al riesgo.']
+];
+const BOTON_RESOLUCION = { skill: 'Crear skill y validar', cliente: 'Enviar email y validar', otros: 'Aceptar riesgo y validar' };
+const TIPO_SKILL = { Emitida: 'Emitidas', Recibida: 'Recibidas', Ticket: 'Tickets' };
+const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 // Buscador de cuentas: grupo con el que se abre según el campo (la contrapartida depende de la cuenta)
 const GRUPO_CUENTA = { prov: 'Proveedores', asiento: 'Todas', extra: 'Todas' };
 const COLORES_TIPO = { Emitida: 'doc-tipo-emitida', Recibida: 'doc-tipo-recibida', Ticket: 'doc-tipo-ticket' };
@@ -95,15 +109,15 @@ export default class BandejaContableDocumento extends LightningElement {
     dedError = {};
 
     pestana = 'general';
-    ultimaPestana = { ext: 'general', intel: 'chk' };
+    ultimaPestana = { ext: 'general', intel: 'chk', fin: 'tes' };
+    pestanaAntesDelChat = 'general';
+    filtroChk = 'all'; // filtro con el que se abre Check
     cuentas = null; // buscador de cuentas abierto: { tipo, i, grupo, valor, soloCodigo, ancla }
     hover = null;
     productoResaltado = null;
 
     ncBorrador = null; // { motivo, comentario, avisar }
-    avisoValidar = false;
-    riesgoModal = null;
-    consulta = null; // pregunta a la IA desde un riesgo
+    avisoValidar = null; // validar con riesgo: { opt, skTitle, skText, to, subject, body, motivo }
     skillAbrir = null;
 
     v = {};
@@ -187,7 +201,6 @@ export default class BandejaContableDocumento extends LightningElement {
         const cliente = this.cliente || {};
         const skillsEmpresa = skillsDeEmpresa({ id: doc.empresaId, nombre: cliente.nombre || this.detalle.resumen.empresa });
         const skills = skillsEmpresa.filter((s) => skillActiva(s)); // las inactivas no se aplican
-        const validada = extraccionValidada(doc.id);
 
         const val = (k) => (ed[k] !== undefined ? ed[k] : x0[k]);
         const x = { ...x0, ...ed };
@@ -254,26 +267,20 @@ export default class BandejaContableDocumento extends LightningElement {
         const direccionesAfectas = [[cliente.domicilio, cliente.localidad].filter(Boolean).join(', '), ...(cliente.locales || []).map((l) => l.direccion)].filter(Boolean);
         const duplicado = duplicadoDe(doc);
         const historico = historicoProveedor(nifActual);
-        const fiscal = riesgosFiscales({ x, regla, textoLineas, sumas, irpf, direccionesAfectas, duplicado, ivas }).map((w) => ({
-            ...w,
-            claseTag: 'bc-pill bc-pill-peq ' + (w.sev === 'warn' ? 'bc-pill-pendiente' : 'bc-pill-info'),
-            riesgoTxt: w.riesgo ? euros(w.riesgo.total) + ' €' : null,
-            claseRiesgo: 'doc-riesgo-importe' + (w.riesgo && w.riesgo.total > 0 ? ' bc-rojo' : ' doc-verde')
-        }));
-        const operativo = riesgosOperativos(historico, total).map((w) => ({ ...w, claseTag: 'bc-pill bc-pill-peq bc-pill-pendiente' }));
+        // Riesgo fiscal: lo que hay que aceptar (y resolver) al validar la factura
+        const fiscal = riesgosFiscales({ x, regla, textoLineas, sumas, irpf, direccionesAfectas, duplicado, ivas });
         const partesFecha = String(val('fecha') || '').split('/');
         const checks = comprobaciones({
             x, ivas, tipo, regla, textoLineas, cliente, direccionesAfectas, duplicado, historico,
-            mes: partesFecha.length === 3 ? MESES[Number(partesFecha[1]) - 1] : ''
+            mes: partesFecha.length === 3 ? MESES[Number(partesFecha[1]) - 1] : '',
+            skills: skills.map((s) => s.num)
         });
-        const checksMal = checks.filter((c) => c.estado !== 'ok').length;
+        const checksMal = checks.filter(conIncidencia).length;
+        const checksSkill = checks.filter((c) => !!c.skill).length; // pre-validadas por una skill del cliente
+        const contables = incidenciasContables({ ivas, cuadra: Math.abs(diff) < 0.01, asientoCuadra: asientoOk });
         const is = analisisIs({ x, ivas, textoLineas, direccionesAfectas });
         const prods = productos(x0.lineas, x0.ivasDoc || x0.ivas);
         const conceptos = this.conceptos(ed.productos || this.conceptosBase(x0, prods), sumas.base);
-
-        // Skills aplicadas (solo activas): las del reparto de líneas, las de % deducible y las del proveedor
-        const activas = new Set(skills.map((s) => s.num));
-        const aplicadas = [...new Set([...ivas.flatMap((r) => [r.sk, r.sk2]).filter((n) => n && activas.has(n)), ...skills.filter((s) => s.nif && s.nif === nifActual).map((s) => s.num)])];
 
         // ----- Aprendizaje: contrapartida cambiada a mano → regla del proveedor -----
         const cambiada = ivas.find((r) => r.contraManual && String(r.contra || '').trim());
@@ -307,12 +314,12 @@ export default class BandejaContableDocumento extends LightningElement {
 
         const notas = notasDe(doc.id).length;
         const tareasPend = tareasDe(doc.id).filter((t) => !t.done).length;
-        const chats = chatsDe(doc.id).length;
         const contadores = {
-            chk: checksMal, is: is.total, prod: prods.filas.length, notas, tareas: tareasPend, chat: chats,
+            chk: checksMal + checksSkill, is: is.total, prod: prods.filas.length, notas, tareas: tareasPend, mail: correosDe(doc.id).length,
             iae: (cliente.actividades || []).length, loc: (cliente.locales || []).length, tur: emp.turismos.length, sk: skillsEmpresa.length
         };
-        const capa = capaDe(this.pestana);
+        const rosetta = this.pestana === CHAT;
+        const capa = capaDe(rosetta ? this.pestanaAntesDelChat : this.pestana);
         const consumo = consumoIa(base.consumo);
         const tiposCabecera = ['Emitida', 'Recibida', 'Ticket'].map((t) => ({ t, clase: 'doc-tipo' + (t === tipo ? ' ' + COLORES_TIPO[t] : '') }));
 
@@ -323,6 +330,7 @@ export default class BandejaContableDocumento extends LightningElement {
             x: { ...x, lineas: lineasDoc },
             titulo: doc.google ? `${estadoDocumentoGoogle(doc.google).tipoTxt} ${doc.google.numeroFactura || doc.numero}` : `Factura ${val('numero')}`,
             google: doc.google ? this.lecturaGoogle(doc.google) : null,
+            googleVisible: !!doc.google && this.pestana !== CHAT,
             bloqueado,
             puedeReabrir: bloqueado,
             puedeCerrar: !bloqueado,
@@ -334,13 +342,17 @@ export default class BandejaContableDocumento extends LightningElement {
                 empresa: (cliente.nombre || this.detalle.resumen.empresa),
                 recibido: `${fecha(doc.fecha)} · ${ORIGEN[doc.origen] || doc.origen || 'origen desconocido'}`,
                 extraccion: fechaHora(doc.archivoFecha || doc.fecha),
-                tokens: consumo.tokens,
-                coste: consumo.coste,
-                tokensTip: consumo.tip,
+                // El diseño ya no muestra el consumo de IA en la cabecera: queda en el tooltip de la extracción
+                extraccionTip: `Consumo de IA${base.real ? '' : ' (ejemplo)'}: ${consumo.tokens} tokens · ${consumo.coste}${consumo.tip ? '. ' + consumo.tip : ''}`
+                    + (base.real ? '' : '. FALTA: fecha real del procesamiento (tabla procesamientos)'),
                 software: cliente.softwareContable && cliente.softwareContable !== 'Otros' ? cliente.softwareContable : SOFTWARE_CLIENTE,
                 softwareEjemplo: !(cliente.softwareContable && cliente.softwareContable !== 'Otros')
             },
-            ...this.capas(capa, validada, checksMal),
+            capasLista: this.capas(capa, contables, checksMal, checksSkill),
+            contadorChk: checksMal + checksSkill,
+            filtroChk: this.filtroChk,
+            rosetta,
+            claseRosetta: 'doc-boton-rosetta' + (rosetta ? ' doc-boton-rosetta-on' : ''),
             pestanas: PESTANAS.filter(([k]) => capaDe(k) === capa).map(([k, label]) => {
                 const on = this.pestana === k;
                 const n = contadores[k];
@@ -356,9 +368,10 @@ export default class BandejaContableDocumento extends LightningElement {
             enDatos: this.pestana === 'general',
             enCliente: ['pf', 'iae', 'loc', 'tur'].includes(this.pestana),
             enChk: this.pestana === 'chk',
-            enAnalisis: ['is', 'prod'].includes(this.pestana),
-            enColaboracion: ['notas', 'tareas', 'chat'].includes(this.pestana),
+            enAnalisis: ['is', 'prod', 'tes', 'gas'].includes(this.pestana),
+            enColaboracion: ['notas', 'tareas', 'mail', CHAT].includes(this.pestana),
             enSkills: this.pestana === 'sk',
+            financiero: datosFinancieros(total),
             // Datos
             gruposCabecera: grupos.filter((g) => g.titulo !== 'Totales'),
             gruposTotales: grupos.filter((g) => g.titulo === 'Totales'),
@@ -382,24 +395,15 @@ export default class BandejaContableDocumento extends LightningElement {
             cuadre: Math.abs(diff) < 0.01
                 ? { clase: 'doc-aviso doc-aviso-ok', titulo: 'Cuadre correcto', texto: 'Σ Bases + Σ Cuotas IVA − IRPF = Total' }
                 : { clase: 'doc-aviso doc-aviso-error', titulo: 'Descuadre', texto: `Σ Bases + Σ Cuotas IVA − IRPF no coincide con el Total (diferencia ${euros(diff)} €)` },
-            fiscal: {
-                items: fiscal,
-                titulo: fiscal.length ? (fiscal.length === 1 ? '1 peculiaridad fiscal' : `${fiscal.length} peculiaridades fiscales`) : 'Sin riesgo fiscal',
-                clase: 'doc-riesgo' + (fiscal.length ? ' doc-riesgo-fiscal' : '')
-            },
-            operativo: {
-                items: operativo,
-                titulo: operativo.length ? (operativo.length === 1 ? '1 incidencia operativa' : `${operativo.length} incidencias operativas`) : 'Sin riesgo operativo',
-                clase: 'doc-riesgo' + (operativo.length ? ' doc-riesgo-operativo' : '')
-            },
-            skillsAplicadas: { n: String(aplicadas.length), nombres: aplicadas.join(' · '), clase: 'doc-skills-aplicadas' + (aplicadas.length ? ' doc-skills-aplicadas-on' : '') },
+            fiscal,
             // Otras pestañas
             checks,
             is,
             productos: prods,
             perfilSinDatos: emp.perfilSinDatos,
             turismos: emp.turismos,
-            contexto: { emisor: val('emisor'), nif: nifActual, total: val('total'), empresa: cliente.nombre || this.detalle.resumen.empresa },
+            contexto: { emisor: val('emisor'), nif: nifActual, total: val('total'), numero: val('numero'), empresa: cliente.nombre || this.detalle.resumen.empresa },
+            tipo,
             // Visor
             hl,
             fijo: FIJO,
@@ -420,45 +424,58 @@ export default class BandejaContableDocumento extends LightningElement {
             // Ventanas
             nc: nc ? { ...nc, motivos, claseOk: 'doc-boton-peligro' + (nc.motivo ? '' : ' doc-boton-bloqueado') } : null,
             claseBotonNc: 'doc-boton-nc' + (nc ? ' doc-boton-nc-on' : ''),
-            avisoValidar: this.avisoValidar,
-            riesgoModal: this.riesgoModal,
+            avisoValidar: this.avisoValidar ? this.ventanaValidar(fiscal, val('emisor')) : null,
             cuentas: this.cuentas
         };
     }
 
-    /**
-     * Tarjetas de capas y línea de pasos. "Validado" es la confirmación del asesor de los datos
-     * extraídos (en memoria: FALTA guardarla en la tabla confirmaciones, ver bandejaContableMock).
-     */
-    capas(capa, validada, alertas) {
-        const intel = capa === 'intel';
-        const tarjeta = (k, n, titulo, sub, badge, claseBadge) => ({
-            k, n, titulo, sub, badge,
-            claseBadge: 'doc-capa-badge ' + claseBadge,
-            clase: 'doc-capa doc-capa-' + k + ((k === 'intel') === intel ? ' doc-capa-on' : '')
-        });
-        const activo = validada ? 3 : 1;
+    /** Ventana "Vas a validar con riesgo fiscal": riesgos y cómo se resuelven (skill, aceptación del cliente u otros) */
+    ventanaValidar(fiscal, emisor) {
+        const b = this.avisoValidar;
+        const listo = b.opt === 'skill' ? !!b.skTitle.trim() && !!b.skText.trim()
+            : b.opt === 'cliente' ? !!b.to.trim() && !!b.body.trim()
+                : b.opt === 'otros' ? !!b.motivo.trim() : false;
         return {
-            capasLista: [
-                tarjeta('ext', '1', 'Extracción de datos', validada ? 'Datos revisados y confirmados' : 'Revisa y corrige lo que ha leído el OCR',
-                    validada ? 'Validado' : 'Pendiente', validada ? 'doc-capa-badge-ok' : 'doc-capa-badge-info'),
-                tarjeta('intel', '2', 'Inteligencia fiscal', (alertas ? `${alertas} comprobación(es) con incidencias` : 'Sin incidencias') + ' · perfil, IS y chat IA',
-                    validada ? (alertas ? `${alertas} alertas` : 'Sin alertas') : 'Provisional',
-                    validada ? (alertas ? 'doc-capa-badge-error' : 'doc-capa-badge-ok') : 'doc-capa-badge-provisional')
-            ],
-            pasos: PASOS.map(([label, quien], i) => {
-                const hecho = i === 0 || validada;
-                return {
-                    label, quien, conLinea: i > 0,
-                    marca: hecho ? '✓' : String(i + 1),
-                    clase: 'doc-paso' + (hecho ? ' doc-paso-hecho' : i === activo ? ' doc-paso-activo' : ''),
-                    claseLinea: 'doc-paso-linea' + (hecho ? ' doc-paso-linea-hecha' : '')
-                };
-            }),
-            puedeConfirmarDatos: !intel && !validada,
-            puedeReabrirDatos: validada,
-            provisional: intel && !validada
+            ...b,
+            n: String(fiscal.length),
+            riesgos: fiscal.map((w) => ({ clave: w.clave, tag: w.tag, titulo: w.titulo })),
+            opciones: RESOLUCIONES.map(([k, label, sub]) => ({ k, label, sub, clase: 'doc-resolucion' + (b.opt === k ? ' doc-resolucion-on' : '') })),
+            esSkill: b.opt === 'skill',
+            esCliente: b.opt === 'cliente',
+            esOtros: b.opt === 'otros',
+            emisor,
+            listo,
+            noListo: !listo,
+            boton: BOTON_RESOLUCION[b.opt] || 'Elige una opción',
+            claseBoton: 'doc-boton-peligro' + (listo ? '' : ' doc-boton-bloqueado')
         };
+    }
+
+    /**
+     * Tarjetas de las tres capas. Cada una dice si está "Pre-validada" o cuántas incidencias tiene:
+     * 1 · contables (cuadres, cuotas y deducciones sin motivo), 2 · comprobaciones fiscales y operativas
+     * (las resueltas por una skill del cliente no cuentan) y 3 · financiera (hoy de ejemplo, sin incidencias).
+     */
+    capas(capa, contables, fiscales, porSkill) {
+        const tarjeta = (k, n, titulo, sub, incidencias, tip) => {
+            const on = k === capa;
+            return {
+                k, n, titulo, sub, tip,
+                on,
+                badge: incidencias ? '⚠ ' + plural(incidencias, 'incidencia', 'incidencias') : '✓ Pre-validado',
+                clase: 'doc-capa ' + (incidencias ? 'doc-capa-mal' : 'doc-capa-bien') + (on ? ' doc-capa-on' : ''),
+                claseBadge: 'doc-capa-badge ' + (incidencias ? 'doc-capa-badge-mal' : 'doc-capa-badge-bien')
+            };
+        };
+        const subFiscal = fiscales ? plural(fiscales, 'comprobación', 'comprobaciones') + ' con incidencias'
+            : porSkill === 1 ? 'Incidencia validada por Skill del cliente'
+                : porSkill ? `${porSkill} incidencias validadas por Skills del cliente` : 'Sin comentarios';
+        return [
+            tarjeta('ext', '1', 'Inteligencia contable', contables ? plural(contables, 'incidencia contable', 'incidencias contables') + ' · revisa los datos' : 'Sin comentarios', contables,
+                'Datos, Skills, Productos, Notas y Archivos, Tareas y Correos'),
+            tarjeta('intel', '2', 'Inteligencia fiscal', subFiscal, fiscales, 'Check, Perfil fiscal, Impuesto de Sociedades, Actividades, Locales y Turismos'),
+            tarjeta('fin', '3', 'Inteligencia financiera', 'Sin comentarios', 0, 'Tesorería y Análisis de gasto (datos de ejemplo)')
+        ];
     }
 
     /** Conceptos de partida: los que ha leído la IA; en un documento de ejemplo, los de su plantilla */
@@ -779,15 +796,24 @@ export default class BandejaContableDocumento extends LightningElement {
 
     /** Cambia de pestaña (y de capa si hace falta), recordando la última pestaña de cada capa */
     irAPestana(pestana) {
-        this.ultimaPestana = { ...this.ultimaPestana, [capaDe(this.pestana)]: this.pestana };
+        if (this.pestana !== CHAT) this.ultimaPestana = { ...this.ultimaPestana, [capaDe(this.pestana)]: this.pestana };
         this.pestana = pestana;
         this.dedAbierto = null;
         this.cuentas = null;
         this.recalcular();
     }
 
+    /**
+     * La capa 2 se abre siempre en Check (con el filtro "Con incidencias" si hay algo que mirar);
+     * las otras, en su última pestaña.
+     */
     irACapa(capa) {
-        if (capaDe(this.pestana) === capa) return;
+        if (capa === 'intel') {
+            this.filtroChk = this.v.contadorChk > 0 ? 'bad' : 'all';
+            this.irAPestana('chk');
+            return;
+        }
+        if (this.pestana !== CHAT && capaDe(this.pestana) === capa) return;
         this.irAPestana(this.ultimaPestana[capa]);
     }
 
@@ -795,20 +821,18 @@ export default class BandejaContableDocumento extends LightningElement {
         this.irACapa(e.currentTarget.dataset.k);
     }
 
-    confirmarDatos() {
-        validarExtraccion(this.docId, true);
-        this.irACapa('intel');
-        this.recalcular();
+    // ===== Rosetta IA (chat sobre la factura) =====
+    toggleRosetta() {
+        if (this.pestana === CHAT) {
+            this.volverDeRosetta();
+            return;
+        }
+        this.pestanaAntesDelChat = this.pestana;
+        this.irAPestana(CHAT);
     }
 
-    reabrirDatos() {
-        validarExtraccion(this.docId, false);
-        this.irACapa('ext');
-        this.recalcular();
-    }
-
-    irAValidar() {
-        this.irACapa('ext');
+    volverDeRosetta() {
+        this.irAPestana(this.pestanaAntesDelChat || 'general');
     }
 
     // ===== Buscador de cuentas contables =====
@@ -870,49 +894,9 @@ export default class BandejaContableDocumento extends LightningElement {
         this.irAPestana('sk');
     }
 
-    verSkills(e) {
-        if (e) e.preventDefault();
-        this.irAPestana('sk');
-    }
-
-    verComprobaciones(e) {
-        if (e) e.preventDefault();
-        this.irAPestana('chk');
-    }
-
-    preguntarIa(e) {
-        const w = [...this.v.fiscal.items, ...this.v.operativo.items].find((x) => x.clave === e.currentTarget.dataset.clave);
-        if (!w) return;
-        this.consulta = { id: Date.now(), tag: w.tag, titulo: w.titulo, texto: w.texto };
-        this.irAPestana('chat');
-    }
-
-    // ===== Riesgo económico =====
-    abrirRiesgo(e) {
-        const w = this.v.fiscal.items.find((x) => x.clave === e.currentTarget.dataset.clave);
-        if (!w || !w.riesgo) return;
-        const ctx = [this.v.x.emisor, this.v.x.total ? this.v.x.total + ' €' : ''].filter(Boolean).join(' · ');
-        this.riesgoModal = {
-            tag: w.tag, titulo: w.titulo, ctx, total: euros(w.riesgo.total) + ' €',
-            filas: CONCEPTOS_RIESGO.map((label, i) => ({
-                label, nota: w.riesgo.notas[i], importe: euros(w.riesgo.importes[i]) + ' €',
-                clase: 'doc-modal-importe' + (w.riesgo.importes[i] > 0 ? ' bc-rojo' : '')
-            }))
-        };
-        this.recalcular();
-    }
-
-    cerrarRiesgo() {
-        this.riesgoModal = null;
-        this.recalcular();
-    }
-
-    parar(e) { e.stopPropagation(); }
-
     cerrarVentanas() {
         this.ncBorrador = null;
-        this.avisoValidar = false;
-        this.riesgoModal = null;
+        this.avisoValidar = null;
         this.dedAbierto = null;
         this.dedError = {};
         this.cuentas = null;
@@ -975,28 +959,77 @@ export default class BandejaContableDocumento extends LightningElement {
     // Validar
     validar() {
         if (this.v.bloqueado) return;
-        if (this.v.fiscal.items.length) {
-            this.avisoValidar = true;
-            this.recalcular();
+        if (this.v.fiscal.length) {
+            this.abrirValidarConRiesgo();
             return;
         }
         this.contabilizar([]);
     }
 
-    cancelarValidar() {
-        this.avisoValidar = false;
+    /** Borrador de la ventana de validar con riesgo, con los textos propuestos del diseño */
+    abrirValidarConRiesgo() {
+        const riesgos = this.v.fiscal;
+        const { emisor, nif: nifProv, numero, total } = this.v.contexto;
+        const titulos = riesgos.map((w) => w.titulo).join(' · ');
+        this.avisoValidar = {
+            opt: null,
+            skTitle: `${String(emisor || '').split(' ')[0]}: ${riesgos[0] ? riesgos[0].titulo : 'criterio'}`,
+            skText: `En las facturas de ${emisor} (${nifProv}): ${titulos}. Criterio aceptado por el despacho; aplícalo sin marcar incidencia.`,
+            to: '', // FALTA: email del cliente (no está en los datos de Salesforce que se leen hoy)
+            subject: `Aceptación de riesgo fiscal · factura ${numero || ''}`.trim(),
+            body: `Hola,\n\nAl revisar la factura ${numero || ''} de ${emisor} (${total} €) hemos detectado este riesgo fiscal: ${titulos}.\n\n`
+                + 'Para contabilizarla tal y como está necesitamos que nos confirmes que aceptas el riesgo respondiendo a este correo.\n\nGracias.',
+            motivo: ''
+        };
         this.recalcular();
     }
 
-    aceptarRiesgo() {
-        this.avisoValidar = false;
-        this.contabilizar(this.v.fiscal.items);
+    elegirResolucion(e) {
+        this.avisoValidar = { ...this.avisoValidar, opt: e.currentTarget.dataset.opt };
+        this.recalcular();
     }
 
-    contabilizar(riesgos) {
+    handleResolucion(e) {
+        this.avisoValidar = { ...this.avisoValidar, [e.target.dataset.k]: e.target.value };
+        this.recalcular();
+    }
+
+    cancelarValidar() {
+        this.avisoValidar = null;
+        this.recalcular();
+    }
+
+    /** Valida aceptando el riesgo, resuelto con una skill nueva, con la aceptación del cliente o con un motivo */
+    aceptarRiesgo() {
+        const w = this.v.avisoValidar;
+        if (!w || !w.listo) return;
+        const riesgos = this.v.fiscal;
+        let como;
+        if (w.opt === 'skill') {
+            // DE EJEMPLO como el resto de skills (bandejaContableMock): la IA la aplicará cuando existan en Cloud SQL
+            const s = guardarSkill({
+                title: w.skTitle.trim(), text: w.skText.trim(), html: '', activa: true, fin: '',
+                nif: this.v.contexto.nif, prov: this.v.contexto.emisor, tipo: TIPO_SKILL[this.v.tipo] || 'Todas',
+                emps: [{ id: this.v.doc.empresaId, nombre: this.v.contexto.empresa }], grps: []
+            });
+            como = `Resuelto con nueva skill ${s.num} «${s.title}»`;
+        } else if (w.opt === 'cliente') {
+            // FALTA: enviar el correo de verdad; queda anotado en la pestaña Correos
+            anadirCorreo(this.docId, { to: w.to.trim(), subject: w.subject.trim(), body: w.body.trim() });
+            como = `Aceptación puntual del cliente · email a ${w.to.trim()}`;
+        } else {
+            como = `Otros · ${w.motivo.trim()}`;
+        }
+        this.avisoValidar = null;
+        this.contabilizar(riesgos, como);
+    }
+
+    contabilizar(riesgos, como) {
         const f = hoy();
-        cambiarEstadoDocumento(this.docId, 'Contabilizado', { fechaValidacion: f, riesgoAceptado: riesgos.map((w) => w.titulo) });
-        if (riesgos.length) anadirNota(this.docId, { kind: 'riesgo', text: `Riesgo fiscal aceptado al validar (${riesgos.length}): ${riesgos.map((w) => w.titulo).join(' · ')}`, files: [] });
+        cambiarEstadoDocumento(this.docId, 'Contabilizado', { fechaValidacion: f, riesgoAceptado: riesgos.map((w) => w.titulo), resolucion: como || null });
+        if (riesgos.length) {
+            anadirNota(this.docId, { kind: 'riesgo', text: `Riesgo fiscal aceptado al validar (${riesgos.length}): ${riesgos.map((w) => w.titulo).join(' · ')}${como ? ' — ' + como : ''}`, files: [] });
+        }
         this.refrescarDocs();
         // FALTA: generar el asiento y enviarlo al software contable (Fase 6)
         this.toast(riesgos.length ? 'Factura validada con riesgo fiscal aceptado' : 'Factura validada', `Fecha contable ${f}. Datos de ejemplo: el asiento se enviará cuando exista la integración contable.`, 'success');

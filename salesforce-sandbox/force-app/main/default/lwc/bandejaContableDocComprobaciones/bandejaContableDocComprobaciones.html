@@ -33,6 +33,7 @@
                                             <div class="chk-titulo-fila">
                                                 <span class="chk-titulo">{c.titulo}</span>
                                                 <span class={c.claseStatus}>{c.status}</span>
+                                                <template lwc:if={c.skill}><span class="chk-skill">{c.skillTxt}</span></template>
                                                 <template lwc:if={c.ejemplo}><span class="bc-ejemplo" title="Depende de datos que todavía no existen (ver docs/pendientes.md)">Ejemplo</span></template>
                                             </div>
                                             <span class="chk-texto">{c.texto}</span>

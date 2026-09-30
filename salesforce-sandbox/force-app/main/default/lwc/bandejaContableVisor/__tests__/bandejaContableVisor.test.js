@@ -75,11 +75,11 @@ describe('c-bandeja-contable-visor', () => {
         await pulsar(el, '[aria-label="Página siguiente"]');
         expect(texto(el, '.vis-pagina')).toBe('Pág. 2/3');
         expect(src(el)).toContain('page=2');
-        await pulsar(el, '[aria-label="Ampliar"]');
+        await pulsar(el, '[aria-label="Aumentar el zoom"]');
         expect(texto(el, '.vis-zoom')).toBe('125 %');
         expect(src(el)).toBe('https://firmada/doc.pdf?X-Goog-Signature=abc#toolbar=0&navpanes=0&page=2&zoom=125');
-        await pulsar(el, '[aria-label="Reducir"]');
-        await pulsar(el, '[aria-label="Reducir"]');
+        await pulsar(el, '[aria-label="Reducir el zoom"]');
+        await pulsar(el, '[aria-label="Reducir el zoom"]');
         expect(texto(el, '.vis-zoom')).toBe('75 %');
         await pulsar(el, '.vis-zoom');
         expect(texto(el, '.vis-zoom')).toBe('Ajustado');
@@ -130,5 +130,26 @@ describe('c-bandeja-contable-visor', () => {
         expect(el.shadowRoot.querySelector('iframe')).toBeNull();
         expect(el.shadowRoot.querySelector('.vis-descargar').disabled).toBe(true);
         expect(global.fetch).not.toHaveBeenCalled();
+    });
+    it('Ampliar abre el documento por debajo de la cabecera de Salesforce y se restaura con Esc, Restaurar o fuera', async () => {
+        const el = await montar({ url: undefined, mime: '' });
+        const r = el.shadowRoot;
+        const ampliada = () => r.querySelector('.vis-mesa-ampliada');
+        await pulsar(el, '.vis-mesa'); // en la vista de ejemplo basta con pulsar el documento
+        expect(ampliada()).not.toBeNull();
+        // Nunca pegado arriba: la cabecera fija de Salesforce taparía el encabezado del documento
+        expect(r.querySelector('.vis-ampliado-barra').getAttribute('style')).toContain('top:106px');
+        expect(ampliada().getAttribute('style')).toContain('top:146px');
+        expect(r.querySelector('.vis-lupa')).toBeNull();
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        await esperarVarios();
+        expect(ampliada()).toBeNull();
+        await pulsar(el, '.vis-lupa'); // la lupa que aparece al pasar por el documento
+        expect(r.querySelector('[aria-pressed]').getAttribute('aria-pressed')).toBe('true');
+        await pulsar(el, '.vis-restaurar');
+        expect(ampliada()).toBeNull();
+        await pulsar(el, '[aria-pressed]');
+        await pulsar(el, '.vis-fondo'); // clic fuera
+        expect(ampliada()).toBeNull();
     });
 });

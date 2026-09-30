@@ -1,18 +1,35 @@
 import { LightningElement, api } from 'lwc';
 
+const TONO = { bien: ' ana-kpi-bien', mal: ' ana-kpi-mal', marca: ' ana-kpi-marca', actual: ' ana-kpi-actual' };
+const conClase = (lista, base) => (lista || []).map((x) => ({ ...x, clase: base + (TONO[x.tono] || '') }));
+
 /**
- * Pestañas "IS" (Impuesto sobre Sociedades) y "Productos" del documento. Los datos los calcula
- * bandejaContableCalculos (analisisIs, productos) sobre los datos extraídos, que hoy son de ejemplo.
+ * Pestañas "Impuesto de Sociedades", "Productos" (capas 1 y 2) y las de la capa 3 · Inteligencia financiera:
+ * "Tesorería" y "Análisis de gasto". IS y productos los calcula bandejaContableCalculos sobre los datos
+ * extraídos; los financieros son DE EJEMPLO (bandejaContableMock.datosFinancieros).
  * Al pasar por un producto se avisa al documento para resaltarlo en el visor (evento "resaltar").
  */
 export default class BandejaContableDocAnalisis extends LightningElement {
-    @api vista; // 'is' | 'prod'
+    @api vista; // 'is' | 'prod' | 'tes' | 'gas'
     @api analisis;
     @api productos;
+    @api financiero; // { tesoreria, gasto }
     @api resaltado; // índice del producto resaltado
 
     get esIs() { return this.vista === 'is'; }
     get esProductos() { return this.vista === 'prod'; }
+    get esTesoreria() { return this.vista === 'tes'; }
+    get esGasto() { return this.vista === 'gas'; }
+
+    // ===== Inteligencia financiera =====
+    get tes() {
+        const t = (this.financiero && this.financiero.tesoreria) || {};
+        return { kpis: conClase(t.kpis, 'ana-kpi-valor'), pago: conClase(t.pago, 'ana-linea-valor'), prevision: conClase(t.prevision, 'ana-linea-valor') };
+    }
+    get gas() {
+        const g = (this.financiero && this.financiero.gasto) || {};
+        return { kpis: conClase(g.kpis, 'ana-kpi-valor'), evolucion: conClase(g.evolucion, 'ana-linea-valor'), peso: conClase(g.peso, 'ana-linea-valor') };
+    }
 
     get kpis() {
         return ((this.analisis && this.analisis.kpis) || []).map((k) => ({ ...k, clase: 'ana-kpi-valor' + (k.tono ? ' ana-kpi-' + k.tono : '') }));

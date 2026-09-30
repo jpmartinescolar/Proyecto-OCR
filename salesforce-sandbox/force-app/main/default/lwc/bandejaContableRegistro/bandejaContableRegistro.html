@@ -27,7 +27,7 @@
                     <div class="reg-procesamiento">
                         <span class="reg-procesamiento-label">Procesamiento</span>
                         <span class={procesamiento.clase}>{procesamiento.texto}</span>
-                        <template lwc:if={procesamiento.girando}><span class="reg-girando"></span></template>
+                        <template lwc:if={procesamiento.girando}><span class="reg-spinner"><lightning-spinner alternative-text="Procesando" size="x-small" variant="brand"></lightning-spinner></span></template>
                         <span class="bc-card-nota">{procesamiento.detalle}</span>
                     </div>
                 </template>
@@ -97,6 +97,12 @@
                     <section class="bc-card">
                         <div class="bc-card-titulo">
                             <span class="bc-card-titulo-texto">{tituloDocumentos}</span>
+                            <template lwc:if={conSpinner}>
+                                <span class="reg-cargando" role="status">
+                                    <span class="reg-spinner"><lightning-spinner alternative-text="Cargando documentos" size="x-small" variant="brand"></lightning-spinner></span>
+                                    <span class="bc-card-nota">Cargando documentos…</span>
+                                </span>
+                            </template>
                             <template lwc:if={hayDocumentosGoogle}>
                                 <span class="bc-card-nota">1 registro por documento</span>
                             </template>
@@ -109,7 +115,7 @@
                             </div>
                         </template>
                         <template lwc:if={avisoProceso}>
-                            <div class="reg-aviso-proceso"><span class="reg-girando"></span><span>{avisoProceso}</span></div>
+                            <div class="reg-aviso-proceso"><span class="reg-spinner"><lightning-spinner alternative-text="Procesando" size="x-small" variant="brand"></lightning-spinner></span><span>{avisoProceso}</span></div>
                         </template>
                         <template lwc:if={hayDocumentosGoogle}>
                             <div class="bc-tabla-wrap">

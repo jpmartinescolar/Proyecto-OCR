@@ -61,8 +61,9 @@ const PLANTILLAS = [
             ctaProv: '4000002 Repsol Comercial S.A.', numero: 'T-0098213', cp: '28500', fecha: '12/03/2026', devengo: '12/03/2026',
             irpf: '0,00', total: '60,00', cuenta: '622 Reparaciones',
             ivasDoc: [{ base: '49,59', pct: '21', cuota: '10,41' }],
-            // Sin contrapartida: la propone la regla del proveedor (cuenta 6280001)
-            ivas: [{ base: '49,59', pct: '21', cuota: '10,41' }],
+            // Sin contrapartida: la propone la regla del proveedor (cuenta 6280001). La skill SK-007 deja el
+            // IVA como no deducible (ticket sin NIF del destinatario)
+            ivas: [{ base: '49,59', pct: '21', cuota: '10,41', ded: '0', dedMot: 'SK-007 · Ticket sin NIF: IVA no deducible', sk2: 'SK-007' }],
             lineas: [{ c: 'Gasóleo A · 38,2 L', i: '60,00 €' }]
         },
         conf: { emisor: 88, nif: 62, numero: 74, fecha: 93, irpf: 90, total: 96, cuenta: 58 },
@@ -385,7 +386,8 @@ const SKILLS_EJEMPLO = [
     { num: 'SK-003', title: 'Amazon Business: herramientas', nif: 'W0184081H', prov: 'Amazon EU S.à r.l.', cuenta: '2150000', text: 'Si una herramienta supera 300 € va a inmovilizado 2150000; el resto a 6020000 Material de taller.', tipo: 'Recibidas' },
     { num: 'SK-004', title: 'Gasóleo de la furgoneta', nif: 'A80298839', prov: 'Repsol Comercial S.A.', text: 'Furgoneta 1234-KLM afecta al 100 %. Si el gasto mensual supera 400 €, avisar a la asesora.', tipo: 'Tickets', activa: false, fin: '2026-06-30' },
     { num: 'SK-005', title: 'Comidas y atenciones', cuenta: '6290009', text: 'Las comidas con clientes van a 6290009 sin deducir IVA. El cliente indica el motivo en el nombre del archivo.', tipo: 'Todas' },
-    { num: 'SK-006', title: 'Endesa: IVA deducible al 30 %', short: 'IVA 30 %', nif: 'A81948077', prov: 'Endesa Energía S.A.U.', text: 'En las facturas de Endesa Energía (A81948077) solo es deducible el 30 % del IVA soportado. Aplica 30 % en el campo % deducible de cada línea de IVA; el 70 % restante es mayor gasto en la cuenta de contrapartida.', tipo: 'Recibidas' }
+    { num: 'SK-006', title: 'Endesa: IVA deducible al 30 %', short: 'IVA 30 %', nif: 'A81948077', prov: 'Endesa Energía S.A.U.', text: 'En las facturas de Endesa Energía (A81948077) solo es deducible el 30 % del IVA soportado. Aplica 30 % en el campo % deducible de cada línea de IVA; el 70 % restante es mayor gasto en la cuenta de contrapartida.', tipo: 'Recibidas' },
+    { num: 'SK-007', title: 'Tickets sin NIF: IVA no deducible', short: 'IVA no deducible', nif: 'A80298839', prov: 'Repsol Comercial S.A.', text: 'En los tickets (facturas simplificadas) de Repsol sin NIF ni domicilio del destinatario, el IVA no es deducible: aplica 0 % en el campo % deducible y lleva la cuota a mayor gasto.', tipo: 'Tickets' }
 ];
 
 let SKILLS = null;
@@ -461,19 +463,23 @@ export const PLAN_CUENTAS = [
     ['7590000', 'Ingresos por servicios diversos', 'Ingresos'], ['7710000', 'Beneficio procedente del inmovilizado', 'Ingresos']
 ].map(([codigo, nombre, grupo]) => ({ codigo, nombre, grupo }));
 
-// ===== Validación de la extracción (capa 1 del documento) =====
-// FALTA: al confirmar se guardará en la tabla confirmaciones (lo que el asesor da por bueno); hoy en memoria.
-const EXTRACCION_VALIDADA = new Map();
-export function extraccionValidada(docId) { return !!EXTRACCION_VALIDADA.get(docId); }
-export function validarExtraccion(docId, valida) { EXTRACCION_VALIDADA.set(docId, !!valida); }
-
-// ===== Colaboración por documento: notas, tareas y chat =====
+// ===== Colaboración por documento: notas, tareas, correos y chat =====
 // FALTA decidir dónde se guardan (Fase 5): Salesforce (Notes/ContentVersion, Task con asignación y
-// vencimiento) o Cloud SQL. Tampoco está decidido quién puede ser "Cliente" como responsable de una
-// tarea (portal) ni qué hace la IA con las tareas que se le asignan.
+// vencimiento, EmailMessage) o Cloud SQL. Tampoco está decidido quién puede ser "Cliente" como responsable
+// de una tarea (portal) ni qué hace la IA con las tareas que se le asignan.
 const NOTAS = new Map();
 const TAREAS = new Map();
 const CHATS = new Map();
+const CORREOS = new Map();
+
+// FALTA: los correos con el cliente sobre la factura. Hoy no se envía nada: "Enviar" solo lo anota aquí.
+// Hay que decidir desde dónde se envían (Salesforce, con EmailMessage ligado al registro, o el buzón del
+// despacho) y cómo se asocian las respuestas del cliente al documento. El email del cliente tampoco está
+// en los datos que devuelve getDatosCliente.
+const CORREOS_INICIALES = [
+    { dir: 'out', from: 'Laura Martín', to: 'administracion@cliente.es', subject: 'Factura Endesa marzo · justificante de afectación', body: 'Hola, para contabilizar la factura de Endesa de marzo necesitamos el contrato o justificante que acredite que el inmueble de C/ Alcalá está afecto a la actividad. Gracias.', fecha: '2026-09-24T10:12:00', files: [] },
+    { dir: 'in', from: 'administracion@cliente.es', to: 'Laura Martín', subject: 'RE: Factura Endesa marzo · justificante de afectación', body: 'Buenos días, os adjunto el contrato de arrendamiento del local de C/ Alcalá. Es la oficina de administración.', fecha: '2026-09-25T09:47:00', files: ['Contrato_arrendamiento_Alcala.pdf'] }
+];
 
 const TAREAS_INICIALES = [
     { text: 'Pedir al cliente justificante de afectación del inmueble de C/ Alcalá', who: 'Laura Martín', due: '2026-09-28', done: false },
@@ -500,6 +506,67 @@ export function tareasDe(docId) {
 export function chatsDe(docId) {
     if (!CHATS.has(docId)) CHATS.set(docId, []);
     return CHATS.get(docId);
+}
+
+/** Correos del documento, del más reciente al más antiguo */
+export function correosDe(docId) {
+    if (!CORREOS.has(docId)) CORREOS.set(docId, clonar(CORREOS_INICIALES).reverse().map((c, i) => ({ ...c, id: `${docId}-c${i}` })));
+    return CORREOS.get(docId);
+}
+
+/** Anota un correo enviado (FALTA: enviarlo de verdad, ver CORREOS_INICIALES) */
+export function anadirCorreo(docId, correo) {
+    correosDe(docId).unshift({ id: `${docId}-c${Date.now()}`, dir: 'out', from: 'Tú', fecha: new Date().toISOString(), files: [], ...correo });
+}
+
+// ===== Inteligencia financiera (capa 3 del documento) =====
+// FALTA: todo es de ejemplo. La tesorería (forma de pago, cuenta de cargo, mandato SEPA, saldo y
+// previsión) saldría del banco y de la contabilidad del cliente (Sage); la evolución del gasto y su peso,
+// de las facturas confirmadas y de la cuenta de resultados. Hay que decidir de dónde se toma cada dato.
+// Las cifras se calculan a partir del total de la factura para que la pantalla tenga sentido.
+export function datosFinancieros(total) {
+    const E = (n) => importeEs(n) + ' €';
+    const saldo = 18420.35, cobros = 12650, pagos = 9874.2;
+    const media = total * 0.94;
+    const desviacion = media ? (total / media - 1) * 100 : 0;
+    return {
+        tesoreria: {
+            kpis: [
+                { l: 'Importe a pagar', v: E(total), s: 'Domiciliación bancaria', tono: '' },
+                { l: 'Fecha prevista de cargo', v: '03/04/2026', s: 'A 15 días de la emisión', tono: 'marca' },
+                { l: 'Saldo previsto tras el cargo', v: E(saldo - total), s: 'Cuenta ES91 •••• 4521', tono: 'bien' },
+                { l: 'Periodo medio de pago', v: '15 días', s: 'Límite legal 60 días', tono: '' }
+            ],
+            pago: [
+                { l: 'Forma de pago', v: 'Domiciliación SEPA', tono: '' },
+                { l: 'Cuenta de cargo', v: 'ES91 2100 •••• •••• 4521', tono: '' },
+                { l: 'Mandato SEPA', v: 'Activo · ref. END-2019-0045', tono: 'bien' },
+                { l: 'Cumple Ley de morosidad', v: 'Sí', tono: 'bien' }
+            ],
+            prevision: [
+                { l: 'Saldo actual', v: E(saldo), tono: '' },
+                { l: 'Cobros previstos', v: '+' + E(cobros), tono: 'bien' },
+                { l: 'Pagos previstos (incl. esta factura)', v: '−' + E(pagos), tono: 'mal' },
+                { l: 'Saldo previsto a 30 días', v: E(saldo + cobros - pagos), tono: 'marca' }
+            ]
+        },
+        gasto: {
+            kpis: [
+                { l: 'Esta factura', v: E(total), s: 'Mes de la factura', tono: '' },
+                { l: 'Media mensual', v: E(media), s: 'Últimos 12 meses', tono: '' },
+                { l: 'Desviación', v: (desviacion >= 0 ? '+' : '') + importeEs(desviacion) + ' %', s: 'Sobre la media', tono: total > media * 1.1 ? 'mal' : 'bien' },
+                { l: 'Acumulado 12 meses', v: E(total * 11.3), s: 'Proveedor', tono: 'marca' }
+            ],
+            evolucion: [['Octubre 2025', 0.82], ['Noviembre 2025', 0.91], ['Diciembre 2025', 1.12], ['Enero 2026', 1.18], ['Febrero 2026', 1.05], ['Marzo 2026', 1]]
+                .map(([l, k]) => ({ l, v: E(total * k), tono: k === 1 ? 'actual' : '' })),
+            peso: [
+                { l: 'Peso sobre suministros (628)', v: '38,4 %', tono: '' },
+                { l: 'Peso sobre gastos de explotación', v: '2,1 %', tono: '' },
+                { l: 'Variación interanual del proveedor', v: '+6,8 %', tono: 'mal' },
+                { l: 'Ratio suministros / ventas', v: '1,9 %', tono: '' }
+            ]
+        }
+    };
 }
 
 /**

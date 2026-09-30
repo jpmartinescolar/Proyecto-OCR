@@ -4,7 +4,7 @@
             <div class="bc-cabecera">
                 <div class="bc-icono"><lightning-icon icon-name={iconoTitulo} size="small" variant="inverse"></lightning-icon></div>
                 <div class="bc-titulos">
-                    <div class="bc-eyebrow">OCR · Listado documentos</div>
+                    <template lwc:if={agrupar}><div class="bc-eyebrow">OCR · Listado documentos</div></template>
                     <h1 class="bc-titulo">{titulo}</h1>
                 </div>
                 <span class="bc-ejemplo" title="Los documentos, su situación fiscal y los duplicados saldrán del procesamiento; ahora son de ejemplo a partir de los archivos subidos">Datos de ejemplo</span>
@@ -13,11 +13,6 @@
                 </button>
                 <template lwc:if={empresaFiltro}>
                     <button class="bc-chip bc-chip-filtro" onclick={quitarEmpresa}>Empresa: {empresaFiltro} <span>×</span></button>
-                </template>
-            </div>
-            <div class="bc-tabs ocr-subpestanas">
-                <template for:each={subpestanas} for:item="s">
-                    <button key={s.vista} class={s.clase} data-vista={s.vista} onclick={irSubpestana}>{s.label}</button>
                 </template>
             </div>
 

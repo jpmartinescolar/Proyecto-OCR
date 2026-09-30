@@ -23,3 +23,14 @@
 .ana-fila-on { background: var(--bc-paper-3); }
 .ana-total td { background: var(--bc-paper-2); font-weight: 700; border-top: 1px solid var(--bc-line-strong); }
 .ana-cat { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--bc-danger-soft); color: var(--bc-danger); white-space: nowrap; }
+.ana-kpis-fin { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.ana-kpi-marca { color: var(--bc-brand-deep); }
+.ana-linea { display: flex; gap: 10px; padding: 8px 12px; border-top: 1px solid var(--bc-line); font-size: 12px; align-items: center; }
+.ana-bloque-cab + .ana-linea { border-top: none; }
+.ana-linea-label { color: var(--bc-ink-2); }
+.ana-linea-valor { font-weight: 600; color: var(--bc-ink-1); font-variant-numeric: tabular-nums; text-align: right; }
+.ana-linea-valor.ana-kpi-bien { color: var(--bc-success); }
+.ana-linea-valor.ana-kpi-mal { color: var(--bc-danger); }
+.ana-linea-valor.ana-kpi-marca { color: var(--bc-brand-deep); }
+.ana-linea-valor.ana-kpi-actual { color: var(--bc-brand-primary); }
+.ana-ejemplo { display: flex; justify-content: flex-end; margin-bottom: -4px; }

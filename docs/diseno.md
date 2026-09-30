@@ -1,6 +1,29 @@
 # Diseño de la interfaz (Claude Design)
 
-Fuente: `Bandeja contable OCR de Salesforce-handoff.zip` (v2 Híbrido, 29/09/2026) en la raíz del repo; no se versiona (`.gitignore`). Leer `project/Bandeja Contable v2 Hibrido.dc.html`, que sustituye como referencia a la v2 (`Bandeja Contable.dc.html`, 28/09/2026); `support.js` es el motor de Claude Design, sin lógica de negocio.
+Fuente: `Bandeja contable OCR de Salesforce-handoff.zip` (v2 Híbrido, versión del 30/09/2026) en la raíz del repo; no se versiona (`.gitignore`). Leer `project/Bandeja Contable v2 Hibrido.dc.html`, que sustituye como referencia a la v2 (`Bandeja Contable.dc.html`, 28/09/2026); `support.js` es el motor de Claude Design, sin lógica de negocio. El archivo conserva el nombre de la versión del 29/09, pero su contenido cambia (abajo).
+
+## Qué cambia en la v2 Híbrido del 30/09
+Solo el frontend.
+- **Navegación:** "OCR" es la primera pestaña y la página se abre en el listado OCR. En el listado OCR desaparecen el rótulo "OCR · Listado documentos" y las subpestañas "Listado documentos / Listado empresa" (se agrupa con "Agrupar por empresas").
+- **Tres capas** en el documento, cada una con su estado: badge "✓ Pre-validado" (fondo verde) o "⚠ N incidencias" (fondo rojo) y una línea de detalle.
+  - **1 · Inteligencia contable** (antes "Extracción de datos"): Datos, Skills, Productos, Notas y Archivos, Tareas y **Correos**. Incidencias: descuadre de bases + cuotas − IRPF con el total, asiento descuadrado, cuotas que no son base × tipo y deducciones parciales sin motivo.
+  - **2 · Inteligencia fiscal**: Check, Perfil fiscal, Impuesto de Sociedades, Actividades, Locales y Turismos. Incidencias: las comprobaciones con incidencia; si solo hay comprobaciones resueltas por una skill del cliente, "Incidencia validada por Skill del cliente". Se abre siempre en Check, con el filtro "Con incidencias" si hay algo que mirar.
+  - **3 · Inteligencia financiera** (nueva): **Tesorería** (importe, fecha de cargo, saldo previsto, periodo medio de pago, forma de pago, mandato SEPA, previsión a 30 días) y **Análisis de gasto** (media, desviación, acumulado, evolución por meses y peso en la cuenta de resultados).
+  - Desaparecen la línea de pasos (Extraído → Validado → Interpretado → Insight fiscal), "Confirmar datos y ver análisis fiscal", "Reabrir datos" y el aviso "Análisis provisional".
+- **Rosetta IA** (botón de la cabecera) sustituye a la pestaña "Chat IA": el chat ocupa el sitio de las capas y las pestañas, con "Volver".
+- **Pestañas:** orden Datos, Check, Skills, Perfil fiscal, Impuesto de Sociedades (antes "IS"), Productos, Notas y Archivos, Tareas, Correos, Actividades, Locales, Turismos, Tesorería, Análisis de gasto. El contador de Check suma incidencias y comprobaciones resueltas por skill.
+- **Datos:** desaparece el resumen de riesgo fiscal, riesgo operativo y skills aplicadas (con él, "Riesgo económico" y "Pregunta a la IA"). Queda el desglose de IVA a todo el ancho y debajo, en dos columnas, los campos y la propuesta de asiento con el cuadre.
+- **Validar con riesgo:** hay que elegir cómo se resuelve:
+  - **Crear Skill para este cliente** (título e instrucción propuestos): se guarda para ese proveedor y la empresa.
+  - **Aceptación puntual con aceptación del cliente**: email (para, asunto, mensaje) que se envía al validar.
+  - **Otros**, con motivo obligatorio.
+
+  El botón no se activa hasta completar la opción y la nota de Notas y archivos dice cómo se resolvió.
+- **Correos** (nueva pestaña): correos enviados y recibidos del documento, con adjuntos, y "+ Nuevo correo".
+- **Check:** solo los filtros "Todas" y "Con incidencias". Las comprobaciones resueltas por una skill salen en ámbar con "Skill aplicada · …" y no cuentan como incidencia. Nueva comprobación **Factura simplificada** (ticket sin NIF del destinatario: el IVA no es deducible).
+- **Skill de ejemplo SK-007** (Repsol, tickets sin NIF: IVA no deducible), aplicada en el ticket de ejemplo (0 % deducible).
+- **Visor:** botón "Ampliar": ve el documento al 50 % del ancho de la pantalla.
+- **Cabecera:** ya no muestra el consumo de IA.
 
 ## Qué cambia de la v2 a la v2 Híbrido
 Solo el frontend; el backend de Google no cambia.
@@ -91,7 +114,7 @@ Hoja de ruta ajustada: [hoja-de-ruta.md](hoja-de-ruta.md).
 
 ## De dónde sale cada dato
 
-Estado a 29/09/2026 (v2 Híbrido hecha en LWC). En pantalla, lo que no es real lleva la etiqueta **"Datos de ejemplo"** o **"Ejemplo"**; en el código, cada bloque de ejemplo explica qué falta (`bandejaContableMock`).
+Estado a 30/09/2026 (v2 Híbrido del 30/09 hecha en LWC). En pantalla, lo que no es real lleva la etiqueta **"Datos de ejemplo"** o **"Ejemplo"**; en el código, cada bloque de ejemplo explica qué falta (`bandejaContableMock`).
 
 | Dato | Origen | Dónde |
 |---|---|---|
@@ -113,8 +136,10 @@ Estado a 29/09/2026 (v2 Híbrido hecha en LWC). En pantalla, lo que no es real l
 | Skills (texto, estado, fecha de fin) | Ejemplo · almacén único en memoria; irán a Cloud SQL y al prompt de extracción | `skillsDeEmpresa`, `guardarSkill` |
 | Empresas y grupos empresariales de las skills | **Real** · Account y `Grupo_Empresarial__c` (empresas del asesor y sus grupos; todas en modo libre) | `buscarEmpresasYGrupos` |
 | Plan de cuentas del buscador de cuentas | Ejemplo · el real está en Sage (clave `Contrato.C_digo_ERP__c`) | `PLAN_CUENTAS` |
-| Datos validados (capa 1 del documento) | Ejemplo · en memoria; irá a `confirmaciones` | `extraccionValidada`, `validarExtraccion` |
-| Notas, tareas, chat IA | Ejemplo · en memoria; almacenamiento por decidir (Fase 5) | `notasDe`, `tareasDe`, `chatsDe` |
+| Notas, tareas, chat (Rosetta IA) | Ejemplo · en memoria; almacenamiento por decidir (Fase 5) | `notasDe`, `tareasDe`, `chatsDe` |
+| Correos del documento y email al cliente para aceptar un riesgo | Ejemplo · no se envía nada, se anota en memoria; envío y email del cliente por decidir | `correosDe`, `anadirCorreo` |
+| Tesorería y análisis de gasto (capa 3) | Ejemplo · cifras calculadas a partir del total de la factura; saldrán del banco, de Sage y de las confirmaciones | `datosFinancieros` |
+| Skill creada al validar con riesgo | Ejemplo · almacén de skills en memoria | `guardarSkill` |
 | Censo AEAT / VIES, deudores de la AEAT | Ejemplo · sin integración | comprobaciones marcadas "Ejemplo" |
 | Histórico del proveedor y duplicados | Ejemplo · saldrá de las confirmaciones | `historicoProveedor`, `duplicadoDe` |
 | Situación fiscal en el listado OCR | Ejemplo · la calculará el motor de comprobaciones | `situacionFiscal` |
@@ -123,6 +148,11 @@ Estado a 29/09/2026 (v2 Híbrido hecha en LWC). En pantalla, lo que no es real l
 Los **cálculos** (desglose de IVA, IVA no deducible, asiento y cuadre, riesgos, comprobaciones, IS, productos) son reales sobre esos datos: `bandejaContableCalculos`, con tests.
 
 Diferencias con el prototipo de Claude Design:
+- El grupo de campos del emisor se sigue llamando "Emisor" (el prototipo pone "Destinatario" a la razón social y el NIF del proveedor).
+- "Ampliar": en el prototipo activa un modo en el que pulsar la factura la amplía. Aquí el botón abre directamente el visor ampliado (50 % del ancho, todo el alto; se cierra con Esc, × o pulsando fuera), porque en un PDF el lector del navegador se queda con los clics. En imágenes y en la vista de ejemplo también se abre pulsando el documento.
+- El consumo de IA del documento pasa al tooltip de "Extracción automática".
+- La pantalla 04 (recuento por empresa) sigue existiendo, aunque ya no tiene pestaña (se llega por URL, `c__vista=ocrEmpresas`).
+- El "Para" del email al cliente sale vacío: el prototipo lo rellena, pero el email del cliente no está en los datos de Salesforce que se leen hoy.
 - El editor de la pestaña Skills conserva, en una fila compacta, el ámbito (general o proveedor por NIF), "aplica a" y la cuenta, que el diseño solo tiene en la ventana: sin ellos, una skill creada desde el documento no podría ligarse a un proveedor.
 - El texto con formato usa el editor estándar de Salesforce (`lightning-input-rich-text`), no la barra de herramientas propia del prototipo.
 - A la pantalla 06 (riesgo no prescrito) se entra desde la ficha de la empresa: el prototipo no tenía acceso.

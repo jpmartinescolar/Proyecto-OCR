@@ -68,3 +68,19 @@
 .col-escribir { padding: 12px 20px 16px; display: flex; gap: 8px; align-items: flex-end; border-top: 1px solid var(--bc-line); }
 .col-enviar { width: 38px; height: 38px; flex-shrink: 0; border: none; background: var(--bc-brand-primary); border-radius: 999px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .col-enviar:hover { background: var(--bc-brand-deep); }
+
+/* Correos */
+.col-correos-cab { display: flex; align-items: center; gap: 8px; }
+.col-correo-nuevo { border: 1px solid var(--bc-brand-primary); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--bc-paper-2); }
+.col-correo-campo { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--bc-ink-3); }
+.col-correo-etiqueta { width: 52px; }
+.col-correo-acciones { display: flex; gap: 8px; justify-content: flex-end; }
+.col-correo { padding: 10px 12px; border-top: 1px solid var(--bc-line); display: flex; flex-direction: column; gap: 4px; }
+.col-correo:first-child { border-top: none; }
+.col-correo-fila { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.col-correo-asunto { font-size: 13px; font-weight: 700; color: var(--bc-ink-1); }
+.col-correo-texto { font-size: 12px; color: var(--bc-ink-2); white-space: pre-wrap; }
+.col-dir { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; color: var(--bc-brand-deep); white-space: nowrap; }
+.col-dir-in { background: var(--bc-info-soft); }
+.col-dir-out { background: var(--bc-paper-3); }
+.col-adjunto-correo { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--bc-line-strong); color: var(--bc-brand-deep); }

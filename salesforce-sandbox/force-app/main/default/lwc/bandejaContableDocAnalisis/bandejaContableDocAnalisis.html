@@ -52,5 +52,48 @@
                 </div>
             </div>
         </template>
+
+        <!-- Capa 3 · Inteligencia financiera (datos de ejemplo) -->
+        <template lwc:if={esTesoreria}>
+            <div class="ana-ejemplo"><span class="bc-ejemplo" title="La tesorería saldrá del banco y de la contabilidad del cliente; ahora son cifras de ejemplo">Datos de ejemplo</span></div>
+            <div class="ana-kpis ana-kpis-fin">
+                <template for:each={tes.kpis} for:item="k">
+                    <div key={k.l} class="ana-kpi"><span class="ana-kpi-label">{k.l}</span><span class={k.clase}>{k.v}</span><span class="ana-kpi-label">{k.s}</span></div>
+                </template>
+            </div>
+            <div class="ana-bloque">
+                <div class="ana-bloque-cab"><span class="ana-flex">Pago previsto</span></div>
+                <template for:each={tes.pago} for:item="r">
+                    <div key={r.l} class="ana-linea"><span class="ana-flex ana-linea-label">{r.l}</span><span class={r.clase}>{r.v}</span></div>
+                </template>
+            </div>
+            <div class="ana-bloque">
+                <div class="ana-bloque-cab"><span class="ana-flex">Previsión de tesorería · próximos 30 días</span></div>
+                <template for:each={tes.prevision} for:item="r">
+                    <div key={r.l} class="ana-linea"><span class="ana-flex ana-linea-label">{r.l}</span><span class={r.clase}>{r.v}</span></div>
+                </template>
+            </div>
+        </template>
+
+        <template lwc:if={esGasto}>
+            <div class="ana-ejemplo"><span class="bc-ejemplo" title="La evolución y el peso del gasto saldrán de las facturas confirmadas y de la cuenta de resultados; ahora son cifras de ejemplo">Datos de ejemplo</span></div>
+            <div class="ana-kpis ana-kpis-fin">
+                <template for:each={gas.kpis} for:item="k">
+                    <div key={k.l} class="ana-kpi"><span class="ana-kpi-label">{k.l}</span><span class={k.clase}>{k.v}</span><span class="ana-kpi-label">{k.s}</span></div>
+                </template>
+            </div>
+            <div class="ana-bloque">
+                <div class="ana-bloque-cab"><span class="ana-flex">Evolución del gasto con este proveedor</span></div>
+                <template for:each={gas.evolucion} for:item="r">
+                    <div key={r.l} class="ana-linea"><span class="ana-flex ana-linea-label">{r.l}</span><span class={r.clase}>{r.v}</span></div>
+                </template>
+            </div>
+            <div class="ana-bloque">
+                <div class="ana-bloque-cab"><span class="ana-flex">Peso en la cuenta de resultados</span></div>
+                <template for:each={gas.peso} for:item="r">
+                    <div key={r.l} class="ana-linea"><span class="ana-flex ana-linea-label">{r.l}</span><span class={r.clase}>{r.v}</span></div>
+                </template>
+            </div>
+        </template>
     </section>
 </template>
