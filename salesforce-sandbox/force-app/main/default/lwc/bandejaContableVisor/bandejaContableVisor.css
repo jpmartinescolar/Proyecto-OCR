@@ -32,5 +32,7 @@
 /* Mientras el lector de PDF carga: spinner estándar y lector oculto */
 .vis-cargando { position: absolute; inset: 0; z-index: 1; }
 .vis-marco-oculto { visibility: hidden; }
-/* Dentro del visor ampliado (modal): ocupa el alto disponible del modal */
-.vis-mesa-ampliada { height: calc(100vh - 13rem); min-height: 320px; }
+/* Dentro del visor ampliado: el alto lo da el documento (en un PDF, estiloMesa: una página al ancho;
+   con "Página completa", el alto de la ventana para que quepa entera) */
+.vis-mesa-ampliada { height: auto; min-height: 320px; overflow: visible; }
+.vis-mesa-ampliada.vis-mesa-pdf { height: calc(100vh - 12rem); }

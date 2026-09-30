@@ -1,5 +1,7 @@
 @import 'c/bandejaContableEstilos';
 
-/* El documento con un ancho de lectura máximo; el espacio de los lados cierra el modal */
-.amp-fondo { display: flex; justify-content: center; min-height: 100%; cursor: zoom-out; }
-.amp-documento { width: 100%; max-width: 1040px; cursor: auto; background: var(--bc-paper); border: 1px solid var(--bc-line); border-radius: 4px; overflow: hidden; }
+:host { display: block; }
+.amp-panel { background: var(--bc-paper); border: 1px solid var(--bc-line); border-radius: 4px; box-shadow: 0 12px 28px rgba(15, 27, 45, 0.25); overflow: hidden; }
+.amp-cabecera { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 16px; border-bottom: 1px solid var(--bc-line); }
+.amp-titulo { font: 700 14px var(--bc-font-display); color: var(--bc-brand-deep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.amp-ayuda { flex: 1; min-width: 0; font-size: 12px; color: var(--bc-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

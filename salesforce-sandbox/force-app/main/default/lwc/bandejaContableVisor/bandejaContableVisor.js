@@ -36,7 +36,8 @@ function tamanoPagina(texto) {
  * - Sin archivo: muestra el contenido del slot (la vista de ejemplo del documento).
  * - "Ampliar" (diseño v2 Híbrido): con el botón o con la lupa que aparece al pasar por el documento (y, en
  *   imagen y vista de ejemplo, pulsándolo) se avisa con el evento "ampliar" { pagina, previo } y el
- *   documento abre el modal bandejaContableVisorAmpliado, que usa otro visor en modo="ampliado". En un PDF
+ *   documento abre el panel bandejaContableVisorAmpliado, con otro visor en modo="ampliado" que mide lo
+ *   que el PDF: una página entera al ancho del panel (el resto de páginas, con el scroll del lector). En un PDF
  *   no hay clic ni doble clic: el lector del navegador (otro dominio) se queda con los eventos.
  * - Mientras el lector de PDF carga se ve el spinner estándar y el lector queda oculto: no se ve el PDF a
  *   medio ajustar. El lector se crea cuando ya se conoce el ancho del visor.
@@ -216,6 +217,13 @@ export default class BandejaContableVisor extends LightningElement {
         return `transform:scale(${escala}) rotate(${this.giro}deg);transform-origin:top center`;
     }
     get esAmpliado() { return this.modo === 'ampliado'; }
+    /** En el visor ampliado, el alto de una página del PDF ajustada al ancho: el panel mide lo que el documento */
+    get estiloMesa() {
+        if (!this.esAmpliado || !this.esPdf || !this.mesa.ancho || this.paginaCompleta) return '';
+        const p = this.pagina1 || { ancho: ANCHO_A4, alto: ANCHO_A4 * Math.SQRT2 };
+        const proporcion = this.tumbado ? p.ancho / p.alto : p.alto / p.ancho;
+        return `height:${Math.round((this.mesa.ancho - HUECO_LECTOR) * proporcion + HUECO_LECTOR)}px`;
+    }
     get claseMesa() {
         return 'vis-mesa' + (this.esPdf ? ' vis-mesa-pdf' : this.esAmpliado ? '' : ' vis-mesa-lupa') + (this.esAmpliado ? ' vis-mesa-ampliada' : '');
     }

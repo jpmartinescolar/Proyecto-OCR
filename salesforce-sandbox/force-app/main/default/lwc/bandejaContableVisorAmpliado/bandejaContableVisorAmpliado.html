@@ -1,13 +1,17 @@
 <template>
-    <lightning-modal-header label={titulo} description="Esc o clic fuera del documento para cerrar"></lightning-modal-header>
-    <lightning-modal-body>
-        <div class="amp-fondo" onclick={pulsarFondo}>
-            <c-bandeja-contable-visor class="amp-documento" modo="ampliado" url={url} mime={mime} nombre={nombre}
-                                      descarga-url={descargaUrl} paginas={paginas} pagina-inicial={pagina} previo={previo}>
-                <template lwc:if={papel}>
-                    <c-bandeja-contable-doc-papel papel={papel}></c-bandeja-contable-doc-papel>
-                </template>
-            </c-bandeja-contable-visor>
-        </div>
-    </lightning-modal-body>
+    <section class="amp-panel" role="dialog" aria-label={titulo}>
+        <header class="amp-cabecera">
+            <lightning-icon icon-name="utility:zoomin" size="x-small"></lightning-icon>
+            <span class="amp-titulo">{titulo}</span>
+            <span class="amp-ayuda">Esc o clic fuera del documento para cerrar</span>
+            <lightning-button-icon icon-name="utility:close" variant="bare" size="large" alternative-text="Cerrar" title="Cerrar (Esc)"
+                                   onclick={cerrar}></lightning-button-icon>
+        </header>
+        <c-bandeja-contable-visor modo="ampliado" url={url} mime={mime} nombre={nombre} descarga-url={descargaUrl}
+                                  paginas={paginas} pagina-inicial={pagina} previo={previo}>
+            <template lwc:if={papel}>
+                <c-bandeja-contable-doc-papel papel={papel}></c-bandeja-contable-doc-papel>
+            </template>
+        </c-bandeja-contable-visor>
+    </section>
 </template>

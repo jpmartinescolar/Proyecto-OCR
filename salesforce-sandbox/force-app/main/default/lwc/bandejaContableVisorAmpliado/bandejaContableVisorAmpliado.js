@@ -1,15 +1,15 @@
-import { api } from 'lwc';
-import LightningModal from 'lightning/modal';
+import { LightningElement, api } from 'lwc';
 
 /**
- * Visor ampliado del documento: modal estándar de Salesforce a pantalla completa (se abre con "Ampliar" o
- * con la lupa del visor). La plataforma lo coloca por encima de su cabecera y trae el cierre con Esc y con
- * la × y la gestión del foco. Además se cierra con un clic fuera del documento: el documento tiene un ancho
- * de lectura máximo y el espacio de los lados es de este modal.
- * El visor de dentro se crea ya con el tamaño final (sin estado intermedio) y reutiliza el PDF que había
- * descargado el visor de la página; el de la página no se toca, así que al cerrar no hay saltos.
+ * Visor ampliado del documento: panel que el documento coloca sobre la mitad izquierda de la pantalla,
+ * anclado a la página (se mueve con su scroll, así que nunca queda tapado para siempre por la cabecera de
+ * Salesforce). Mide lo que el PDF: el ancho del panel y el alto de una página a ese ancho.
+ * Se cierra con la × (estándar de Salesforce), con Esc o con un clic fuera (el fondo lo pone el documento).
+ * Descartado lightning-modal: solo tiene tamaños fijos, siempre centrado y sin cierre con clic fuera.
+ * El visor de dentro se crea ya con el tamaño final y reutiliza el PDF que había descargado el de la página;
+ * el de la página no se toca, así que al cerrar no hay saltos. Avisa con el evento "cerrar".
  */
-export default class BandejaContableVisorAmpliado extends LightningModal {
+export default class BandejaContableVisorAmpliado extends LightningElement {
     @api url;
     @api mime;
     @api nombre;
@@ -19,10 +19,27 @@ export default class BandejaContableVisorAmpliado extends LightningModal {
     @api previo; // { blob, pagina1 } del visor de la página: evita volver a descargar el PDF
     @api papel; // vista de ejemplo cuando no hay archivo
 
+    connectedCallback() {
+        this.alTeclear = (e) => { if (e.key === 'Escape') this.cerrar(); };
+        window.addEventListener('keydown', this.alTeclear);
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('keydown', this.alTeclear);
+    }
+
+    renderedCallback() {
+        // Foco en cerrar: Esc funciona desde el primer momento y el lector de pantalla anuncia el panel
+        if (!this.enfocado) {
+            this.enfocado = true;
+            const x = this.template.querySelector('lightning-button-icon');
+            if (x) x.focus();
+        }
+    }
+
     get titulo() { return this.nombre || 'Documento'; }
 
-    /** Clic en el espacio de alrededor del documento (no dentro de él) */
-    pulsarFondo(e) {
-        if (e.target === e.currentTarget) this.close();
+    cerrar() {
+        this.dispatchEvent(new CustomEvent('cerrar'));
     }
 }

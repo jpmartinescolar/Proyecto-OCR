@@ -1,6 +1,5 @@
 import { LightningElement, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import BandejaContableVisorAmpliado from 'c/bandejaContableVisorAmpliado';
 import getBandeja from '@salesforce/apex/BandejaContableController.getBandeja';
 import getDatosCliente from '@salesforce/apex/BandejaContableController.getDatosCliente';
 import listarArchivosGoogle from '@salesforce/apex/BandejaContableController.listarArchivosGoogle';
@@ -120,6 +119,7 @@ export default class BandejaContableDocumento extends LightningElement {
     ncBorrador = null; // { motivo, comentario, avisar }
     avisoValidar = null; // validar con riesgo: { opt, skTitle, skText, to, subject, body, motivo }
     skillAbrir = null;
+    ampliado = null; // visor ampliado abierto: { pagina, previo, estilo }
 
     v = {};
 
@@ -902,17 +902,26 @@ export default class BandejaContableDocumento extends LightningElement {
     }
 
     // ===== Visor =====
-    /** "Ampliar" o la lupa del visor: el documento en el modal a pantalla completa */
+    /**
+     * "Ampliar" o la lupa del visor: el panel del visor ampliado sobre la mitad izquierda de la pantalla,
+     * desde donde está el visor y anclado a la página (se mueve con su scroll). En pantallas estrechas, donde
+     * la mitad no sería más grande que el visor, ocupa casi todo el ancho.
+     */
     ampliarDocumento(e) {
         const d = e.detail || {};
-        const visor = this.v.visor;
-        BandejaContableVisorAmpliado.open({
-            size: 'full',
-            label: visor.nombre || 'Documento',
-            url: visor.url, mime: visor.mime, nombre: visor.nombre, descargaUrl: visor.descargaUrl, paginas: visor.paginas,
-            pagina: d.pagina, previo: d.previo,
-            papel: visor.url ? null : this.v.papel
-        });
+        const main = this.template.querySelector('main');
+        const visor = this.template.querySelector('.doc-visor');
+        if (!main || !visor) return;
+        const m = main.getBoundingClientRect(), r = visor.getBoundingClientRect();
+        const margen = 16;
+        let ancho = Math.round(window.innerWidth / 2 - r.left - margen);
+        if (ancho < r.width * 1.3) ancho = Math.round(Math.min(m.width, window.innerWidth - 2 * margen));
+        const left = Math.max(0, Math.min(r.left - m.left, m.width - ancho));
+        this.ampliado = { pagina: d.pagina, previo: d.previo, estilo: `top:${Math.round(r.top - m.top)}px;left:${Math.round(left)}px;width:${ancho}px` };
+    }
+
+    cerrarAmpliado() {
+        this.ampliado = null;
     }
 
     // ===== Acciones de cabecera =====

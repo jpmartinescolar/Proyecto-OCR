@@ -433,6 +433,15 @@
                 </div>
             </div>
 
+            <!-- ===== Visor ampliado: mitad izquierda, anclado a la página; un clic en el fondo lo cierra ===== -->
+            <template lwc:if={ampliado}>
+                <div class="doc-amp-fondo" onclick={cerrarAmpliado}></div>
+                <c-bandeja-contable-visor-ampliado class="doc-amp" style={ampliado.estilo}
+                                                   url={v.visor.url} mime={v.visor.mime} nombre={v.visor.nombre} descarga-url={v.visor.descargaUrl}
+                                                   paginas={v.visor.paginas} pagina={ampliado.pagina} previo={ampliado.previo} papel={v.papel}
+                                                   oncerrar={cerrarAmpliado}></c-bandeja-contable-visor-ampliado>
+            </template>
+
             <!-- ===== Buscador de cuentas contables ===== -->
             <template lwc:if={v.cuentas}>
                 <c-bandeja-contable-cuentas valor={v.cuentas.valor} grupo={v.cuentas.grupo} solo-codigo={v.cuentas.soloCodigo} ancla={v.cuentas.ancla}
